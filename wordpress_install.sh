@@ -5,7 +5,7 @@
 SHUF=$(shuf -i 13-15 -n 1)
 MYSQL_PASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 PW_FILE=/var/mysql_password.txt
-WPDBNAME=worpdress_by_www_techandme_se"
+WPDBNAME=worpdress_by_www_techandme_se
 WPDBUSER=wordpress_user
 WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 DBTABLE=wp_
@@ -26,6 +26,9 @@ GITHUB_REPO=https://raw.githubusercontent.com/enoch85/wordpress-vm/master/
         echo
         exit 1
 fi
+
+# Install perl 
+apt-get install perl -y
 
 # Create $SCRIPTS dir
       	if [ -d $SCRIPTS ]; then
@@ -129,25 +132,21 @@ apt-get install -y \
 # Download and install Wordpress
 echo "Downloading..."
 curl -O https://wordpress.org/latest.tar.gz
-#unzip wordpress
 echo "Unpacking..."
 tar -zxf latest.tar.gz
-#move /wordpress/* files to this dir
+mkdir -p $WPATH
 mv wordpress/* $WPATH
-rm wordpress/
+echo "Cleaning up..."
+rm -R  wordpress/
+rm latest.tar.gz
 
 # Create wp config
 mv $WPATH/wp-config-sample.php $WPATH/wp-config.php
 
 # Set WP salts
-perl -i -pe'
-  BEGIN {
-    @chars = ("a" .. "z", "A" .. "Z", 0 .. 9);
-    push @chars, split //, "!@#$%^&*()-_ []{}<>~\`+=,.;:/?|";
-    sub salt { join "", map $chars[ rand @chars ], 1 .. 64 }
-  }
-  s/put your unique phrase here/salt()/ge
-' $WPATH/wp-config.php
+SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
+STRING='put your unique phrase here'
+printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s $WPATH/wp-config.php
 
 #Create uploads folder and set permissions
 mkdir $WPATH/wp-content/uploads
@@ -155,26 +154,6 @@ chmod 775 $WPATH/wp-content/uploads
 
 #Remove readme.html
 rm $WPATH/readme.html
-#debug extras
-perl -pi -e "s/define\('WP_DEBUG', false\);/define('WP_DEBUG', false);\n\/** Useful extras *\/ \nif (WP_DEBUG) { \n\tdefine('WP_DEBUG_LOG', true); \n\tdefine('WP_DEBUG_DISPLAY', false); \n\t\@ini_set('display_errors',0);\n}/" wp-config.php
-# Key access to mods
-
-
-# Create .htaccess file
-cat > $WPATH/wp-content/uploads/.htaccess <<'EOL'
-# Protect this file
-<Files .htaccess>
-Order Deny,Allow
-Deny from All
-</Files>
-# whitelist file extensions to prevent executables being
-# accessed if they get uploaded
-order deny,allow
-deny from all
-<Files ~ ".(docx?|xlsx?|pptx?|txt|pdf|xml|css|jpe?g|png|gif)$">
-allow from all
-</Files>
-EOL
 
 # Secure permissions
 wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
