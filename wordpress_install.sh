@@ -22,13 +22,10 @@ GITHUB_REPO=https://raw.githubusercontent.com/enoch85/wordpress-vm/master/
 # Check if root
         if [ "$(whoami)" != "root" ]; then
         echo
-        echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/owncloud_install_production.sh"
+        echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress_install.sh"
         echo
         exit 1
 fi
-
-# Install perl 
-apt-get install perl -y
 
 # Create $SCRIPTS dir
       	if [ -d $SCRIPTS ]; then
@@ -54,6 +51,9 @@ fi
 
 # Update system
 apt-get update
+
+# Install perl
+apt-get install perl -y
 
 # Set locales
 sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure locales
@@ -107,8 +107,8 @@ a2enmod rewrite \
         setenvif
 
 # Set hostname and ServerName
-sudo sh -c "echo 'ServerName owncloud' >> /etc/apache2/apache2.conf"
-sudo hostnamectl set-hostname owncloud
+sudo sh -c "echo 'ServerName wordpress' >> /etc/apache2/apache2.conf"
+sudo hostnamectl set-hostname wordpress
 service apache2 restart
 
 # Install PHP 7.0
@@ -165,10 +165,10 @@ cd $WPATH
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
-wp --info
+sudo -u wordpress -i -- wp --info
 
 # Create DB and write to wp-config.php
-wp db create
+sudo -u wordpress -i -- wp db create
 # Set database details with perl find and replace
 perl -pi -e "s'database_name_here'"$WPDBNAME"'g" wp-config.php
 perl -pi -e "s'username_here'"$WPDBUSER"'g" wp-config.php
@@ -267,12 +267,6 @@ fi
 bash $SCRIPTS/install-redis-php-7.sh
 rm $SCRIPTS/install-redis-php-7.sh
 
-## Set config values
-#
-#
-#
-#
-
 # Set secure permissions final
 bash $SCRIPTS/wp-permissions.sh
 
@@ -291,11 +285,11 @@ fi
         wget -q $GITHUB_REPO/change-ocadmin-profile.sh -P $SCRIPTS
 fi
 # Get startup-script for root
-        if [ -f $SCRIPTS/owncloud-startup-script.sh ];
+        if [ -f $SCRIPTS/wordpress-startup-script.sh ];
                 then
-                echo "owncloud-startup-script.sh exists"
+                echo "wordpress-startup-script.sh exists"
                 else
-        wget -q $GITHUB_REPO/owncloud-startup-script.sh -P $SCRIPTS
+        wget -q $GITHUB_REPO/wordpress-startup-script.sh -P $SCRIPTS
 fi
 
 # Welcome message after login (change in /home/ocadmin/.profile
@@ -325,14 +319,14 @@ else
 	sleep 2
 fi
 # Change ocadmin profile
-        	bash $SCRIPTS/change-ocadmin-profile.sh
+        	bash $SCRIPTS/change-wordpress-profile.sh
 if [[ $? > 0 ]]
 then
-	echo "change-ocadmin-profile.sh were not executed correctly."
+	echo "change-wordpress-profile.sh were not executed correctly."
 	sleep 10
 else
-	echo "change-ocadmin-profile.sh executed OK."
-	rm $SCRIPTS/change-ocadmin-profile.sh
+	echo "change-wordpress-profile.sh executed OK."
+	rm $SCRIPTS/change-wordpress-profile.sh
 	sleep 2
 fi
 

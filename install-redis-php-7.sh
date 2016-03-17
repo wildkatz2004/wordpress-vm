@@ -83,10 +83,13 @@ rm $SCRIPTS/redis-stable.tar.gz
 
 # Get the latest plugin for Wordpress
 wget -q https://downloads.wordpress.org/plugin/redis-cache.$VERSION.zip -P /var/www/html/wordpress/wp-content/plugins
+unzip /var/www/html/wordpress/wp-content/plugins/redis-cache.$VERSION.zip
+rm redis-cache.$VERSION.zip
+
 # activate plugin
-wp plugin activate redis-object-cache
+sudo -u wordpress -i -- wp plugin activate redis-object-cache
 
 # Cleanup
-apt-get purge git -y
+apt-get purge git binutils build-essential cpp cpp-4.8 dpkg-dev fakeroot g++ g++-4.8 gcc gcc-4.8 libalgorithm-diff-perl libalgorithm-diff-xs-perl libalgorithm-merge-perl libasan0 libatomic1 libc-dev-bin libc6-dev libcloog-isl4 libdpkg-perl libfakeroot libfile-fcntllock-perl libgcc-4.8-dev libgmp10 libgomp1 libisl10 libitm1 libmpc3 libmpfr4 libquadmath0 libstdc++-4.8-dev libtsan0 linux-libc-dev make manpages-dev
 
 exit 0
