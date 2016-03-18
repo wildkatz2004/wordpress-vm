@@ -143,8 +143,10 @@ mkdir $WPATH
 cd $WPATH
 
 # Download Wordpress
-sudo -u wordpress -i -- wp core download
+sudo -u wordpress -i -- wp core download --force
 sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=WordPress by www.techandme.se --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se --skip-email
+echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
+chmod wordpress:wordpress /var/adminpass.txt
 
 # Populate DB
 mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
