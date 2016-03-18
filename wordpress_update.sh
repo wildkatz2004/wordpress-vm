@@ -5,7 +5,7 @@
 # Tested on Ubuntu Server 14.04.
 #
 
-THEME_NAME=""
+WPATH=/var/www/html/wordpress
 
 # Must be root
 [[ `id -u` -eq 0 ]] || { echo "Must be root to run script, in Ubuntu type: sudo -i"; exit 1; }
@@ -13,6 +13,17 @@ THEME_NAME=""
 # System Upgrade
 sudo apt-get update
 sudo aptitude full-upgrade -y
+cd $WPATH
+sudo -u wordpress -i -- wp db export mysql_backup.sql
+sudo -u wordpress -i -- wp core update --force
+sudo -u wordpress -i -- wp plugin update
+sudo -u wordpress -i -- wp core update-db
+sudo -u wordpress -i -- wp db optimize
+echo
+echo "This is the current version installed:
+echo
+sudo -u wordpress -i -- wp wp core version --extra
+sleep 5
 
 # Set secure permissions
 FILE="/var/scripts/wp-permissions.sh"

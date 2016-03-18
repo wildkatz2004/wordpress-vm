@@ -2,17 +2,17 @@
 
 # Tech and Me, ©2016 - www.techandme.se
 
-SHUF=$(shuf -i 13-15 -n 1)
+SHUF=$(shuf -i 20-25 -n 1)
 MYSQL_PASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 PW_FILE=/var/mysql_password.txt
 WPDBNAME=worpdress_by_www_techandme_se
 WPDBUSER=wordpress_user
 WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-DBTABLE=wp_
 SCRIPTS=/var/scripts
 HTML=/var/www/html
 WPATH=$HTML/wordpress
 SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
+HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
 IFCONFIG="/sbin/ifconfig"
 IFACE=$($IFCONFIG | grep HWaddr | cut -d " " -f 1)
 ADDRESS=$($IFCONFIG | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
@@ -62,7 +62,7 @@ sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure locales
 echo
 echo -e "Your MySQL root password is: \e[32m$MYSQL_PASS\e[0m"
 echo "Please save this somewhere safe. The password is also saved in this file: $PW_FILE."
-echo "$MYSQL_PASS" > $PW_FILE
+echo "Root DB: $MYSQL_PASS" > $PW_FILE
 chmod 600 $PW_FILE
 echo -e "\e[32m"
 read -p "Press any key to continue..." -n1 -s
@@ -127,71 +127,65 @@ apt-get install -y \
         php7.0-json \
         php7.0-curl \
 	php7.0-xml \
-	php7.0-zip \
-
-# Download and install Wordpress
-echo "Downloading..."
-curl -O https://wordpress.org/latest.tar.gz
-echo "Unpacking..."
-tar -zxf latest.tar.gz
-mkdir -p $WPATH
-mv wordpress/* $WPATH
-echo "Cleaning up..."
-rm -R  wordpress/
-rm latest.tar.gz
-
-# Create wp config
-mv $WPATH/wp-config-sample.php $WPATH/wp-config.php
-
-# Set WP salts
-SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
-STRING='put your unique phrase here'
-printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s $WPATH/wp-config.php
-
-#Create uploads folder and set permissions
-mkdir $WPATH/wp-content/uploads
-chmod 775 $WPATH/wp-content/uploads
-
-#Remove readme.html
-rm $WPATH/readme.html
-
-# Secure permissions
-wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
-bash $SCRIPTS/wp-permissions.sh
+	php7.0-zip
 
 # Download wp-cli.phar to be able to create database
 # and activate apps
-cd $WPATH
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
 sudo -u wordpress -i -- wp --info
 
-# Create DB and write to wp-config.php
-sudo -u wordpress -i -- wp db create
-# Set database details with perl find and replace
-perl -pi -e "s'database_name_here'"$WPDBNAME"'g" wp-config.php
-perl -pi -e "s'username_here'"$WPDBUSER"'g" wp-config.php
-perl -pi -e "s'password_here'"$WPDBPASS"'g" wp-config.php
-perl -pi -e "s/\'wp_\'/\'$DBTABLE\'/g" wp-config.php
+# Download Wordpress
+sudo -u wordpress -i -- wp download --path=$WPATH
+cd $WPATH
 
-# Plan B
+# Populate DB
+mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
+CREATE DATABASE $WPDBNAME;
+CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
+GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
+FLUSH PRIVILEGES;
+MYSQL_SCRIPT
+sudo -u wordpress -i -- wp core config --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost
+echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
-#root_option_file="/var/lib/mysql/root.ini"
-#echo "[client]" >> $root_option_file
-#echo "socket=/var/lib/mysql/mysql.sock" >> $root_option_file
-#echo "user=root" >> $root_option_file
-#chmod 600 $root_option_file
-#mysql --defaults-file=$root_option_file <<SQL
-#ALTER USER 'root'@'localhost' IDENTIFIED BY '$$MYSQL_PASS';
-#CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$$WPDBPASS';
-#CREATE DATABASE $WPDBNAME;
-#GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
-#SQL
-# echo "password=$root_password" >> $root_option_file
+sudo -u wordpress -i -- wp core version
+sleep 3
 
-# Prepare cron.php to be run every 15 minutes
-crontab -u www-data -l | { cat; echo "*/15  *  *  *  * php -f $OCPATH/cron.php > /dev/null 2>&1"; } | crontab -u www-data -
+# Install Apps
+sudo -u wordpress -i -- wp plugin install twitter-tweets --activate
+sudo -u wordpress -i -- wp plugin install social-pug --activate
+sudo -u wordpress -i -- wp plugin install wp-mail-smtp --activate
+
+# set pretty urls
+wp rewrite structure '/%postname%/' --hard
+wp rewrite flush --hard
+
+# delete akismet and hello dolly
+wp plugin delete akismet
+wp plugin delete hello
+
+# Secure permissions
+wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
+bash $SCRIPTS/wp-permissions.sh
+
+# Hardening security
+#create .htaccess to protect uploads directory
+cat > $WPATH/wp-content/uploads/.htaccess <<'EOL'
+# Protect this file
+<Files .htaccess>
+Order Deny,Allow
+Deny from All
+</Files>
+# whitelist file extensions to prevent executables being
+# accessed if they get uploaded
+order deny,allow
+deny from all
+<Files ~ ".(docx?|xlsx?|pptx?|txt|pdf|xml|css|jpe?g|png|gif)$">
+allow from all
+</Files>
+EOL
 
 # Change values in php.ini (increase max file size)
 # max_execution_time
@@ -222,12 +216,12 @@ else
 ### YOUR SERVER ADDRESS ###
 #    ServerAdmin admin@example.com
 #    ServerName example.com
-#    ServerAlias subdomain.example.com
+#    ServerAlias www.example.com
 
 ### SETTINGS ###
     DocumentRoot $HTML
     <Directory $WPATH>
-    Options Indexes FollowSymLinks
+    Options Indexes FollowSymLinks MultiViews
     AllowOverride All
     Require all granted
     </Directory>
@@ -250,9 +244,40 @@ echo "$SSL_CONF was successfully created"
 sleep 3
 fi
 
+# Generate $HTTP_CONF
+if [ -f $HTTP_CONF ];
+        then
+        echo "Virtual Host exists"
+else
+        touch "$HTTP_CONF"
+        cat << HTTP_CREATE > "$HTTP_CONF"
+
+<VirtualHost *:80>
+
+### YOUR SERVER ADDRESS ###
+#    ServerAdmin admin@example.com
+#    ServerName example.com
+#    ServerAlias www.example.com
+
+### SETTINGS ###
+    DocumentRoot $HTTP
+    <Directory $WPATH>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Require all granted
+    </Directory>
+
+</VirtualHost>
+HTTP_CREATE
+echo "$HTTP_CONF was successfully created"
+sleep 3
+fi
+
 # Enable new config
 a2ensite $SSL_CONF
+a2ensite $HTTP_CONF
 a2dissite default-ssl
+a2dissite 000-default
 service apache2 restart
 
 # Get script for Redis
@@ -277,12 +302,12 @@ bash $SCRIPTS/wp-permissions.sh
                 else
         wget -q $GITHUB_REPO/change-root-profile.sh -P $SCRIPTS
 fi
-# Change ocadmin .bash_profile
-        if [ -f $SCRIPTS/change-ocadmin-profile.sh ];
+# Change wordpress .bash_profile
+        if [ -f $SCRIPTS/change-wordpress-profile.sh ];
                 then
-                echo "change-ocadmin-profile.sh  exists"
+                echo "change-wordpress-profile.sh  exists"
                 else
-        wget -q $GITHUB_REPO/change-ocadmin-profile.sh -P $SCRIPTS
+        wget -q $GITHUB_REPO/change-wordpress-profile.sh -P $SCRIPTS
 fi
 # Get startup-script for root
         if [ -f $SCRIPTS/wordpress-startup-script.sh ];
@@ -330,7 +355,7 @@ else
 	sleep 2
 fi
 
-# Allow ocadmin to run theese scripts
+# Allow wordpress to run theese scripts
 chown wordpress:wordpress $SCRIPTS/instruction.sh
 chown wordpress:wordpress $SCRIPTS/history.sh
 

@@ -118,13 +118,9 @@ cat << EOMSTART
 |								|
 |    ################# Tech and Me - 2016 #################	|
 +---------------------------------------------------------------+
-
 EOMSTART
-echo "| ####################### Tech and Me - 2016 ####################### |"
-echo "+--------------------------------------------------------------------+"
 echo -e "\e[32m"
 read -p "Press any key to start the script..." -n1 -s
-clear
 echo -e "\e[0m"
 
 # Install phpMyadmin
@@ -179,10 +175,14 @@ echo -e "\e[32m"
 read -p "Press any key to set static IP..." -n1 -s
 clear
 echo -e "\e[0m"
-sudo /init.d/networking restart
+ifdown $IFACE
+sleep 2
+ifup $IFACE
 sleep 2
 bash $SCRIPTS/ip.sh
-sudo /init.d/networking restart
+ifdown $IFACE
+sleep 2
+ifup $IFACE
 sleep 2
 echo
 echo "Testing if network is OK..."
@@ -199,7 +199,9 @@ echo -e "\e[0m"
 nano /etc/network/interfaces
 clear
 echo "Testing if network is OK..."
-/init.d/networking restart
+ifdown $IFACE
+sleep 2
+ifup $IFACE
 sleep 2
 echo
 bash $SCRIPTS/test_connection.sh
