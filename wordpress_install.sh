@@ -2,12 +2,14 @@
 
 # Tech and Me, ©2016 - www.techandme.se
 
-SHUF=$(shuf -i 20-25 -n 1)
+SHUF=$(shuf -i 15-20 -n 1)
 MYSQL_PASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 PW_FILE=/var/mysql_password.txt
 WPDBNAME=worpdress_by_www_techandme_se
 WPDBUSER=wordpress_user
 WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
+WPADMINUSER=change_this_user#
+WPADMINPASS=(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 SCRIPTS=/var/scripts
 HTML=/var/www/html
 WPATH=$HTML/wordpress
@@ -142,6 +144,7 @@ cd $WPATH
 
 # Download Wordpress
 sudo -u wordpress -i -- wp core download
+sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=WordPress by www.techandme.se --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se --skip-email
 
 # Populate DB
 mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
