@@ -10,8 +10,7 @@ cat << WELCOME
 |    This WordPress appliance comes with PHP 7 and Redis Cache,		|
 |    for best performance. The site(s) load very fast!			|
 |									|
-|    To run the setup script, just type: owncloud			|
-|    Password: wordpress 						|
+|    To run the setup script, just type: wordpress			|
 |									|
 |    If you have any questions please email me: daniel@techandme.se	|
 +-----------------------------------------------------------------------+

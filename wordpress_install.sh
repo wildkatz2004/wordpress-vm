@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Tech and Me, ©2016 - www.techandme.se
@@ -9,7 +10,7 @@ WPDBNAME=worpdress_by_www_techandme_se
 WPDBUSER=wordpress_user
 WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 WPADMINUSER=change_this_user#
-WPADMINPASS=(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
+WPADMINPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 SCRIPTS=/var/scripts
 HTML=/var/www/html
 WPATH=$HTML/wordpress
@@ -138,15 +139,23 @@ chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
 sudo -u wordpress -i -- wp --info
 
-# Create dir and cd into it...
+# Create dir
 mkdir $WPATH
-cd $WPATH
 
 # Download Wordpress
-sudo -u wordpress -i -- wp core download --force
-sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=WordPress by www.techandme.se --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se --skip-email
-echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
-chmod wordpress:wordpress /var/adminpass.txt
+echo "Downloading..."
+curl -O https://wordpress.org/latest.tar.gz
+echo "Unpacking..."
+tar -zxf latest.tar.gz
+mv wordpress/* $WPATH
+echo "Cleaning up..."
+rm -R  wordpress/
+rm latest.tar.gz
+mv $WPATH/wp-config.sample.php $WPATH/wp-config.php
+mkdir $WPATH/wp-content/uploads
+
+cd $WPATH
+# sudo -u wordpress -i -- wp core download --force
 
 # Populate DB
 mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
@@ -157,6 +166,11 @@ FLUSH PRIVILEGES;
 MYSQL_SCRIPT
 sudo -u wordpress -i -- wp core config --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
+
+# Install Wordpress
+sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=WordPress by www.techandme.se --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@t$
+echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
+chown wordpress:wordpress /var/adminpass.txt
 
 sudo -u wordpress -i -- wp core version
 sleep 3
@@ -268,7 +282,7 @@ else
 #    ServerAlias www.example.com
 
 ### SETTINGS ###
-    DocumentRoot $HTTP
+    DocumentRoot $HTML
     <Directory $WPATH>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride All
@@ -282,8 +296,8 @@ sleep 3
 fi
 
 # Enable new config
-a2ensite $SSL_CONF
-a2ensite $HTTP_CONF
+a2ensite wordpress_port_443.conf
+a2ensite wordpress_port_80.conf
 a2dissite default-ssl
 a2dissite 000-default
 service apache2 restart

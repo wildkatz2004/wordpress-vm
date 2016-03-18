@@ -68,10 +68,10 @@ fi
                 # Sets secure permissions after upgrade
         if [ -f $SCRIPTS/wp-permissions.sh ];
                 then
-                rm $SCRIPTS/wp_permissions.sh
-                wget -q $GITHUB_REPO/wp_permissions.sh
+                rm $SCRIPTS/wp-permissions.sh
+                wget -q $GITHUB_REPO/wp-permissions.sh
                 else
-        wget -q $GITHUB_REPO/wp_permissions.sh -P $SCRIPTS
+        wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
 fi
                 # Get figlet Tech and Me
         if [ -f $SCRIPTS/techandme.sh ];
@@ -260,9 +260,9 @@ clear
 # Success!
 echo -e "\e[32m"
 echo    "+--------------------------------------------------------------------+"
-echo    "| You have sucessfully installed Wordpress! System will now reboot... |"
+echo    "| You have sucessfully installed Wordpress! System will now reboot...|"
 echo    "|                                                                    |"
-echo -e "|         \e[0mLogin to Wordpress in your browser:\e[36m" $ADDRESS"\e[32m           |"
+echo -e "|         \e[0mLogin to Wordpress in your browser:\e[36m" $ADDRESS"\e[32m          |"
 echo    "|                                                                    |"
 echo -e "|         \e[0mPublish your server online! \e[36mhttps://goo.gl/iUGE2U\e[32m          |"
 echo    "|                                                                    |"
@@ -280,10 +280,10 @@ rm $SCRIPTS/wordpress-startup-script.sh
 rm $SCRIPTS/ip.sh
 rm $SCRIPTS/test_connection.sh
 rm $SCRIPTS/instruction.sh
-sed -i "s|instruction.sh|techandme.sh|g" /home/ocadmin/.bash_profile
+sed -i "s|instruction.sh|techandme.sh|g" /home/wordpress/.bash_profile
 cat /dev/null > ~/.bash_history
 cat /dev/null > /var/spool/mail/root
-cat /dev/null > /var/spool/mail/ocadmin
+cat /dev/null > /var/spool/mail/wordpress
 cat /dev/null > /var/log/apache2/access.log
 cat /dev/null > /var/log/apache2/error.log
 cat /dev/null > /var/log/cronjobs_success.log
