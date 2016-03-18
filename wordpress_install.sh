@@ -151,7 +151,9 @@ mv wordpress/* $WPATH
 echo "Cleaning up..."
 rm -R  wordpress/
 rm latest.tar.gz
-mv $WPATH/wp-config.sample.php $WPATH/wp-config.php
+
+# Create missing files and folders
+mv $WPATH/wp-config-sample.php $WPATH/wp-config.php
 mkdir $WPATH/wp-content/uploads
 
 cd $WPATH
@@ -168,7 +170,7 @@ sudo -u wordpress -i -- wp core config --dbname=$WPDBNAME --dbuser=$WPDBUSER --d
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
 # Install Wordpress
-sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=WordPress by www.techandme.se --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@t$
+sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@t$
 echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
