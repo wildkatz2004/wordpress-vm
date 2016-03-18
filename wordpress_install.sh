@@ -136,9 +136,12 @@ chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
 sudo -u wordpress -i -- wp --info
 
-# Download Wordpress
-sudo -u wordpress -i -- wp download --path=$WPATH
+# Create dir and cd into it...
+mkdir $WPATH
 cd $WPATH
+
+# Download Wordpress
+sudo -u wordpress -i -- wp core download
 
 # Populate DB
 mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
@@ -159,12 +162,12 @@ sudo -u wordpress -i -- wp plugin install social-pug --activate
 sudo -u wordpress -i -- wp plugin install wp-mail-smtp --activate
 
 # set pretty urls
-wp rewrite structure '/%postname%/' --hard
-wp rewrite flush --hard
+sudo -u wordpress -i -- wp rewrite structure '/%postname%/' --hard
+sudo -u wordpress -i -- wp rewrite flush --hard
 
 # delete akismet and hello dolly
-wp plugin delete akismet
-wp plugin delete hello
+sudo -u wordpress -i -- wp plugin delete akismet
+sudo -u wordpress -i -- wp plugin delete hello
 
 # Secure permissions
 wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
