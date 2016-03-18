@@ -142,22 +142,22 @@ sudo -u wordpress -i -- wp --info
 # Create dir
 mkdir $WPATH
 
-# Download Wordpress
-echo "Downloading..."
-curl -O https://wordpress.org/latest.tar.gz
-echo "Unpacking..."
-tar -zxf latest.tar.gz
-mv wordpress/* $WPATH
-echo "Cleaning up..."
-rm -R  wordpress/
-rm latest.tar.gz
+# Download Wordpress (PLAN B)
+#echo "Downloading..."
+#curl -O https://wordpress.org/latest.tar.gz
+#echo "Unpacking..."
+#tar -zxf latest.tar.gz
+#mv wordpress/* $WPATH
+#echo "Cleaning up..."
+#rm -R  wordpress/
+#rm latest.tar.gz
 
 # Create missing files and folders
-mv $WPATH/wp-config-sample.php $WPATH/wp-config.php
-mkdir $WPATH/wp-content/uploads
+#mv $WPATH/wp-config-sample.php $WPATH/wp-config.php
+#mkdir $WPATH/wp-content/uploads
 
 cd $WPATH
-# sudo -u wordpress -i -- wp core download --force
+sudo -u wordpress -i -- wp core download --force --debug --path=$WPATH
 
 # Populate DB
 mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
@@ -170,11 +170,11 @@ sudo -u wordpress -i -- wp core config --dbname=$WPDBNAME --dbuser=$WPDBUSER --d
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
 # Install Wordpress
-sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@t$
+sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se
 echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
-sudo -u wordpress -i -- wp core version
+sudo -u wordpress -i -- wp core version 
 sleep 3
 
 # Install Apps
@@ -379,13 +379,13 @@ else
 	sleep 2
 fi
 
-# Allow wordpress to run theese scripts
-chown wordpress:wordpress $SCRIPTS/instruction.sh
-chown wordpress:wordpress $SCRIPTS/history.sh
-
 # Make $SCRIPTS excutable 
 chmod +x -R $SCRIPTS
 chown root:root -R $SCRIPTS
+
+# Allow wordpress to run theese scripts
+chown wordpress:wordpress $SCRIPTS/instruction.sh
+chown wordpress:wordpress $SCRIPTS/history.sh
 
 # Upgrade
 aptitude full-upgrade -y

@@ -115,7 +115,7 @@ apt-get purge -y \
 	libmpfr4 \
 	libquadmath0 \
 	libstdc++-4.8-dev \
-	libtsan0 ± \
+	libtsan0 \
 	linux-libc-dev \
 	make \
 	manpages-dev
