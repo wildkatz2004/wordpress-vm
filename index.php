@@ -71,7 +71,7 @@ a:active {
 <div class="logo">
 </div>
 <div class="logotext">
-<h2>Wordpress VM - <a href="https://www.techandme.se/pre-configured-wordpress-installaton/" target="_blank">Tech and Me</a></h2>
+<h2>Wordpress VM - <a href="https://www.techandme.se/pre-configured-wordpress-vm/" target="_blank">Tech and Me</a></h2>
 </div>
 <br>
 <div class="information">
