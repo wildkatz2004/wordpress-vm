@@ -144,6 +144,7 @@ cat << YML_CREATE > "$WPATH/wp-cli.yml"
 apache_modules:
   - mod_rewrite
 YML_CREATE
+
 wp --info --allow-root
 
 # Create dir
