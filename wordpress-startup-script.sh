@@ -109,6 +109,7 @@ cat << EOMSTART
 |   This script will do the final setup for you                 |
 |                                                               |
 |   - Set static IP                                             |
+|   - Create a new WP user                                      |
 |   - Upgrade the system                                        |
 |   - Activate SSL (Lets Encrypt)                               |
 |   - Install phpMyadmin					|
@@ -207,6 +208,14 @@ echo
 bash $SCRIPTS/test_connection.sh
 sleep 2
 clear
+
+# Update WP SiteURL
+grep "address" /etc/network/interfaces > ip.txt
+sed -i "s|                address ||g" ip.txt
+NEWADDRESS=$(grep "." ip.txt)
+echo "http://$NEWADDRESS/wordpress" > ip.txt
+wp option update siteurl < ip.txt --allow-root --path=$WPATH
+rm ip.txt
 
 # Change password
 echo -e "\e[0m"
@@ -341,6 +350,7 @@ rm $SCRIPTS/wordpress-startup-script.sh
 rm $SCRIPTS/ip.sh
 rm $SCRIPTS/test_connection.sh
 rm $SCRIPTS/instruction.sh
+rm $WPATH/wp-cli.yml
 sed -i "s|instruction.sh|techandme.sh|g" /home/wordpress/.bash_profile
 cat /dev/null > ~/.bash_history
 cat /dev/null > /var/spool/mail/root

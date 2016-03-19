@@ -156,8 +156,20 @@ MYSQL_SCRIPT
 wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
+# Create wp-cli.yml
+touch $WPATH/wp-cli.yml
+cat << YML_CREATE > "$WPATH/wp-cli.yml"
+apache_modules:
+  - mod_rewrite
+core config:
+extra-php: |
+		define( 'WP_DEBUG', false );
+		define( 'WP_CACHE_KEY_SALT', 'wpredis_' );
+		define('WP_REDIS_MAXTTL', 9600);
+SSL_CREATE
+
 # Install Wordpress
-wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se
+wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
 echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
