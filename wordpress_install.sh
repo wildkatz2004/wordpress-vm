@@ -137,25 +137,12 @@ apt-get install -y \
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
-wp --info
+wp --info --allow-root
 
 # Create dir
 mkdir $WPATH
 
-# Download Wordpress (PLAN B)
-#echo "Downloading..."
-#curl -O https://wordpress.org/latest.tar.gz
-#echo "Unpacking..."
-#tar -zxf latest.tar.gz
-#mv wordpress/* $WPATH
-#echo "Cleaning up..."
-#rm -R  wordpress/
-#rm latest.tar.gz
-
-# Create missing files and folders
-#mv $WPATH/wp-config-sample.php $WPATH/wp-config.php
-#mkdir $WPATH/wp-content/uploads
-
+# Download Wordpress
 cd $WPATH
 wp core download --allow-root --force --debug --path=$WPATH
 
@@ -170,8 +157,8 @@ wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDB
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
 # Install Wordpress
-wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se
-echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
+wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se
+echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
 wp core version --allow-root
@@ -195,7 +182,7 @@ wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
 bash $SCRIPTS/wp-permissions.sh
 
 # Hardening security
-#create .htaccess to protect uploads directory
+# create .htaccess to protect uploads directory
 cat > $WPATH/wp-content/uploads/.htaccess <<'EOL'
 # Protect this file
 <Files .htaccess>

@@ -16,11 +16,11 @@ sudo aptitude full-upgrade -y
 cd $WPATH
 wp db export mysql_backup.sql --allow-root
 wp core update --force --allow-root
-wp plugin update --allow-root
+wp plugin update --all --allow-root
 wp core update-db --allow-root
 wp db optimize --allow-root
 echo
-echo "This is the current version installed:
+echo "This is the current version installed:"
 echo
 wp wp core version --extra --allow-root
 sleep 5
