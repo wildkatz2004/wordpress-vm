@@ -165,8 +165,8 @@ core config:
 extra-php: |
 		define( 'WP_DEBUG', false );
 		define( 'WP_CACHE_KEY_SALT', 'wpredis_' );
-		define('WP_REDIS_MAXTTL', 9600);
-SSL_CREATE
+		define( 'WP_REDIS_MAXTTL', 9600);
+YML_CREATE
 
 # Install Wordpress
 wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
