@@ -4,6 +4,7 @@
 <style>
 body {
 	background-image: url("https://www.techandme.se/wp-content/uploads/2015/12/bbbackground-1200-1024x683.jpg");
+	background-size: cover;
 	font-weight: 300;
 	font-size: 1em;
 	line-height: 1.6em;
@@ -23,7 +24,7 @@ div.logo   {
         background-image: url('https://www.techandme.se/wp-content/uploads/2015/01/WordPress-Logo-540x348.png');
         background-repeat: no-repeat; top center;
         width: 50%;
-	height: 25%;
+	height: 30%;
         margin: 0 auto;
 	background-size: 40%;
 	margin-left: 40%;
@@ -70,7 +71,7 @@ a:active {
 <div class="logo">
 </div>
 <div class="logotext">
-<h2>ownCloud VM - <a href="https://www.techandme.se/pre-configured-wordpress-installaton/" target="_blank">Tech and Me</a></h2>
+<h2>Wordpress VM - <a href="https://www.techandme.se/pre-configured-wordpress-installaton/" target="_blank">Tech and Me</a></h2>
 </div>
 <br>
 <div class="information">
@@ -88,7 +89,7 @@ a:active {
 <h3>wordpress</h3>
 <p>Default Password:</p>
 <h3>wordpress</h3>
-<p>Note: The setup script will ask you to change the default password to your own. It's also recomended to change the default user. Do this by adding another admin user. Don't forget to delete the old user "change_wordpress_user#" after you created you new admin account.</p>
+<p>Note: The setup script will ask you to change the default password to your own.</p>
 <br>
 <center>
 <h3> How to mount the VM and and login:</h3>
@@ -106,8 +107,8 @@ a:active {
 <p>Use one of the following addresses, HTTPS is preffered:
 <h3>
 <ul>
- <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/wordpress"        >http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
- <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/wordpress"             >https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
+ <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/wordpress/wp-login.php"        >http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
+ <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/wordpress/wp-login.php"             >https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
  <p>
  </ul>
 </h3>
@@ -148,7 +149,7 @@ a:active {
 </h3>
 <p>Note: Please accept the warning in the browser if you connect via HTTPS.</p>
 <h3>
-<a href="https://www.techandme.se/user-and-password/" target="_blank">Login details</a>
+<a href="https://www.techandme.se/user-pass/" target="_blank">Login details</a>
 </h3>
 <p>Note: Your external IP is set as approved in /etc/apache2/conf-available/phpmyadmin.conf, all other access is forbidden.<p/>
 </div>

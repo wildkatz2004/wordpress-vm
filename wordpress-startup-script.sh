@@ -224,6 +224,67 @@ else
 fi
 clear
 
+# Create new WP user
+cat << ENTERNEW
++-----------------------------------------------+
+|    Please create a new user for Wordpress:	|
++-----------------------------------------------+
+ENTERNEW
+
+echo
+echo "Enter username:"
+read USER
+echo
+echo "Enter password:"
+read NEWWPADMINPASS
+echo
+echo "Enter email address:"
+read EMAIL
+
+	function ask_yes_or_no() {
+    	read -p "$1 ([y]es or [N]o): "
+    	case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
+        y|yes) echo "yes" ;;
+        *)     echo "no" ;;
+    	esac
+}
+echo
+if [[ "no" == $(ask_yes_or_no "Is this correct? User: $USER Password: $NEWWPADMINPASS Email: $EMAIL") ]]
+	then
+echo
+echo
+cat << ENTERNEW2
++-----------------------------------------------+
+|    OK, try again. (2/2) 			|
+|    Please create a new user for Wordpress:	|
+|    It's important that it's correct, because	|
+|    the script is based on what you enter	|
++-----------------------------------------------+
+ENTERNEW2
+echo
+echo "Enter username:"
+read USER
+echo
+echo "Enter password:"
+read NEWWPADMINPASS
+echo
+echo "Enter email address:"
+read EMAIL
+fi
+wp user create $USER $EMAIL --role=administrator --user_pass=$NEWWPADMINPASS --path=$WPATH --allow-root
+wp user delete 1 --allow-root --reassign=$USER --path=$WPATH
+echo "WP USER: $USER" > /var/adminpass.txt
+echo "WP PASS: $NEWWPADMINPASS" >> /var/adminpass.txt
+
+# Show current administrators
+echo
+echo "This is the current administrator(s):"
+wp user list --role=administrator --path=$WPATH --allow-root
+    echo -e "\e[32m"
+    read -p "Press any key to continue... " -n1 -s
+    echo -e "\e[0m"
+clear
+
 # Let's Encrypt
 function ask_yes_or_no() {
     read -p "$1 ([y]es or [N]o): "
