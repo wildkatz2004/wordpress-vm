@@ -81,7 +81,7 @@ rm -rf $SCRIPTS/redis
 rm $SCRIPTS/redis-stable.tar.gz
 
 cd $WPATH
-sudo -u wordpress -i -- wp plugin install redis-cache --activate
+wp plugin install redis-cache --activate --allow-root
 
 # Cleanup
 apt-get purge -y \
@@ -119,5 +119,8 @@ apt-get purge -y \
 	linux-libc-dev \
 	make \
 	manpages-dev
+
+apt-get autoremove -y
+apt-get autoclean
 
 exit 0

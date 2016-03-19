@@ -14,15 +14,15 @@ WPATH=/var/www/html/wordpress
 sudo apt-get update
 sudo aptitude full-upgrade -y
 cd $WPATH
-sudo -u wordpress -i -- wp db export mysql_backup.sql
-sudo -u wordpress -i -- wp core update --force
-sudo -u wordpress -i -- wp plugin update
-sudo -u wordpress -i -- wp core update-db
-sudo -u wordpress -i -- wp db optimize
+wp db export mysql_backup.sql --allow-root
+wp core update --force --allow-root
+wp plugin update --allow-root
+wp core update-db --allow-root
+wp db optimize --allow-root
 echo
 echo "This is the current version installed:
 echo
-sudo -u wordpress -i -- wp wp core version --extra
+wp wp core version --extra --allow-root
 sleep 5
 
 # Set secure permissions

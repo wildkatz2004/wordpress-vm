@@ -137,7 +137,7 @@ apt-get install -y \
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
-sudo -u wordpress -i -- wp --info
+wp --info
 
 # Create dir
 mkdir $WPATH
@@ -157,7 +157,7 @@ mkdir $WPATH
 #mkdir $WPATH/wp-content/uploads
 
 cd $WPATH
-sudo -u wordpress -i -- wp core download --force --debug --path=$WPATH
+wp core download --allow-root --force --debug --path=$WPATH
 
 # Populate DB
 mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
@@ -166,29 +166,29 @@ CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
 GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
-sudo -u wordpress -i -- wp core config --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost
+wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
 # Install Wordpress
-sudo -u wordpress -i -- wp core install --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se
+wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPDMINPASS --admin_email=no-reply@techandme.se
 echo "Wordpress admin login: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
-sudo -u wordpress -i -- wp core version 
+wp core version --allow-root
 sleep 3
 
 # Install Apps
-sudo -u wordpress -i -- wp plugin install twitter-tweets --activate
-sudo -u wordpress -i -- wp plugin install social-pug --activate
-sudo -u wordpress -i -- wp plugin install wp-mail-smtp --activate
+wp plugin install --allow-root twitter-tweets --activate
+wp plugin install --allow-root social-pug --activate
+wp plugin install --allow-root wp-mail-smtp --activate
 
 # set pretty urls
-sudo -u wordpress -i -- wp rewrite structure '/%postname%/' --hard
-sudo -u wordpress -i -- wp rewrite flush --hard
+wp rewrite structure '/%postname%/' --hard --allow-root
+wp rewrite flush --hard --allow-root
 
 # delete akismet and hello dolly
-sudo -u wordpress -i -- wp plugin delete akismet
-sudo -u wordpress -i -- wp plugin delete hello
+wp plugin delete akismet --allow-root
+wp plugin delete hello --allow-root
 
 # Secure permissions
 wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
@@ -379,7 +379,7 @@ else
 	sleep 2
 fi
 
-# Make $SCRIPTS excutable 
+# Make $SCRIPTS excutable
 chmod +x -R $SCRIPTS
 chown root:root -R $SCRIPTS
 
