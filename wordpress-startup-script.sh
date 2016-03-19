@@ -187,7 +187,6 @@ ifup $IFACE
 sleep 2
 echo
 echo "Testing if network is OK..."
-sleep 1
 echo
 bash $SCRIPTS/test_connection.sh
 sleep 2
@@ -206,8 +205,6 @@ ifup $IFACE
 sleep 2
 echo
 bash $SCRIPTS/test_connection.sh
-sleep 2
-clear
 
 # Update WP SiteURL
 grep "address" /etc/network/interfaces > ip.txt
@@ -216,6 +213,8 @@ NEWADDRESS=$(grep "." ip.txt)
 echo "http://$NEWADDRESS/wordpress" > ip.txt
 wp option update siteurl < ip.txt --allow-root --path=$WPATH
 rm ip.txt
+sleep 2
+clear
 
 # Change password
 echo -e "\e[0m"

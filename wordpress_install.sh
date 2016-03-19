@@ -137,6 +137,13 @@ apt-get install -y \
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
+
+# Create wp-cli.yml
+touch $WPATH/wp-cli.yml
+cat << YML_CREATE > "$WPATH/wp-cli.yml"
+apache_modules:
+  - mod_rewrite
+YML_CREATE
 wp --info --allow-root
 
 # Create dir
@@ -153,20 +160,12 @@ CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
 GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
-wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost
+wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass=$WPDBPASS --dbhost=localhost --extra-php <<PHP
+define( 'WP_DEBUG', false );
+define( 'WP_CACHE_KEY_SALT', 'wpredis_' );
+define( 'WP_REDIS_MAXTTL', 9600);
+PHP
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
-
-# Create wp-cli.yml
-touch $WPATH/wp-cli.yml
-cat << YML_CREATE > "$WPATH/wp-cli.yml"
-apache_modules:
-  - mod_rewrite
-core config:
-extra-php: |
-		define( 'WP_DEBUG', false );
-		define( 'WP_CACHE_KEY_SALT', 'wpredis_' );
-		define( 'WP_REDIS_MAXTTL', 9600);
-YML_CREATE
 
 # Install Wordpress
 wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
