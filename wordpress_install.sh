@@ -328,7 +328,7 @@ fi
         wget -q $GITHUB_REPO/wordpress-startup-script.sh -P $SCRIPTS
 fi
 
-# Welcome message after login (change in /home/ocadmin/.profile
+# Welcome message after login (change in /home/wordpress/.profile
         if [ -f $SCRIPTS/instruction.sh ];
                 then
                 echo "instruction.sh exists"
@@ -354,7 +354,7 @@ else
 	rm $SCRIPTS/change-root-profile.sh
 	sleep 2
 fi
-# Change ocadmin profile
+# Change wordpress profile
         	bash $SCRIPTS/change-wordpress-profile.sh
 if [[ $? > 0 ]]
 then

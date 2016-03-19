@@ -1,9 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-<head><title>ownCloud - Tech and Me</title>
+<head><title>Wordpress - Tech and Me</title>
 <style>
 body {
-	background-color: #1d2d44;
+	background-image: url("https://www.techandme.se/wp-content/uploads/2015/12/bbbackground-1200-1024x683.jpg");
 	font-weight: 300;
 	font-size: 1em;
 	line-height: 1.6em;
@@ -14,21 +14,13 @@ body {
 	margin-right: auto;
 	align: center;
 	text-align: center;
-	background: #1d2d44; /* Old browsers */
-	background: -moz-linear-gradient(top, #35537a 0%, #1d2d44 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#35537a), color-stop(100%,#1d2d44)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top, #35537a 0%,#1d2d44 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top, #35537a 0%,#1d2d44 100%); /* Opera11.10+ */
-	background: -ms-linear-gradient(top, #35537a 0%,#1d2d44 100%); /* IE10+ */
-	background: linear-gradient(top, #35537a 0%,#1d2d44 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#35537a', endColorstr='#1d2d44',GradientType=0 ); /* IE6-9 */
 }
 div.logotext   {
 	width: 50%;
     	margin: 0 auto;
 }
 div.logo   {
-        background-image: url('/owncloud/core/img/logo-icon.svg');
+        background-image: url('https://www.techandme.se/wp-content/uploads/2015/01/WordPress-Logo-540x348.png');
         background-repeat: no-repeat; top center;
         width: 50%;
 	height: 25%;
@@ -78,44 +70,44 @@ a:active {
 <div class="logo">
 </div>
 <div class="logotext">
-<h2>ownCloud VM - <a href="https://www.techandme.se/pre-configured-owncloud-installaton/" target="_blank">Tech and Me</a></h2>
+<h2>ownCloud VM - <a href="https://www.techandme.se/pre-configured-wordpress-installaton/" target="_blank">Tech and Me</a></h2>
 </div>
 <br>
 <div class="information">
-<p>Thank you for downloading the pre-configured ownCloud VM! If you see this page, you have successfully mounted the  ownCloud VM on the computer that will act as host for ownCloud.</p>
+<p>Thank you for downloading the pre-configured Wordpress VM! If you see this page, you have successfully mounted the  Wordpress VM on the computer that will act as host for Wordpress.</p>
 <p>To complete the installation, please run the setup script. You can find login details in the middle of this page.
-<p>Don't hesitate to ask if you have any questions. My email is: <a href="mailto:daniel@techandme.se?Subject=Before%20login%20-%20ownCloud%20VM" target="_top">daniel@techandme.se</a> You can also check the <a href="https://www.techandme.se/complete-install-instructions-owncloud/" target="_blank">complete install instructions</a>.</p>
+<p>Don't hesitate to ask if you have any questions. My email is: <a href="mailto:daniel@techandme.se?Subject=Before%20login%20-%20Wordpress%20VM" target="_top">daniel@techandme.se</a> You can also check the <a href="https://www.techandme.se/complete-install-instructions-wordpress/" target="_blank">complete install instructions</a>.</p>
 <p>Please <a href="https://www.techandme.se/thank_you">donate</a> if you like it. All the donations will go to server costs and developing, making this VM even better.</p>
 
 </div>
 
-<h2><a href="https://www.techandme.se/user-and-password/" target="_blank">Login</a> to ownCloud</h2>
+<h2><a href="https://www.techandme.se/user-pass/" target="_blank">Login</a> to Wordpress</h2>
 
 <div class="information">
 <p>Default User:</p>
-<h3>ocadmin</h3>
+<h3>wordpress</h3>
 <p>Default Password:</p>
-<h3>owncloud</h3>
-<p>Note: The setup script will ask you to change the default password to your own. It's also recomended to change the default user. Do this by adding another admin user, log out from ocadmin, and login with your new user, then delete ocadmin.</p>
+<h3>wordpress</h3>
+<p>Note: The setup script will ask you to change the default password to your own. It's also recomended to change the default user. Do this by adding another admin user. Don't forget to delete the old user "change_wordpress_user#" after you created you new admin account.</p>
 <br>
 <center>
 <h3> How to mount the VM and and login:</h3>
 </center>
-<p>Before you can use ownCloud you have to run the setup script to complete the installation. This is easily done by just typing 'owncloud' when you log in to the terminal for the first time.</p>
-<p>The full path to the setup script is: /var/scripts/owncloud-startup-script.sh. When the script is finnished it will be deleted, as it's only used the first time you boot the machine.</p>
+<p>Before you can use Wordpress you have to run the setup script to complete the installation. This is easily done by just typing 'wordpress' when you log in to the terminal for the first time.</p>
+<p>The full path to the setup script is: /var/scripts/wordpress-startup-script.sh. When the script is finished it will be deleted, as it's only used the first time you boot the machine.</p>
 <center> 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/jhbkTQ9yA-4" frameborder="0" allowfullscreen></iframe>
 </center>
 </div>
 
-<h2>Access ownCloud</h2>
+<h2>Access Wordpress</h2>
 
 <div class="information">
 <p>Use one of the following addresses, HTTPS is preffered:
 <h3>
 <ul>
- <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/owncloud"        >http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
- <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/owncloud"             >https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
+ <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/wordpress"        >http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
+ <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/wordpress"             >https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
  <p>
  </ul>
 </h3>

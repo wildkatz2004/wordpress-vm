@@ -22,7 +22,7 @@ wp db optimize --allow-root
 echo
 echo "This is the current version installed:"
 echo
-wp wp core version --extra --allow-root
+wp core version --extra --allow-root
 sleep 5
 
 # Set secure permissions
@@ -32,9 +32,9 @@ then
         echo "Script exists"
 else
         mkdir -p /var/scripts
-        wget https://raw.githubusercontent.com/enoch85/wordpress-vm/master/wp_permissions.sh -P /var/scripts/
+        wget -q https://raw.githubusercontent.com/enoch85/wordpress-vm/master/wp-permissions.sh -P /var/scripts/
 fi
-sudo bash /var/scripts/wp_permissions.sh
+sudo bash /var/scripts/wp-permissions.sh
 
 # Cleanup un-used packages
 sudo apt-get autoremove -y

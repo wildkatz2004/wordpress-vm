@@ -5,7 +5,7 @@
 WWW_ROOT=/var/www/html
 WPATH=$WWW_ROOT/wordpress
 SCRIPTS=/var/scripts
-PW_FILE=/var/mysql_password.txt # Keep in sync with owncloud_install_production.sh
+PW_FILE=/var/mysql_password.txt # Keep in sync with wordpress_install_production.sh
 IFCONFIG="/sbin/ifconfig"
 IFACE=$($IFCONFIG | grep HWaddr | cut -d " " -f 1)
 ADDRESS=$($IFCONFIG | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
@@ -18,7 +18,7 @@ LETS_ENC="https://raw.githubusercontent.com/enoch85/ownCloud-VM/master/lets-encr
 	# Check if root
 	if [ "$(whoami)" != "root" ]; then
         echo
-        echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/owncloud-startup-script.sh"
+        echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress-startup-script.sh"
         echo
         exit 1
 fi
@@ -90,7 +90,7 @@ fi
                 else
         wget -q $GITHUB_REPO/index.php -P $SCRIPTS
 fi
-        mv $SCRIPTS/index.php $WWW_ROOT/index.php && rm -f $WWW_ROOT/html/index.html
+        mv $SCRIPTS/index.php $WWW_ROOT/index.php && rm -f $WWW_ROOT/index.html
         chmod 750 $WWW_ROOT/index.php && chown www-data:www-data $WWW_ROOT/index.php
 
         # Change 000-default to $WEB_ROOT
@@ -100,7 +100,7 @@ fi
 chmod +x -R $SCRIPTS
 chown root:root -R $SCRIPTS
 
-# Allow ocadmin to run figlet script
+# Allow wordpress to run figlet script
 chown wordpress:wordpress $SCRIPTS/techandme.sh
 
 clear
@@ -211,7 +211,7 @@ clear
 # Change password
 echo -e "\e[0m"
 echo "For better security, change the Linux password for user [wordpress]"
-echo "The current password is [owncloud]"
+echo "The current password is [wordpress]"
 echo -e "\e[32m"
 read -p "Press any key to change password for Linux... " -n1 -s
 echo -e "\e[0m"
@@ -232,7 +232,7 @@ function ask_yes_or_no() {
         *)     echo "no" ;;
     esac
 }
-if [[ "yes" == $(ask_yes_or_no "Last but not least, do you want to install a real SSL cert (from Let's Encrypt) on this machine? The script is still Alpha, feel free to contribute!") ]]
+if [[ "yes" == $(ask_yes_or_no "Last but not least, do you want to install a real SSL cert from Let's Encrypt on this machine? (The script is still Alpha, feel free to contribute!)") ]]
 then
 	bash $SCRIPTS/activate-ssl.sh
 else
