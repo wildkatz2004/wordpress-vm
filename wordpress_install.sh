@@ -132,11 +132,13 @@ apt-get install -y \
 	php7.0-xml \
 	php7.0-zip
 
-# Download wp-cli.phar to be able to create database
-# and activate apps
+# Download wp-cli.phar to be able to install Wordpress
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
+
+# Create dir
+mkdir $WPATH
 
 # Create wp-cli.yml
 touch $WPATH/wp-cli.yml
@@ -145,10 +147,8 @@ apache_modules:
   - mod_rewrite
 YML_CREATE
 
+# Show info about wp-cli
 wp --info --allow-root
-
-# Create dir
-mkdir $WPATH
 
 # Download Wordpress
 cd $WPATH
