@@ -107,8 +107,8 @@ a:active {
 <p>Use one of the following addresses, HTTPS is preffered:
 <h3>
 <ul>
- <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/wordpress/wp-login.php"        >http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
- <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/wordpress/wp-login.php"             >https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
+ <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/wordpress/wp-admin/options-general.php"        >http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
+ <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/wordpress/wp-admin/options-general.php"             >https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
  <p>
  </ul>
 </h3>
