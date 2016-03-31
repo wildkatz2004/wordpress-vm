@@ -108,6 +108,7 @@ cat << EOMSTART
 +---------------------------------------------------------------+
 |   This script will do the final setup for you                 |
 |                                                               |
+|   - Genereate new server SSH keys				|
 |   - Set static IP                                             |
 |   - Create a new WP user                                      |
 |   - Upgrade the system                                        |
@@ -123,6 +124,10 @@ EOMSTART
 echo -e "\e[32m"
 read -p "Press any key to start the script..." -n1 -s
 echo -e "\e[0m"
+
+# Get new server keys
+rm -v /etc/ssh/ssh_host_*
+dpkg-reconfigure openssh-server
 
 # Install phpMyadmin
 bash $SCRIPTS/phpmyadmin_install.sh
