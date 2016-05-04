@@ -167,8 +167,10 @@ service apache2 restart
 # Install PHP 7.0
 apt-get install -y \
         php \
+	libapache2-mod-php \
 	php-mcrypt \
 	php-pear \
+	php-mbstring \
 	php-mysql \
 	php-zip
 

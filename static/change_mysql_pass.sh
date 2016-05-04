@@ -14,7 +14,6 @@ if [ $? -eq 0 ]
 then
         echo -e "\e[32mYour new MySQL ROOT password is: $NEWMYSQLPASS\e[0m"
         echo
-	echo "This is the new password set during first setup:"
 	echo "New MySQL ROOT password: $NEWMYSQLPASS" >> $PW_FILE
 else
         echo "Changing MySQL ROOT password failed."
