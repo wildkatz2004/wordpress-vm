@@ -114,15 +114,10 @@ apt-get install perl -y
 apt-get install language-pack-en-base -y
 sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
-# Show MySQL pass, and write it to a file in case the user fails to write it down
-echo
-echo -e "Your MySQL root password is: \e[32m$MYSQL_PASS\e[0m"
-echo "Please save this somewhere safe. The password is also saved in this file: $PW_FILE."
-echo "Root DB: $MYSQL_PASS" > $PW_FILE
+# Write MySQL pass to file and keep it safe
+echo "$MYSQL_PASS" > $PW_FILE
 chmod 600 $PW_FILE
-echo -e "\e[32m"
-read -p "Press any key to continue..." -n1 -s
-echo -e "\e[0m"
+chown root:root $PW_FILE
 
 # Install MYSQL 5.7
 apt-get install software-properties-common -y
@@ -257,15 +252,15 @@ EOL
 
 # Change values in php.ini (increase max file size)
 # max_execution_time
-sed -i "s|max_execution_time = 30|max_execution_time = 3500|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|max_execution_time = 30|max_execution_time = 3500|g" /etc/php/7.0/cli/php.ini
 # max_input_time
-sed -i "s|max_input_time = 60|max_input_time = 3600|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|max_input_time = 60|max_input_time = 3600|g" /etc/php/7.0/cli/php.ini
 # memory_limit
-sed -i "s|memory_limit = 128M|memory_limit = 512M|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|memory_limit = 128M|memory_limit = 512M|g" /etc/php/7.0/cli/php.ini
 # post_max
-sed -i "s|post_max_size = 8M|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|post_max_size = 8M|post_max_size = 1100M|g" /etc/php/7.0/cli/php.ini
 # upload_max
-sed -i "s|upload_max_filesize = 2M|upload_max_filesize = 1000M|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|upload_max_filesize = 2M|upload_max_filesize = 1000M|g" /etc/php/7.0/cli/php.ini
 
 # Install Figlet
 apt-get install figlet -y

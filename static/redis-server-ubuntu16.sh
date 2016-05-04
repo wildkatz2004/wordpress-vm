@@ -61,27 +61,6 @@ else
     echo -e "\e[0m"
 fi
 
-# Remove installation package
-
-# Prepare for adding redis configuration
-sed -i "s|);||g" $OCPATH/config/config.php
-
-# Add the needed config to ownClouds config.php
-cat <<ADD_TO_CONFIG>> $OCPATH/config/config.php
-  'memcache.local' => '\\OC\\Memcache\\Redis',
-  'filelocking.enabled' => 'true',
-  'memcache.distributed' => '\\OC\\Memcache\\Redis',
-  'memcache.locking' => '\\OC\\Memcache\\Redis',
-  'redis' =>
-  array (
-  'host' => '$REDIS_SOCK',
-  'port' => 0,
-  'timeout' => 0,
-  'dbindex' => 0,
-  ),
-);
-ADD_TO_CONFIG
-
 # Redis performance tweaks
 if	grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
 then

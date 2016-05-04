@@ -25,6 +25,15 @@ LETS_ENC="https://raw.githubusercontent.com/enoch85/ownCloud-VM/master/lets-encr
 
 echo "Getting scripts from GitHub to be able to run the first setup..."
 
+# Change MySQL password
+        if [ -f $SCRIPTS/change_mysql_pass.sh ];
+                then
+                rm $SCRIPTS/change_mysql_pass.sh
+                wget -q $STATIC/change_mysql_pass.sh
+                else
+        	wget -q $STATIC/change_mysql_pass.sh -P $SCRIPTS
+	fi
+
 # phpMyadmin
         if [ -f $SCRIPTS/phpmyadmin_install_ubuntu16.sh ];
                 then
@@ -128,6 +137,11 @@ echo -e "\e[0m"
 # Get new server keys
 rm -v /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
+
+# Generate new MySQL password
+echo
+bash $SCRIPTS/change_mysql_pass.sh
+rm $SCRIPTS/change_mysql_pass.sh
 
 # Install phpMyadmin
 bash $SCRIPTS/phpmyadmin_install_ubuntu16.sh
@@ -285,25 +299,6 @@ wp user list --role=administrator --path=$WPATH --allow-root
     echo -e "\e[0m"
 clear
 
-# Let's Encrypt
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    esac
-}
-if [[ "yes" == $(ask_yes_or_no "Last but not least, do you want to install a real SSL cert from Let's Encrypt on this machine? (The script is still Alpha, feel free to contribute!)") ]]
-then
-	bash $SCRIPTS/activate-ssl.sh
-else
-echo
-    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
-fi
-
 # Upgrade system
 clear
 echo System will now upgrade...
@@ -368,6 +363,36 @@ cat << RCLOCAL > "/etc/rc.local"
 exit 0
 
 RCLOCAL
+
+clear
+echo
+echo
+cat << LETSENC
++-----------------------------------------------+
+|  Ok, now the last part - a proper SSL cert.   |
+|                                               |
+|  The following script will install a trusted  |
+|  SSL certificate through Let's Encrypt.       |
++-----------------------------------------------+
+LETSENC
+# Let's Encrypt
+function ask_yes_or_no() {
+    read -p "$1 ([y]es or [N]o): "
+    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
+        y|yes) echo "yes" ;;
+        *)     echo "no" ;;
+    esac
+}
+if [[ "yes" == $(ask_yes_or_no "Do you want to install SSL?") ]]
+then
+        bash $SCRIPTS/activate-ssl.sh
+else
+echo
+    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
+    echo -e "\e[32m"
+    read -p "Press any key to continue... " -n1 -s
+    echo -e "\e[0m"
+fi
 
 ## Reboot
 reboot
