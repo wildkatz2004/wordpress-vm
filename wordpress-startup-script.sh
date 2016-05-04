@@ -5,96 +5,96 @@
 WWW_ROOT=/var/www/html
 WPATH=$WWW_ROOT/wordpress
 SCRIPTS=/var/scripts
-PW_FILE=/var/mysql_password.txt # Keep in sync with wordpress_install_production.sh
-IFCONFIG="/sbin/ifconfig"
-IFACE=$($IFCONFIG | grep HWaddr | cut -d " " -f 1)
-ADDRESS=$($IFCONFIG | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+PW_FILE=/var/mysql_password.txt # Keep in sync with wordpress_install.sh
+IP="/sbin/ip"
+IFACE=$($IP -o link show | awk '{print $2,$9}' | grep "UP" | cut -d ":" -f 1)
+ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge)
 WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
-GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/"
+STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
 LETS_ENC="https://raw.githubusercontent.com/enoch85/ownCloud-VM/master/lets-encrypt"
 
-	# Check if root
+# Check if root
 	if [ "$(whoami)" != "root" ]; then
-        echo
-        echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress-startup-script.sh"
-        echo
-        exit 1
-fi
+        	echo
+        	echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress-startup-script.sh"
+        	echo
+        	exit 1
+	fi
 
 echo "Getting scripts from GitHub to be able to run the first setup..."
 
-        # phpMyadmin
-        if [ -f $SCRIPTS/phpmyadmin_install.sh ];
+# phpMyadmin
+        if [ -f $SCRIPTS/phpmyadmin_install_ubuntu16.sh ];
                 then
-                rm $SCRIPTS/phpmyadmin_install.sh
-                wget -q $GITHUB_REPO/phpmyadmin_install.sh -P $SCRIPTS
+                rm $SCRIPTS/phpmyadmin_install_ubuntu16.sh
+                wget -q $STATIC/phpmyadmin_install_ubuntu16.sh -P $SCRIPTS
                 else
-        wget -q $GITHUB_REPO/phpmyadmin_install.sh -P $SCRIPTS
-fi
-        # Activate SSL
+        	wget -q $STATIC/phpmyadmin_install_ubuntu16.sh -P $SCRIPTS
+	fi
+# Activate SSL
         if [ -f $SCRIPTS/activate-ssl.sh ];
                 then
                 rm $SCRIPTS/activate-ssl.sh
                 wget -q $LETS_ENC/activate-ssl.sh -P $SCRIPTS
                 else
-        wget -q $LETS_ENC/activate-ssl.sh -P $SCRIPTS
-fi
-        # The update script
+        	wget -q $LETS_ENC/activate-ssl.sh -P $SCRIPTS
+	fi
+# The update script
         if [ -f $SCRIPTS/wordpress_update.sh ];
                 then
                 rm $SCRIPTS/wordpress_update.sh
-                wget -q $GITHUB_REPO/wordpress_update.sh -P $SCRIPTS
+                wget -q $STATIC/wordpress_update.sh -P $SCRIPTS
                 else
-        wget -q $GITHUB_REPO/wordpress_update.sh -P $SCRIPTS
-fi
-        # Sets static IP to UNIX
+        	wget -q $STATIC/wordpress_update.sh -P $SCRIPTS
+	fi
+# Sets static IP to UNIX
         if [ -f $SCRIPTS/ip.sh ];
                 then
                 rm $SCRIPTS/ip.sh
-                wget -q $GITHUB_REPO/ip.sh -P $SCRIPTS
+                wget -q $STATIC/ip.sh -P $SCRIPTS
                 else
-      	wget -q $GITHUB_REPO/ip.sh -P $SCRIPTS
-fi
-                # Tests connection after static IP is set
+      		wget -q $STATIC/ip.sh -P $SCRIPTS
+	fi
+# Tests connection after static IP is set
         if [ -f $SCRIPTS/test_connection.sh ];
                 then
                 rm $SCRIPTS/test_connection.sh
-                wget -q $GITHUB_REPO/test_connection.sh -P $SCRIPTS
+                wget -q $STATIC/test_connection.sh -P $SCRIPTS
                 else
-        wget -q $GITHUB_REPO/test_connection.sh -P $SCRIPTS
-fi
-                # Sets secure permissions after upgrade
+        	wget -q $STATIC/test_connection.sh -P $SCRIPTS
+	fi
+# Sets secure permissions after upgrade
         if [ -f $SCRIPTS/wp-permissions.sh ];
                 then
                 rm $SCRIPTS/wp-permissions.sh
-                wget -q $GITHUB_REPO/wp-permissions.sh
+                wget -q $STATIC/wp-permissions.sh
                 else
-        wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
-fi
-                # Get figlet Tech and Me
-        if [ -f $SCRIPTS/techandme.sh ];
+        	wget -q $STATIC/wp-permissions.sh -P $SCRIPTS
+	fi
+# Get figlet Tech and Me
+	if [ -f $SCRIPTS/techandme.sh ];
                 then
                 rm $SCRIPTS/techandme.sh
-                wget -q $GITHUB_REPO/techandme.sh
+                wget -q $STATIC/techandme.sh
                 else
-        wget -q $GITHUB_REPO/techandme.sh -P $SCRIPTS
-fi
+        	wget -q $STATIC/techandme.sh -P $SCRIPTS
+	fi
 
-        # Get the Welcome Screen when http://$address
+# Get the Welcome Screen when http://$address
         if [ -f $SCRIPTS/index.php ];
                 then
                 rm $SCRIPTS/index.php
-                wget -q $GITHUB_REPO/index.php -P $SCRIPTS
+                wget -q $STATIC/index.php -P $SCRIPTS
                 else
-        wget -q $GITHUB_REPO/index.php -P $SCRIPTS
-fi
-        mv $SCRIPTS/index.php $WWW_ROOT/index.php && rm -f $WWW_ROOT/index.html
-        chmod 750 $WWW_ROOT/index.php && chown www-data:www-data $WWW_ROOT/index.php
+        	wget -q $STATIC/index.php -P $SCRIPTS
+	fi
+mv $SCRIPTS/index.php $WWW_ROOT/index.php && rm -f $WWW_ROOT/index.html
+chmod 750 $WWW_ROOT/index.php && chown www-data:www-data $WWW_ROOT/index.php
 
-        # Change 000-default to $WEB_ROOT
-        sed -i "s|DocumentRoot /var/www/html|DocumentRoot $WWW_ROOT|g" /etc/apache2/sites-available/000-default.conf
+# Change 000-default to $WEB_ROOT
+sed -i "s|DocumentRoot /var/www/html|DocumentRoot $WWW_ROOT|g" /etc/apache2/sites-available/000-default.conf
 
 # Make $SCRIPTS excutable
 chmod +x -R $SCRIPTS
@@ -112,7 +112,7 @@ cat << EOMSTART
 |   - Set static IP                                             |
 |   - Create a new WP user                                      |
 |   - Upgrade the system                                        |
-|   - Activate SSL (Lets Encrypt)                               |
+|   - Activate SSL (Let's Encrypt)                              |
 |   - Install phpMyadmin					|
 |   - Change keyboard setup (current is Swedish)                |
 |   - Change system timezone                                    |
@@ -130,21 +130,8 @@ rm -v /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
 
 # Install phpMyadmin
-bash $SCRIPTS/phpmyadmin_install.sh
-rm $SCRIPTS/phpmyadmin_install.sh
-
-# Install packages for Webmin
-apt-get install --force-yes -y zip perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python
-
-# Install Webmin
-sed -i '$a deb http://download.webmin.com/download/repository sarge contrib' /etc/apt/sources.list
-wget -q http://www.webmin.com/jcameron-key.asc -O- | sudo apt-key add -
-apt-get update
-apt-get install webmin -y
-echo
-echo "Webmin is installed, access it from your browser: https://$ADDRESS:10000"
-sleep 4
-clear
+bash $SCRIPTS/phpmyadmin_install_ubuntu16.sh
+rm $SCRIPTS/phpmyadmin_install_ubuntu16.sh
 
 # Set keyboard layout
 echo "Current keyboard layout is Swedish"

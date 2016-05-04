@@ -3,30 +3,70 @@
 
 # Tech and Me, ©2016 - www.techandme.se
 
+DISTRO=$(grep -ic "Ubuntu 16.04 LTS" /etc/lsb-release)
+# Passwords
 SHUF=$(shuf -i 15-20 -n 1)
 MYSQL_PASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 PW_FILE=/var/mysql_password.txt
+# Wordpress user and pass
 WPDBNAME=worpdress_by_www_techandme_se
 WPDBUSER=wordpress_user
 WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 WPADMINUSER=change_this_user#
 WPADMINPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
+# Directories
 SCRIPTS=/var/scripts
 HTML=/var/www/html
 WPATH=$HTML/wordpress
+# Apache Vhosts
 SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
 HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
-IFCONFIG="/sbin/ifconfig"
-IFACE=$($IFCONFIG | grep HWaddr | cut -d " " -f 1)
-ADDRESS=$($IFCONFIG | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+# Network
+IP="/sbin/ip"
+IFACE=$($IP -o link show | awk '{print $2,$9}' | grep "UP" | cut -d ":" -f 1)
+ADDRESS=$(hostname -I | cut -d ' ' -f 1)
+# Repos
+GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master"
+STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
+# Commands
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge)
-GITHUB_REPO=https://raw.githubusercontent.com/enoch85/wordpress-vm/master/
 
 # Check if root
         if [ "$(whoami)" != "root" ]; then
         echo
         echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress_install.sh"
         echo
+        exit 1
+fi
+
+# Check Ubuntu version
+
+if [ $DISTRO -eq 1 ]
+then
+        echo "Ubuntu 16.04 LTS OK!"
+else
+        echo "Ubuntu 16.04 LTS is required to run this script."
+        echo "Please install that distro and try again."
+        exit 1
+fi
+
+# Check if it's a clean server
+echo "Checking if it's a clean server..."
+if [ $(dpkg-query -W -f='${Status}' mysql-common 2>/dev/null | grep -c "ok installed") -eq 1 ];
+then
+        echo "MySQL is installed, it must be a clean server."
+        exit 1
+fi
+
+if [ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed") -eq 1 ];
+then
+        echo "Apache2 is installed, it must be a clean server."
+        exit 1
+fi
+
+if [ $(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed") -eq 1 ];
+then
+        echo "PHP is installed, it must be a clean server."
         exit 1
 fi
 
@@ -55,11 +95,24 @@ fi
 # Update system
 apt-get update
 
+# Install aptitude
+apt-get install aptitude -y
+
+# Install packages for Webmin
+apt-get install --force-yes -y zip perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python
+
+# Install Webmin
+sed -i '$a deb http://download.webmin.com/download/repository sarge contrib' /etc/apt/sources.list
+wget -q http://www.webmin.com/jcameron-key.asc -O- | sudo apt-key add -
+apt-get update
+apt-get install webmin -y
+
 # Install perl
 apt-get install perl -y
 
 # Set locales
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure locales
+apt-get install language-pack-en-base -y
+sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Show MySQL pass, and write it to a file in case the user fails to write it down
 echo
@@ -71,20 +124,22 @@ echo -e "\e[32m"
 read -p "Press any key to continue..." -n1 -s
 echo -e "\e[0m"
 
-# Install MYSQL 5.6
+# Install MYSQL 5.7
 apt-get install software-properties-common -y
-echo "mysql-server-5.6 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
-echo "mysql-server-5.6 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-apt-get install mysql-server-5.6 -y
+echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
+echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
+apt-get install mysql-server-5.7 -y
 
 # mysql_secure_installation
-aptitude -y install expect
+apt-get -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
-expect \"Enter current password for root (enter for none):\"
+expect \"Enter current password for root:\"
 send \"$MYSQL_PASS\r\"
-expect \"Change the root password?\"
+expect \"Would you like to setup VALIDATE PASSWORD plugin?\"
+send \"n\r\"
+expect \"Change the password for root ?\"
 send \"n\r\"
 expect \"Remove anonymous users?\"
 send \"y\r\"
@@ -97,7 +152,7 @@ send \"y\r\"
 expect eof
 ")
 echo "$SECURE_MYSQL"
-aptitude -y purge expect
+apt-get -y purge expect
 
 # Install Apache
 apt-get install apache2 -y
@@ -115,22 +170,12 @@ sudo hostnamectl set-hostname wordpress
 service apache2 restart
 
 # Install PHP 7.0
-apt-get install python-software-properties -y && echo -ne '\n' | sudo add-apt-repository ppa:ondrej/php
-apt-get update
 apt-get install -y \
-        libapache2-mod-php7.0 \
-        php7.0-common \
-        php7.0-mysql \
-        php7.0-intl \
-        php7.0-mcrypt \
-        php7.0-ldap \
-        php7.0-imap \
-        php7.0-cli \
-        php7.0-gd \
-        php7.0-json \
-        php7.0-curl \
-	php7.0-xml \
-	php7.0-zip
+        php \
+	php-mcrypt \
+	php-pear \
+	php-mysql \
+	php-zip
 
 # Download wp-cli.phar to be able to install Wordpress
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
@@ -190,7 +235,7 @@ wp plugin delete akismet --allow-root
 wp plugin delete hello --allow-root
 
 # Secure permissions
-wget -q $GITHUB_REPO/wp-permissions.sh -P $SCRIPTS
+wget -q $STATIC/wp-permissions.sh -P $SCRIPTS
 bash $SCRIPTS/wp-permissions.sh
 
 # Hardening security
@@ -304,16 +349,16 @@ a2dissite 000-default
 service apache2 restart
 
 # Get script for Redis
-        if [ -f $SCRIPTS/install-redis-php-7.sh ];
+        if [ -f $SCRIPTS/redis-server-ubuntu16.sh ];
                 then
-                echo "install-redis-php-7.sh exists"
+                echo "redis-server-ubuntu16.sh exists"
                 else
-        wget -q $GITHUB_REPO/install-redis-php-7.sh -P $SCRIPTS
+        wget -q $STATIC/redis-server-ubuntu16.sh -P $SCRIPTS
 fi
 
 # Install Redis
-bash $SCRIPTS/install-redis-php-7.sh
-rm $SCRIPTS/install-redis-php-7.sh
+bash $SCRIPTS/redis-server-ubuntu16.sh
+rm $SCRIPTS/redis-server-ubuntu16.sh
 
 # Set secure permissions final
 bash $SCRIPTS/wp-permissions.sh
@@ -323,14 +368,14 @@ bash $SCRIPTS/wp-permissions.sh
                 then
                 echo "change-root-profile.sh exists"
                 else
-        wget -q $GITHUB_REPO/change-root-profile.sh -P $SCRIPTS
+        wget -q $STATIC/change-root-profile.sh -P $SCRIPTS
 fi
 # Change wordpress .bash_profile
         if [ -f $SCRIPTS/change-wordpress-profile.sh ];
                 then
                 echo "change-wordpress-profile.sh  exists"
                 else
-        wget -q $GITHUB_REPO/change-wordpress-profile.sh -P $SCRIPTS
+        wget -q $STATIC/change-wordpress-profile.sh -P $SCRIPTS
 fi
 # Get startup-script for root
         if [ -f $SCRIPTS/wordpress-startup-script.sh ];
@@ -345,14 +390,14 @@ fi
                 then
                 echo "instruction.sh exists"
                 else
-        wget -q $GITHUB_REPO/instruction.sh -P $SCRIPTS
+        wget -q $STATIC/instruction.sh -P $SCRIPTS
 fi
 # Clears command history on every login
         if [ -f $SCRIPTS/history.sh ];
                 then
                 echo "history.sh exists"
                 else
-        wget -q $GITHUB_REPO/history.sh -P $SCRIPTS
+        wget -q $STATIC/history.sh -P $SCRIPTS
 fi
 
 # Change root profile
