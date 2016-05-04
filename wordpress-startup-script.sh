@@ -327,7 +327,7 @@ echo    "|                                                                    |"
 echo -e "|    \e[91m#################### Tech and Me - 2016 ####################\e[32m    |"
 echo    "+--------------------------------------------------------------------+"
 echo
-read -p "Press any key to reboot..." -n1 -s
+read -p "Press any key to continue..." -n1 -s
 echo -e "\e[0m"
 echo
 
