@@ -13,7 +13,7 @@ CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cu
 WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
 STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
-LETS_ENC="https://raw.githubusercontent.com/enoch85/ownCloud-VM/master/lets-encrypt"
+LETS_ENC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-encrypt"
 
 # Check if root
 	if [ "$(whoami)" != "root" ]; then
