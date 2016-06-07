@@ -15,8 +15,8 @@ SCRIPTS=/var/scripts
         echo -e "\e[32m"
         read -p "Press any key to continue... " -n1 -s
         echo -e "\e[0m"
-        a2ensite owncloud_ssl_domain.conf
-        a2dissite owncloud_ssl_domain_self_signed.conf
+        a2ensite wordpress_ssl_domain.conf
+        a2dissite wordpress_port_443.conf
         service apache2 restart
 if [[ "$?" == "0" ]];
 then
@@ -54,8 +54,8 @@ rm $SCRIPTS/activate-ssl.sh
 
 else
 # If it fails, revert changes back to normal
-        a2dissite owncloud_ssl_domain.conf
-        a2ensite owncloud_ssl_domain_self_signed.conf
+        a2dissite wordpress_ssl_domain.conf
+        a2ensite wordpress_port_443.conf
         service apache2 restart
         echo -e "\e[96m"
         echo "Couldn't load new config, reverted to old settings. SSL is OK!"
