@@ -251,6 +251,11 @@ allow from all
 </Files>
 EOL
 
+# Add extra security
+wget -q $STATIC/security.sh -P $SCRIPTS
+bash $SCRIPTS/security.sh
+rm $SCRIPTS/security.sh
+
 # Change values in php.ini (increase max file size)
 # max_execution_time
 sed -i "s|max_execution_time = 30|max_execution_time = 3500|g" /etc/php/7.0/cli/php.ini
