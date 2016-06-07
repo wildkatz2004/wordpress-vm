@@ -6,9 +6,7 @@ WWW_ROOT=/var/www/html
 WPATH=$WWW_ROOT/wordpress
 SCRIPTS=/var/scripts
 PW_FILE=/var/mysql_password.txt # Keep in sync with wordpress_install.sh
-IP="/sbin/ip"
-IFACE=$($IP -o link show | awk '{print $2,$9}' | grep "UP" | cut -d ":" -f 1)
-ADDRESS=$(hostname -I | cut -d ' ' -f 1)
+IFACE=$(lshw -c network | grep "logical name" | awk '{print $3}')
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge)
 WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
@@ -22,6 +20,10 @@ LETS_ENC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-enc
         	echo
         	exit 1
 	fi
+
+# Set correct interface
+sed -i "s|ens33|$IFACE|g" /etc/network/interfaces
+service networking restart
 
 # Check network
 echo "Testing if network is OK..."
@@ -38,6 +40,8 @@ wget -q --spider http://github.com
 		echo "the network settings of the VM."
 	       	exit 1
 	fi
+
+ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 
 echo "Getting scripts from GitHub to be able to run the first setup..."
 

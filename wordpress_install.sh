@@ -22,8 +22,7 @@ WPATH=$HTML/wordpress
 SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
 HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
 # Network
-IP="/sbin/ip"
-IFACE=$($IP -o link show | awk '{print $2,$9}' | grep "UP" | cut -d ":" -f 1)
+IFACE=$(lshw -c network | grep "logical name" | awk '{print $3}')
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 # Repos
 GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master"
