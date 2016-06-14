@@ -92,7 +92,7 @@ else
 fi
 
 # Update system
-apt-get update
+apt-get update -q2
 
 # Install aptitude
 apt-get install aptitude -y
@@ -103,7 +103,7 @@ apt-get install -y zip perl libnet-ssleay-perl openssl libauthen-pam-perl libpam
 # Install Webmin
 sed -i '$a deb http://download.webmin.com/download/repository sarge contrib' /etc/apt/sources.list
 wget -q http://www.webmin.com/jcameron-key.asc -O- | sudo apt-key add -
-apt-get update
+apt-get update -q2
 apt-get install webmin -y
 
 # Install perl

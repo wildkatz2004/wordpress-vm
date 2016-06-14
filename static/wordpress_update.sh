@@ -11,7 +11,7 @@ WPATH=/var/www/html/wordpress
 [[ `id -u` -eq 0 ]] || { echo "Must be root to run script, in Ubuntu type: sudo -i"; exit 1; }
 
 # System Upgrade
-sudo apt-get update
+sudo apt-get update -q2
 sudo aptitude full-upgrade -y
 cd $WPATH
 wp db export mysql_backup.sql --allow-root
