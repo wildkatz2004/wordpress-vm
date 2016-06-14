@@ -115,6 +115,7 @@ CONF_CREATE
 
 # Secure phpMyadmin even more
 CONFIG=/var/lib/phpmyadmin/config.inc.php
+touch $CONFIG
 cat << CONFIG_CREATE >> "$CONFIG"
 <?php
 \$i = 0;
