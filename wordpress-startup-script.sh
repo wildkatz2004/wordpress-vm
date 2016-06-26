@@ -22,10 +22,9 @@ LETS_ENC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-enc
 	fi
 
 # Set correct interface
-CURRENTIFACE1=$(cat /etc/network/interfaces | sed -n '/lo/,/iface/p' | awk '{print $3}'| sed "3d" | sed "1d")
-CURRENTIFACE2=$(cat /etc/network/interfaces | sed -n '/iface/,/inet/p' | awk '{print $2}' | sed "1d" | sed "2d" | sed "1d")
-sed -i "s|$CURRENTIFACE1|$IFACE|g" /etc/network/interfaces
-sed -i "s|$CURRENTIFACE2|$IFACE|g" /etc/network/interfaces
+# Set correct interface
+{ sed '/# The primary network interface/q' /etc/network/interfaces; printf 'auto %s\niface %s inet dhcp\n# This is an autoconfigured IPv6 interface\niface %s inet6 auto\n' "$IFACE" "$IFACE" "$IFACE"; } > /etc/network/interfaces.new
+mv /etc/network/interfaces.new /etc/network/interfaces
 service networking restart
 
 # Check network

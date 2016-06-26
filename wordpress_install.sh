@@ -221,6 +221,8 @@ sleep 3
 wp plugin install --allow-root twitter-tweets --activate
 wp plugin install --allow-root social-pug --activate
 wp plugin install --allow-root wp-mail-smtp --activate
+wp plugin install --allow-root captcha --activate
+wp plugin install --allow-root redis-cache --activate
 
 # set pretty urls
 wp rewrite structure '/%postname%/' --hard --allow-root
