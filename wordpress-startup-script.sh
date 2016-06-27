@@ -22,7 +22,6 @@ LETS_ENC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-enc
 	fi
 
 # Set correct interface
-# Set correct interface
 { sed '/# The primary network interface/q' /etc/network/interfaces; printf 'auto %s\niface %s inet dhcp\n# This is an autoconfigured IPv6 interface\niface %s inet6 auto\n' "$IFACE" "$IFACE" "$IFACE"; } > /etc/network/interfaces.new
 mv /etc/network/interfaces.new /etc/network/interfaces
 service networking restart
@@ -37,9 +36,7 @@ wget -q --spider http://github.com
 	else
 		echo
 		echo "Network NOT OK. You must have a working Network connection to run this script."
-		echo "You could try to change network settings of this VM to 'Bridged Mode'".
-		echo "If that doesn't help, please try to un-check 'Replicate physical host' in"
-		echo "the network settings of the VM."
+		echo "Please report this to: https://github.com/enoch85/wordpress-vm/issues/new"
 	       	exit 1
 	fi
 
