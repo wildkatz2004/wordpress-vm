@@ -36,9 +36,7 @@ wget -q --spider http://github.com
 	else
 		echo
 		echo "Network NOT OK. You must have a working Network connection to run this script."
-		echo "You could try to change network settings of this VM to 'Bridged Mode'".
-		echo "If that doesn't help, please try to un-check 'Replicate physical host' in"
-		echo "the network settings of the VM."
+		echo "Please report this to: https://github.com/enoch85/wordpress-vm/issues/new"
 	       	exit 1
 	fi
 
