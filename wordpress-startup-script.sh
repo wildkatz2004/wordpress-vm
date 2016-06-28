@@ -22,7 +22,6 @@ LETS_ENC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-enc
 	fi
 
 # Set correct interface
-# Set correct interface
 { sed '/# The primary network interface/q' /etc/network/interfaces; printf 'auto %s\niface %s inet dhcp\n# This is an autoconfigured IPv6 interface\niface %s inet6 auto\n' "$IFACE" "$IFACE" "$IFACE"; } > /etc/network/interfaces.new
 mv /etc/network/interfaces.new /etc/network/interfaces
 service networking restart
