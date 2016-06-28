@@ -3,8 +3,9 @@
 <head><title>Wordpress - Tech and Me</title>
 <style>
 body {
-	background-image: url("https://www.techandme.se/wp-content/uploads/2015/12/bbbackground-1200-1024x683.jpg");
+	background-image: url("https://i.imgur.com/SfBe17Z.jpg");
 	background-size: cover;
+	opacity: 0.5;
 	font-weight: 300;
 	font-size: 1em;
 	line-height: 1.6em;
