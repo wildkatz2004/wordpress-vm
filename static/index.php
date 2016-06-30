@@ -5,7 +5,6 @@
 body {
 	background-image: url("https://i.imgur.com/SfBe17Z.jpg");
 	background-size: cover;
-	opacity: 0.5;
 	font-weight: 300;
 	font-size: 1em;
 	line-height: 1.6em;
