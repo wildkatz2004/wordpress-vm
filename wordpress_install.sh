@@ -94,6 +94,9 @@ fi
 # Update system
 apt-get update -q2
 
+# Remove LXD (always shows up as failed during boot)
+apt-get purge lxd -y
+
 # Install aptitude
 apt-get install aptitude -y
 

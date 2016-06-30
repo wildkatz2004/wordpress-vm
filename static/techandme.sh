@@ -8,15 +8,15 @@ figlet -f small Tech and Me
 echo "           https://www.techandme.se"
 echo
 echo
-echo "--|NETWORK|--"
+echo "|NETWORK|"
 echo "WAN IP: $WANIP"
 echo "LAN IP: $ADDRESS"
 echo
-echo "--|WORDPRESS LOGIN|--"
+echo "|WORDPRESS LOGIN|"
 echo "$WPADMINUSER"
 echo "$WPADMINPASS"
 echo
-echo "--|MySQL|--"
+echo "|MySQL|"
 echo "PASS: /var/mysql_password.txt"
 echo
 exit 0
