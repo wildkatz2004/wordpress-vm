@@ -29,6 +29,10 @@ GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master"
 STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
 # Commands
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge)
+# Create user for installing if not existing
+UNIXUSER=wordpress
+UNIXPASS=wordpress
+
 
 # Check if root
         if [ "$(whoami)" != "root" ]; then
@@ -66,6 +70,24 @@ fi
 if [ $(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed") -eq 1 ];
 then
         echo "PHP is installed, it must be a clean server."
+        exit 1
+fi
+
+# Create $UNIXUSER if not existing
+if id "$UNIXUSER" >/dev/null 2>&1
+then
+        echo "$UNIXUSER already exists!"
+else
+        adduser --disabled-password --gecos "" $UNIXUSER
+        echo -e "$UNIXUSER:$UNIXPASS" | chpasswd
+        usermod -aG sudo $UNIXUSER
+fi
+
+if [ -d /home/$UNIXUSER ];
+then
+        echo "$UNIXUSER OK!"
+else
+        echo "Something went wrong when creating the user... Script will exit."
         exit 1
 fi
 
