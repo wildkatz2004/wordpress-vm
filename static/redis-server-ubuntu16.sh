@@ -3,6 +3,9 @@
 # Tech and Me - www.techandme.se - ©2016
 # Ubuntu 16.04 with php 7
 
+DISTRO=$(grep -ic "16.04" /etc/lsb-release)
+DISTRO2=$(grep -ic "16.04.4" /etc/lsb-release)
+OS=$(grep -ic "Ubuntu" /etc/issue.net)
 SCRIPTS=/var/scripts
 OCPATH=/var/www/owncloud
 REDIS_CONF=/etc/redis/redis.conf
@@ -10,6 +13,26 @@ REDIS_SOCK=/var/run/redis/redis.sock
 
 # Must be root
 [[ `id -u` -eq 0 ]] || { echo "Must be root to run script, in Ubuntu type: sudo -i"; exit 1; }
+
+# Check Ubuntu version
+echo "Checking server OS and version..."
+if [ $OS -eq 1 ]
+then
+        sleep 1
+else
+        echo "Ubuntu Server is required to run this script."
+        echo "Please install that distro and try again."
+        exit 1
+fi
+
+if [ $DISTRO -ge $DISTRO2 ]
+then
+        sleep 1
+else
+        echo "Ubuntu 16.04.X LTS is required to run this script."
+        echo "Please install that distro and try again."
+        exit 1
+fi
 
 # Check if dir exists
 if [ -d $SCRIPTS ];
@@ -34,6 +57,7 @@ else
     echo "PHP module installation OK!"
     echo -e "\e[0m"
 fi
+
 # Set globally doesn't work for some reason
 # touch /etc/php/7.0/mods-available/redis.ini
 # echo 'extension=redis.so' > /etc/php/7.0/mods-available/redis.ini
@@ -41,7 +65,6 @@ fi
 # Setting direct to apache2 works if 'libapache2-mod-php7.0' is installed
 echo 'extension=redis.so' >> /etc/php/7.0/apache2/php.ini
 service apache2 restart
-
 
 # Install Redis
 apt-get install redis-server -y

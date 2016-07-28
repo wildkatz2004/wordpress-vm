@@ -2,6 +2,9 @@
 
 # Tech and Me, ©2016 - www.techandme.se
 
+DISTRO=$(grep -ic "16.04" /etc/lsb-release)
+DISTRO2=$(grep -ic "16.04.4" /etc/lsb-release)
+OS=$(grep -ic "Ubuntu" /etc/issue.net)
 PHPMYADMINDIR=/usr/share/phpmyadmin
 WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
@@ -15,6 +18,26 @@ SAVEPATH=""
         echo
         echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/phpmyadmin_install.sh"
         echo
+        exit 1
+fi
+
+# Check Ubuntu version
+echo "Checking server OS and version..."
+if [ $OS -eq 1 ]
+then
+        sleep 1
+else
+        echo "Ubuntu Server is required to run this script."
+        echo "Please install that distro and try again."
+        exit 1
+fi
+
+if [ $DISTRO -ge $DISTRO2 ]
+then
+        sleep 1
+else
+        echo "Ubuntu 16.04.X LTS is required to run this script."
+        echo "Please install that distro and try again."
         exit 1
 fi
 
