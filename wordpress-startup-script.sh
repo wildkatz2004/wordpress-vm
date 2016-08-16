@@ -231,16 +231,6 @@ sleep 2
 echo
 bash $SCRIPTS/test_connection.sh
 
-# Update WP SiteURL
-grep "address" /etc/network/interfaces > ip.txt
-sed -i "s|                address ||g" ip.txt
-NEWADDRESS=$(grep "." ip.txt)
-echo "http://$NEWADDRESS/wordpress" > ip.txt
-wp option update siteurl < ip.txt --allow-root --path=$WPATH
-rm ip.txt
-sleep 2
-clear
-
 # Change password
 echo -e "\e[0m"
 echo "For better security, change the Linux password for user [wordpress]"
@@ -264,6 +254,8 @@ cat << ENTERNEW
 +-----------------------------------------------+
 ENTERNEW
 
+echo "Enter FQDN (http://yourdomain.com):"
+read FQDN
 echo
 echo "Enter username:"
 read USER
@@ -282,7 +274,7 @@ read EMAIL
     	esac
 }
 echo
-if [[ "no" == $(ask_yes_or_no "Is this correct? User: $USER Password: $NEWWPADMINPASS Email: $EMAIL") ]]
+if [[ "no" == $(ask_yes_or_no "Is this correct? User: $USER Password: $NEWWPADMINPASS Email: $EMAIL FQDN: $FQDN ") ]]
 	then
 echo
 echo
@@ -294,6 +286,9 @@ cat << ENTERNEW2
 |    the script is based on what you enter	|
 +-----------------------------------------------+
 ENTERNEW2
+echo
+echo "Enter FQDN (http://yourdomain.com):"
+read FQDN
 echo
 echo "Enter username:"
 read USER
@@ -316,6 +311,13 @@ wp user list --role=administrator --path=$WPATH --allow-root
     echo -e "\e[32m"
     read -p "Press any key to continue... " -n1 -s
     echo -e "\e[0m"
+clear
+
+# Update WP SiteURL
+echo "$FQDN" > fqdn.txt
+wp option update siteurl < fqdn.txt --allow-root --path=$WPATH
+rm fqdn.txt
+sleep 2
 clear
 
 # Upgrade system
