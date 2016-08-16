@@ -44,6 +44,15 @@ ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 
 echo "Getting scripts from GitHub to be able to run the first setup..."
 
+# Get security script
+        if [ -f $SCRIPTS/security.sh ];
+                then
+                rm $SCRIPTS/security.sh
+                wget -q $STATIC/security.sh -P $SCRIPTS
+                else
+        wget -q $STATIC/security.sh -P $SCRIPTS
+	fi
+
 # Change MySQL password
         if [ -f $SCRIPTS/change_mysql_pass.sh ];
                 then
@@ -165,6 +174,27 @@ rm $SCRIPTS/change_mysql_pass.sh
 # Install phpMyadmin
 bash $SCRIPTS/phpmyadmin_install_ubuntu16.sh
 rm $SCRIPTS/phpmyadmin_install_ubuntu16.sh
+
+# Add extra security
+function ask_yes_or_no() {
+    read -p "$1 ([y]es or [N]o): "
+    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
+        y|yes) echo "yes" ;;
+        *)     echo "no" ;;
+    esac
+}
+if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
+then
+	bash $SCRIPTS/security.sh
+	rm $SCRIPTS/security.sh
+else
+echo
+    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
+    echo -e "\e[32m"
+    read -p "Press any key to continue... " -n1 -s
+    echo -e "\e[0m"
+fi
+clear
 
 # Set keyboard layout
 echo "Current keyboard layout is Swedish"
