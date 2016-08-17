@@ -329,6 +329,15 @@ echo
 echo "Enter email address:"
 read EMAIL
 fi
+clear
+
+echo "$FQDN" > fqdn.txt
+wp option update siteurl < fqdn.txt --allow-root --path=$WPATH
+rm fqdn.txt
+
+ADDRESS=$(hostname -I | cut -d ' ' -f 1)
+wp search-replace http://$ADDRESS/wordpress/ $FQDN --precise --all-tables --allow-root
+
 wp user create $USER $EMAIL --role=administrator --user_pass=$NEWWPADMINPASS --path=$WPATH --allow-root
 wp user delete 1 --allow-root --reassign=$USER --path=$WPATH
 echo "WP USER: $USER" > /var/adminpass.txt
@@ -341,13 +350,6 @@ wp user list --role=administrator --path=$WPATH --allow-root
     echo -e "\e[32m"
     read -p "Press any key to continue... " -n1 -s
     echo -e "\e[0m"
-clear
-
-# Update WP SiteURL
-echo "$FQDN" > fqdn.txt
-wp option update siteurl < fqdn.txt --allow-root --path=$WPATH
-rm fqdn.txt
-sleep 2
 clear
 
 # Upgrade system
