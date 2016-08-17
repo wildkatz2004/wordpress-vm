@@ -336,7 +336,7 @@ wp option update siteurl < fqdn.txt --allow-root --path=$WPATH
 rm fqdn.txt
 
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-wp search-replace http://$ADDRESS/wordpress/ $FQDN --precise --all-tables --allow-root
+wp search-replace http://$ADDRESS/wordpress/ $FQDN --precise --all-tables --path=$WPATH --allow-root
 
 wp user create $USER $EMAIL --role=administrator --user_pass=$NEWWPADMINPASS --path=$WPATH --allow-root
 wp user delete 1 --allow-root --reassign=$USER --path=$WPATH
