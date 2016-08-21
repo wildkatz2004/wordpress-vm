@@ -174,6 +174,7 @@ rm $SCRIPTS/change_mysql_pass.sh
 # Install phpMyadmin
 bash $SCRIPTS/phpmyadmin_install_ubuntu16.sh
 rm $SCRIPTS/phpmyadmin_install_ubuntu16.sh
+clear
 
 # Add extra security
 function ask_yes_or_no() {
@@ -304,7 +305,7 @@ read EMAIL
     	esac
 }
 echo
-if [[ "no" == $(ask_yes_or_no "Is this correct? User: $USER Password: $NEWWPADMINPASS Email: $EMAIL FQDN: $FQDN ") ]]
+if [[ "no" == $(ask_yes_or_no "Is this correct?  FQDN: $FQDN User: $USER Password: $NEWWPADMINPASS Email: $EMAIL") ]]
 	then
 echo
 echo
