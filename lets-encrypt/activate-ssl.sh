@@ -178,7 +178,7 @@ else
     ServerAdmin admin@$domain
     ServerName $domain
 ### SETTINGS ###
-    DocumentRoot $WWW_ROOT
+    DocumentRoot $WPATH
     <Directory $WPATH>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride All
