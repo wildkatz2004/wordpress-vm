@@ -1,10 +1,11 @@
 #!/bin/bash
 
-WORDPRESS_PROFILE="/home/wordpress/.bash_profile"
+UNIXUSER=wordpress
+UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
 
-rm /home/wordpress/.profile
+rm /home/$UNIXUSER/.profile
 
-cat <<-WORDPRESS-PROFILE > "$WORDPRESS_PROFILE"
+cat <<-UNIXUSER-PROFILE > "$UNIXUSER_PROFILE"
 # ~/.profile: executed by the command interpreter for login shells.
 # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
 # exists.
@@ -27,7 +28,8 @@ fi
 bash /var/scripts/instruction.sh
 bash /var/scripts/history.sh
 sudo -i
+UNIXUSER-PROFILE
 
-WORDPRESS-PROFILE
+chown $UNIXUSER:$UNIXUSER $UNIXUSER_PROFILE
 
 exit 0
