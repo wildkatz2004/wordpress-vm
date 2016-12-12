@@ -15,16 +15,16 @@ else mkdir $SCRIPTS
 fi
 
 # Get packages to be able to install Redis
-apt-get update -q2 && sudo apt-get install build-essential -q -y
-apt-get install tcl8.5 -q -y
-apt-get install php-pear php7.0-dev -q -y
+apt update -q2 && sudo apt install build-essential -q -y
+apt install tcl8.5 -q -y
+apt install php-pear php7.0-dev -q -y
 
 # Install Git and clone repo
-apt-get install git -y -q
+apt install git -y -q
 git clone -b php7 https://github.com/phpredis/phpredis.git
 
 # Build Redis PHP module
-apt-get install php7.0-dev -y
+apt install php7.0-dev -y
 sudo mv phpredis/ /etc/ && cd /etc/phpredis
 phpize
 ./configure
@@ -84,7 +84,7 @@ cd $WPATH
 wp plugin install redis-cache --activate --allow-root
 
 # Cleanup
-apt-get purge -y \
+apt purge -y \
 	git \
 	binutils \
 	build-essential \
@@ -120,7 +120,7 @@ apt-get purge -y \
 	make \
 	manpages-dev
 
-apt-get autoremove -y
-apt-get autoclean
+apt autoremove -y
+apt autoclean
 
 exit 0

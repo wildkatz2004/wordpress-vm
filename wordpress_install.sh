@@ -28,7 +28,7 @@ ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master"
 STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
 # Commands
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge)
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
 # Create user for installing if not existing
 UNIXUSER=wordpress
 UNIXPASS=wordpress
@@ -132,25 +132,25 @@ else
 fi
 
 # Update system
-apt-get update -q2
+apt update -q2
 
 # Install aptitude
-apt-get install aptitude -y
+apt install aptitude -y
 
 # Install packages for Webmin
-apt-get install -y zip perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python
+apt install -y zip perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python
 
 # Install Webmin
 sed -i '$a deb http://download.webmin.com/download/repository sarge contrib' /etc/apt/sources.list
 wget -q http://www.webmin.com/jcameron-key.asc -O- | sudo apt-key add -
-apt-get update -q2
-apt-get install webmin -y
+apt update -q2
+apt install webmin -y
 
 # Install perl
-apt-get install perl -y
+apt install perl -y
 
 # Set locales
-apt-get install language-pack-en-base -y
+apt install language-pack-en-base -y
 sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Write MySQL pass to file and keep it safe
@@ -159,13 +159,13 @@ chmod 600 $PW_FILE
 chown root:root $PW_FILE
 
 # Install MYSQL 5.7
-apt-get install software-properties-common -y
+apt install software-properties-common -y
 echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-apt-get install mysql-server-5.7 -y
+apt install mysql-server-5.7 -y
 
 # mysql_secure_installation
-apt-get -y install expect
+apt -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
@@ -186,10 +186,10 @@ send \"y\r\"
 expect eof
 ")
 echo "$SECURE_MYSQL"
-apt-get -y purge expect
+apt -y purge expect
 
 # Install Apache
-apt-get install apache2 -y
+apt install apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -204,7 +204,7 @@ sudo hostnamectl set-hostname wordpress
 service apache2 restart
 
 # Install PHP 7.0
-apt-get install -y \
+apt install -y \
         php \
 	libapache2-mod-php \
 	php-mcrypt \
@@ -309,7 +309,7 @@ sed -i "s|post_max_size = 8M|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.i
 sed -i "s|upload_max_filesize = 2M|upload_max_filesize = 1000M|g" /etc/php/7.0/apache2/php.ini
 
 # Install Figlet
-apt-get install figlet -y
+apt install figlet -y
 
 # Generate $SSL_CONF
 if [ -f $SSL_CONF ];
@@ -476,7 +476,7 @@ chown wordpress:wordpress $SCRIPTS/history.sh
 aptitude full-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
-apt-get purge lxd -y
+apt purge lxd -y
 
 #Cleanup
 echo "$CLEARBOOT"

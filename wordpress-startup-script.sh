@@ -7,7 +7,7 @@ WPATH=$WWW_ROOT/wordpress
 SCRIPTS=/var/scripts
 PW_FILE=/var/mysql_password.txt # Keep in sync with wordpress_install.sh
 IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge)
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
 WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
 STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
@@ -362,8 +362,8 @@ echo
 bash $SCRIPTS/wordpress_update.sh
 
 # Cleanup 1
-apt-get autoremove -y
-apt-get autoclean
+apt autoremove -y
+apt autoclean
 echo "$CLEARBOOT"
 clear
 
