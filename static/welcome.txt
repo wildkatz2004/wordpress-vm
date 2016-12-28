@@ -1,0 +1,67 @@
+<h1 style="text-align: center;">Wordpress VM - <a href="https://www.techandme.se/pre-configured-wordpress-vm/" target="_blank">Tech and Me</a></h1>
+<div class="information">
+<blockquote>
+<h5>Thank you for downloading the pre-configured Wordpress VM! If you see this page, you have successfully mounted the Wordpress VM on the computer that will act as host for Wordpress.</h5>
+<h5>To complete the installation, please run the setup script. You can find login details in the middle of this page.</h5>
+<h5>Don't hesitate to ask if you have any questions. My email is: <a href="mailto:daniel@techandme.se?Subject=Before%20login%20-%20Wordpress%20VM" target="_top">daniel@techandme.se</a> You can also check the <a href="https://www.techandme.se/install-instructions/" target="_blank">complete install instructions</a>.</h5>
+<h5><strong>Please <a href="https://www.techandme.se/thank_you">donate</a> if you like it.</strong> All the donations will go to server costs and developing, making this VM even better.</h5>
+</blockquote>
+</div>
+
+<hr />
+
+<blockquote>
+<h3><a href="https://www.techandme.se/user-pass/" target="_blank">Login</a> to Wordpress</h3>
+<h6>Default User:</h6>
+<h5>wordpress</h5>
+<h6>Default Password:</h6>
+<h5>wordpress</h5>
+<h5></h5>
+<h5>Note: The setup script will ask you to change the default password to your own.</h5>
+</blockquote>
+<div class="information">
+
+<hr />
+
+<blockquote>
+<h3>How to mount the VM and and login:</h3>
+<h5>Before you can use Wordpress you have to run the setup script to complete the installation. This is easily done by just typing 'wordpress' when you log in to the terminal for the first time.</h5>
+<h5>The full path to the setup script is: /var/scripts/wordpress-startup-script.sh. When the script is finished it will be deleted, as it's only used the first time you boot the machine.</h5>
+<center>
+<iframe src="https://www.youtube.com/embed/jhbkTQ9yA-4" width="560" height="315" frameborder="0" allowfullscreen="allowfullscreen"></iframe></center></blockquote>
+</div>
+
+<hr />
+
+<blockquote>
+<h3><a href="./wp-admin/options-general.php">Access Wordpress</a></h3>
+<h5>Note: Please accept the warning in the browser if you connect via HTTPS. It is recomended to <a href="https://www.techandme.se/publish-your-server-online" target="_blank">buy your own certificate and replace the self-signed certificate to your own.</a></h5>
+<h5>Note: Before you can login you have to run the setup script, as described in the video above.</h5>
+</blockquote>
+
+<hr />
+
+<blockquote>
+<h2></h2>
+<h3><a href=".:1000">Access Webmin</a></h3>
+<h5>Note: Please accept the warning in the browser if you connect via HTTPS.</h5>
+<h5><a href="https://www.techandme.se/user-and-password/" target="_blank">Login details</a></h5>
+<h5>Note: Webmin is installed when you run the setup script. To access Webmin externally you have to open port 10000 in your router.</h5>
+</blockquote>
+<div class="information">
+
+<hr />
+
+</div>
+<blockquote>
+<h3></h3>
+<h3><a href="./phpmyadmin">Access phpMyadmin</a></h3>
+<h5>Note: Please accept the warning in the browser if you connect via HTTPS.</h5>
+<h5><a href="https://www.techandme.se/user-pass/" target="_blank">Login details</a></h5>
+<h5>Note: Your external IP is set as approved in /etc/apache2/conf-available/phpmyadmin.conf, all other access is forbidden.</h5>
+</blockquote>
+<div class="information">
+
+&nbsp;
+
+</div>
