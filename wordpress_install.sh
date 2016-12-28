@@ -31,7 +31,6 @@ STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
 UNIXUSER=wordpress
 UNIXPASS=wordpress
 
-
 # Check if root
         if [ "$(whoami)" != "root" ]; then
         echo
@@ -88,6 +87,17 @@ then
         echo "PHP is installed, it must be a clean server."
         exit 1
 fi
+
+# Get the Welcome Screen when http://$address
+        if [ -f $SCRIPTS/index.php ];
+                then
+                rm $SCRIPTS/index.php
+                wget -q $STATIC/index.php -P $SCRIPTS
+                else
+        	wget -q $STATIC/index.php -P $SCRIPTS
+	fi
+mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/index.html
+chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
 
 # Create $UNIXUSER if not existing
 if id "$UNIXUSER" >/dev/null 2>&1
@@ -326,7 +336,7 @@ else
 #    ServerAlias www.example.com
 
 ### SETTINGS ###
-    DocumentRoot $HTML
+    DocumentRoot $WPATH
     <Directory $WPATH>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride All
@@ -367,7 +377,7 @@ else
 #    ServerAlias www.example.com
 
 ### SETTINGS ###
-    DocumentRoot $HTML
+    DocumentRoot $WPATH
     <Directory $WPATH>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride All
@@ -384,7 +394,6 @@ fi
 a2ensite wordpress_port_443.conf
 a2ensite wordpress_port_80.conf
 a2dissite default-ssl
-a2dissite 000-default
 service apache2 restart
 
 # Get script for Redis

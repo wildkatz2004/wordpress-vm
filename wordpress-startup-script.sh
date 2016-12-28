@@ -139,11 +139,6 @@ echo "Getting scripts from GitHub to be able to run the first setup..."
                 else
         	wget -q $STATIC/index.php -P $SCRIPTS
 	fi
-mv $SCRIPTS/index.php $WWW_ROOT/index.php && rm -f $WWW_ROOT/index.html
-chmod 750 $WWW_ROOT/index.php && chown www-data:www-data $WWW_ROOT/index.php
-
-# Change 000-default to $WEB_ROOT
-sed -i "s|DocumentRoot /var/www/html|DocumentRoot $WWW_ROOT|g" /etc/apache2/sites-available/000-default.conf
 
 # Make $SCRIPTS excutable
 chmod +x -R $SCRIPTS
