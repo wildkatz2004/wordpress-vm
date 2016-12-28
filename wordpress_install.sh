@@ -261,7 +261,7 @@ PHP
 echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 
 # Install Wordpress
-wp core install --allow-root --url=http://$ADDRESS/wordpress/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
+wp core install --allow-root --url=http://$ADDRESS/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
 echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
@@ -393,7 +393,6 @@ fi
 # Enable new config
 a2ensite wordpress_port_443.conf
 a2ensite wordpress_port_80.conf
-a2dissite default-ssl
 service apache2 restart
 
 # Get script for Redis
