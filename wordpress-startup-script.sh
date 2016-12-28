@@ -379,7 +379,7 @@ echo -e "\e[32m"
 echo    "+--------------------------------------------------------------------+"
 echo    "| You have sucessfully installed Wordpress! System will now reboot...|"
 echo    "|                                                                    |"
-echo -e "|         \e[0mLogin to Wordpress in your browser:\e[36m" $ADDRESS"\e[32m          |"
+echo -e "|         \e[0mLogin to Wordpress in your browser:\e[36m" $FQDN"\e[32m          |"
 echo    "|                                                                    |"
 echo -e "|         \e[0mPublish your server online! \e[36mhttps://goo.gl/iUGE2U\e[32m          |"
 echo    "|                                                                    |"
@@ -456,6 +456,7 @@ echo
 fi
 
 ## Reboot
+echo "Installations finished. System will now reboot..."
 reboot
 
 exit 0
