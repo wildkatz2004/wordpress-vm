@@ -253,9 +253,16 @@ echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 wp core install --allow-root --url=http://$ADDRESS/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
 echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
-wget $STATIC/welcome.txt | wp post create ./welcome.txt --post_title='Tech and Me - Welcome' --post_status=publish --path=$WPATH --allow-root
-rm welcome.txt
 
+# Create welcome post
+wget -q $STATIC/welcome.txt
+sed -i "s|wordpress_user_login|$WPADMINUSER|g" welcome.txt
+sed -i "s|wordpress_password_login|$WPADMINPASS|g" welcome.txt
+wp post create ./welcome.txt --post_title='Tech and Me - Welcome' --post_status=publish --path=$WPATH --allow-root
+rm welcome.txt
+wp post delete 1 --force --allow-root
+
+# Show version
 wp core version --allow-root
 sleep 3
 

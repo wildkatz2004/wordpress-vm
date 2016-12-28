@@ -9,9 +9,9 @@
 
 <h1><a href="https://www.techandme.se/user-pass/" target="_blank">Login</a> to Wordpress</h1>
 <h3>Default User:</h3>
-<h1><strong>wordpress</strong></h1>
+<h1><strong>wordpress_user_login</strong></h1>
 <h3>Default Password:</h3>
-<h1><strong>wordpress</strong></h1>
+<h1><strong>wordpress_password_login</strong></h1>
 <h3>Note: The setup script will ask you to change the default password to your own.</h3>
 &nbsp;
 
@@ -31,7 +31,7 @@
 
 <hr />
 
-<h1><a href=".:1000">Access Webmin</a></h1>
+<h1><a href=":10000">Access Webmin</a> (You may have to remove the ending slash (/) to access the port number)</h1>
 <h3>Note: Please accept the warning in the browser if you connect via HTTPS.</h3>
 <h1><a href="https://www.techandme.se/user-and-password/" target="_blank">Login details</a></h1>
 <h3>Note: Webmin is installed when you run the setup script. To access Webmin externally you have to open port 10000 in your router.</h3>
