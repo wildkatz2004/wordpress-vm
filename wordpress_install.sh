@@ -12,7 +12,7 @@ PW_FILE=/var/mysql_password.txt
 WPDBNAME=worpdress_by_www_techandme_se
 WPDBUSER=wordpress_user
 WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-WPADMINUSER=change_this_user#
+WPADMINUSER=change_this_user
 WPADMINPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 # Directories
 SCRIPTS=/var/scripts
@@ -27,8 +27,6 @@ ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 # Repos
 GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master"
 STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
-# Commands
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
 # Create user for installing if not existing
 UNIXUSER=wordpress
 UNIXPASS=wordpress
@@ -116,6 +114,13 @@ fi
       	mkdir $SCRIPTS
 fi
 
+# Prefer IPv4
+sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+
+# Set locales
+apt install language-pack-en-base -y
+sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
+
 # Change DNS
 echo "nameserver 8.26.56.26" > /etc/resolvconf/resolv.conf.d/base
 echo "nameserver 8.20.247.20" >> /etc/resolvconf/resolv.conf.d/base
@@ -134,9 +139,6 @@ fi
 # Update system
 apt update -q2
 
-# Install aptitude
-apt install aptitude -y
-
 # Install packages for Webmin
 apt install -y zip perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python
 
@@ -148,10 +150,6 @@ apt install webmin -y
 
 # Install perl
 apt install perl -y
-
-# Set locales
-apt install language-pack-en-base -y
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Write MySQL pass to file and keep it safe
 echo "MySQL root password: $MYSQL_PASS" > $PW_FILE
@@ -473,13 +471,17 @@ chown wordpress:wordpress $SCRIPTS/instruction.sh
 chown wordpress:wordpress $SCRIPTS/history.sh
 
 # Upgrade
-aptitude full-upgrade -y
+apt dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
 apt purge lxd -y
 
 #Cleanup
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
 echo "$CLEARBOOT"
+
+# Prefer IPv6
+sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
 
 # Reboot
 reboot
