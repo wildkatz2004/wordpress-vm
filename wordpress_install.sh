@@ -135,17 +135,6 @@ else
     echo "Network OK."
 fi
 
-# Get the Welcome Screen when http://$address
-        if [ -f $SCRIPTS/index.php ];
-                then
-                rm $SCRIPTS/index.php
-                wget -q $STATIC/index.php -P $SCRIPTS
-                else
-                wget -q $STATIC/index.php -P $SCRIPTS
-        fi
-mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/index.html
-chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
-
 # Update system
 apt update -q2
 
@@ -220,6 +209,17 @@ apt install -y \
 	php-mbstring \
 	php-mysql \
 	php-zip
+
+# Get the Welcome Screen when http://$address
+        if [ -f $SCRIPTS/index.php ];
+                then
+                rm $SCRIPTS/index.php
+                wget -q $STATIC/index.php -P $SCRIPTS
+                else
+                wget -q $STATIC/index.php -P $SCRIPTS
+        fi
+mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/index.html
+chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
 
 # Download wp-cli.phar to be able to install Wordpress
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
