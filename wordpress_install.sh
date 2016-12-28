@@ -88,17 +88,6 @@ then
         exit 1
 fi
 
-# Get the Welcome Screen when http://$address
-        if [ -f $SCRIPTS/index.php ];
-                then
-                rm $SCRIPTS/index.php
-                wget -q $STATIC/index.php -P $SCRIPTS
-                else
-        	wget -q $STATIC/index.php -P $SCRIPTS
-	fi
-mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/index.html
-chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
-
 # Create $UNIXUSER if not existing
 if id "$UNIXUSER" >/dev/null 2>&1
 then
@@ -145,6 +134,17 @@ then
 else
     echo "Network OK."
 fi
+
+# Get the Welcome Screen when http://$address
+        if [ -f $SCRIPTS/index.php ];
+                then
+                rm $SCRIPTS/index.php
+                wget -q $STATIC/index.php -P $SCRIPTS
+                else
+                wget -q $STATIC/index.php -P $SCRIPTS
+        fi
+mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/index.html
+chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
 
 # Update system
 apt update -q2
