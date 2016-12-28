@@ -210,17 +210,6 @@ apt install -y \
 	php-mysql \
 	php-zip
 
-# Get the Welcome Screen when http://$address
-        if [ -f $SCRIPTS/index.php ];
-                then
-                rm $SCRIPTS/index.php
-                wget -q $STATIC/index.php -P $SCRIPTS
-                else
-                wget -q $STATIC/index.php -P $SCRIPTS
-        fi
-mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/index.html
-chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
-
 # Download wp-cli.phar to be able to install Wordpress
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
@@ -264,6 +253,8 @@ echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
 wp core install --allow-root --url=http://$ADDRESS/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
 echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
+wget $STATIC/welcome.txt | wp post create ./welcome.txt --post_title='Tech and Me - Welcome' --post_status=publish --path=$WPATH --allow-root
+rm welcome.txt
 
 wp core version --allow-root
 sleep 3
@@ -393,6 +384,8 @@ fi
 # Enable new config
 a2ensite wordpress_port_443.conf
 a2ensite wordpress_port_80.conf
+a2dissite 000-default.conf
+a2dissite default-ssl.conf
 service apache2 restart
 
 # Get script for Redis
