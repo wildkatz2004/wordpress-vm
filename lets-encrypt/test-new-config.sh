@@ -1,11 +1,4 @@
 #!/bin/bash
-# Maybe want to use later:
-# sed -i "s| SSLCertificateChainFile /etc/letsencrypt/live/ENTER-YOUR-DOMAIN-HERE.COM/chain.pem| SSLCertificateChainFile /etc/letsencrypt/live/$domain/chain.pem|g" /etc/apache2/sites-available/lets_encrypt.conf
-# sed -i "s| SSLCertificateFile /etc/letsencrypt/live/ENTER-YOUR-DOMAIN-HERE.COM/cert.pem| SSLCertificateFile /etc/letsencrypt/live/$domain/cert.pem|g" /etc/apache2/sites-available/lets_encrypt.conf
-# sed -i "s| SSLCertificateKeyFile /etc/letsencrypt/live/ENTER-YOUR-DOMAIN-HERE.COM/privkey.pem| SSLCertificateKeyFile /etc/letsencrypt/live/$domain/privkey.pem|g" /etc/apache2/sites-available/lets_encrypt.conf
-
-# sed -i "s| ServerAdmin admin@ENTER-YOUR-DOMAIN-HERE.COM| ServerAdmin admin@$domain|g" /etc/apache2/sites-available/lets_encrypt.conf
-# sed -i "s| ServerName ENTER-YOUR-DOMAIN-HERE.COM| ServerName $domain|g" /etc/apache2/sites-available/lets_encrypt.conf
 
 SCRIPTS=/var/scripts
 
@@ -50,8 +43,6 @@ else
         echo "Let's Encrypt FAILED!"--$(date +%Y-%m-%d_%H:%M) >> /var/log/letsencrypt/cronjob.log
         reboot
 fi
-
-
 CRONTAB
 
 # Makeletsencryptrenew.sh executable
