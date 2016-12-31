@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Tech and Me - ©2016, https://www.techandme.se/
+# Tech and Me - ©2017, https://www.techandme.se/
 
 WWW_ROOT=/var/www/html
 WPATH=$WWW_ROOT/wordpress
@@ -162,7 +162,7 @@ cat << EOMSTART
 |   - Change system timezone                                    |
 |   - Set new password to the Linux system (user: wordpress)	|
 |								|
-|    ################# Tech and Me - 2016 #################	|
+|    ################# Tech and Me - 2017 #################	|
 +---------------------------------------------------------------+
 EOMSTART
 echo -e "\e[32m"
@@ -385,7 +385,7 @@ echo -e "|         \e[0mPublish your server online! \e[36mhttps://goo.gl/iUGE2U\
 echo    "|                                                                    |"
 echo -e "|      \e[0mYour MySQL password is stored in: \e[36m$PW_FILE\e[32m     |"
 echo    "|                                                                    |"
-echo -e "|    \e[91m#################### Tech and Me - 2016 ####################\e[32m    |"
+echo -e "|    \e[91m#################### Tech and Me - 2017 ####################\e[32m    |"
 echo    "+--------------------------------------------------------------------+"
 echo
 read -p "Press any key to continue..." -n1 -s
