@@ -2,6 +2,11 @@
 
 # Tech and Me - ©2017, https://www.techandme.se/
 
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+
 WWW_ROOT=/var/www/html
 WPATH=$WWW_ROOT/wordpress
 SCRIPTS=/var/scripts
@@ -13,44 +18,61 @@ PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
 STATIC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/static"
 LETS_ENC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt"
 
-# Check if root
-	if [ "$(whoami)" != "root" ]; then
-        	echo
-        	echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress-startup-script.sh"
-        	echo
-        	exit 1
-	fi
+# DEBUG mode
+if [ $DEBUG -eq 1 ]
+then
+    set -e
+    set -x
+else
+    sleep 1
+fi
 
+# Check if root
+if [ "$(whoami)" != "root" ]
+then
+    echo
+    echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress-startup-script.sh"
+    echo
+    exit 1
+fi
+
+# Check network
+echo "Testing if network is OK..."
+service networking restart
+    curl -s http://github.com > /dev/null
+if [ $? -eq 0 ]
+then
+    echo -e "\e[32mOnline!\e[0m"
+else
+echo "Setting correct interface..."
 # Set correct interface
 { sed '/# The primary network interface/q' /etc/network/interfaces; printf 'auto %s\niface %s inet dhcp\n# This is an autoconfigured IPv6 interface\niface %s inet6 auto\n' "$IFACE" "$IFACE" "$IFACE"; } > /etc/network/interfaces.new
 mv /etc/network/interfaces.new /etc/network/interfaces
 service networking restart
+fi
 
 # Check network
 echo "Testing if network is OK..."
-sleep 2
-sudo ifdown $IFACE && sudo ifup $IFACE
-wget -q --spider http://github.com
-	if [ $? -eq 0 ]; then
-    		echo -e "\e[32mOnline!\e[0m"
-	else
-		echo
-		echo "Network NOT OK. You must have a working Network connection to run this script."
-		echo "Please report this to: https://github.com/techandme/wordpress-vm/issues/new"
-	       	exit 1
-	fi
+service networking restart
+    curl -s http://github.com > /dev/null
+if [ $? -eq 0 ]
+then
+    echo -e "\e[32mOnline!\e[0m"
+else
+    echo
+    echo "Network NOT OK. You must have a working Network connection to run this script."
+    echo "Please report this issue here: https://github.com/techandme/wordpress-vm/issues/new"
+    exit 1
+fi
 
-# Locate the best mirrors
+# Get the best mirrors for Ubuntu based on location
 echo "Locating the best mirrors..."
-apt update -q2
-apt install python-pip -y
-pip install \
-    --upgrade pip \
-    apt-select
 apt-select
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
+if [ -f sources.list ]
+then
 sudo mv sources.list /etc/apt/
-clear
+fi
 
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 
@@ -168,6 +190,117 @@ EOMSTART
 echo -e "\e[32m"
 read -p "Press any key to start the script..." -n1 -s
 echo -e "\e[0m"
+clear
+
+# Set hostname and ServerName
+echo "Setting hostname..."
+FQN=$(host -TtA $(hostname -s)|grep "has address"|awk '{print $1}') ; \
+if [[ "$FQN" == "" ]]
+then
+    FQN=$(hostname -s)
+fi
+sudo sh -c "echo 'ServerName $FQN' >> /etc/apache2/apache2.conf"
+sudo hostnamectl set-hostname $FQN
+service apache2 restart
+cat << ETCHOSTS > "/etc/hosts"
+127.0.1.1 $FQN.localdomain $FQN
+127.0.0.1 localhost
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ETCHOSTS
+
+# VPS?
+function ask_yes_or_no() {
+    read -p "$1 ([y]es or [N]o): "
+    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
+        y|yes) echo "yes" ;;
+        *)     echo "no" ;;
+    esac
+}
+
+if [[ "no" == $(ask_yes_or_no "Do you run this script on a *remote* VPS like DigitalOcean, HostGator or similar?") ]]
+then
+    # Change IP
+    echo -e "\e[0m"
+    echo "OK, we assume you run this locally and we will now configure your IP to be static."
+    echo -e "\e[1m"
+    echo "Your internal IP is: $ADDRESS"
+    echo -e "\e[0m"
+    echo -e "Write this down, you will need it to set static IP"
+    echo -e "in your router later. It's included in this guide:"
+    echo -e "https://www.techandme.se/open-port-80-443/ (step 1 - 5)"
+    echo -e "\e[32m"
+    read -p "Press any key to set static IP..." -n1 -s
+    echo -e "\e[0m"
+    ifdown $IFACE
+    sleep 1
+    ifup $IFACE
+    sleep 1
+    bash $SCRIPTS/ip.sh
+    if [ "$IFACE" = "" ]
+    then
+        echo "IFACE is an emtpy value. Trying to set IFACE with another method..."
+        wget -q $STATIC/ip2.sh -P $SCRIPTS
+        bash $SCRIPTS/ip2.sh
+        rm $SCRIPTS/ip2.sh
+    fi
+    ifdown $IFACE
+    sleep 1
+    ifup $IFACE
+    sleep 1
+    echo
+    echo "Testing if network is OK..."
+    sleep 1
+    echo
+    CONTEST=$(bash $SCRIPTS/test_connection.sh)
+    if [ "$CONTEST" == "Connected!" ]
+    then
+        # Connected!
+        echo -e "\e[32mConnected!\e[0m"
+        echo
+        echo -e "We will use the DHCP IP: \e[32m$ADDRESS\e[0m. If you want to change it later then just edit the interfaces file:"
+        echo "sudo nano /etc/network/interfaces"
+        echo
+        echo "If you experience any bugs, please report it here:"
+        echo "https://github.com/nextcloud/vm/issues/new"
+        echo -e "\e[32m"
+        read -p "Press any key to continue..." -n1 -s
+        echo -e "\e[0m"
+    else
+        # Not connected!
+        echo -e "\e[31mNot Connected\e[0m\nYou should change your settings manually in the next step."
+        echo -e "\e[32m"
+        read -p "Press any key to open /etc/network/interfaces..." -n1 -s
+        echo -e "\e[0m"
+        nano /etc/network/interfaces
+        service networking restart
+        clear
+        echo "Testing if network is OK..."
+        ifdown $IFACE
+        sleep 1
+        ifup $IFACE
+        sleep 1
+        bash $SCRIPTS/test_connection.sh
+        sleep 1
+    fi 
+else
+    echo "OK, then we will not set a static IP as your VPS provider already have setup the network for you..."
+    sleep 5
+fi
+clear
+
+# Set keyboard layout
+echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
+echo "You must change keyboard layout to your language"
+echo -e "\e[32m"
+read -p "Press any key to change keyboard layout... " -n1 -s
+echo -e "\e[0m"
+dpkg-reconfigure keyboard-configuration
+echo
+clear
 
 # Get new server keys
 rm -v /etc/ssh/ssh_host_*
