@@ -303,6 +303,7 @@ echo
 clear
 
 # Get new server keys
+echo "Adding new SSH keys..."
 rm -v /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
 
@@ -357,50 +358,6 @@ dpkg-reconfigure tzdata
 echo
 sleep 3
 clear
-
-# Change IP
-echo -e "\e[0m"
-echo "The script will now configure your IP to be static."
-echo -e "\e[36m"
-echo -e "\e[1m"
-echo "Your internal IP is: $ADDRESS"
-echo -e "\e[0m"
-echo -e "Write this down, you will need it to set static IP"
-echo -e "in your router later. It's included in this guide:"
-echo -e "https://www.techandme.se/open-port-80-443/ (step 1 - 5)"
-echo -e "\e[32m"
-read -p "Press any key to set static IP..." -n1 -s
-clear
-echo -e "\e[0m"
-ifdown $IFACE
-sleep 2
-ifup $IFACE
-sleep 2
-bash $SCRIPTS/ip.sh
-ifdown $IFACE
-sleep 2
-ifup $IFACE
-sleep 2
-echo
-echo "Testing if network is OK..."
-echo
-bash $SCRIPTS/test_connection.sh
-sleep 2
-echo
-echo -e "\e[0mIf the output is \e[32mConnected! \o/\e[0m everything is working."
-echo -e "\e[0mIf the output is \e[31mNot Connected!\e[0m you should change\nyour settings manually in the next step."
-echo -e "\e[32m"
-read -p "Press any key to open /etc/network/interfaces..." -n1 -s
-echo -e "\e[0m"
-nano /etc/network/interfaces
-clear
-echo "Testing if network is OK..."
-ifdown $IFACE
-sleep 2
-ifup $IFACE
-sleep 2
-echo
-bash $SCRIPTS/test_connection.sh
 
 # Change password
 echo -e "\e[0m"
