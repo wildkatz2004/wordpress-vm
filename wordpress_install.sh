@@ -195,11 +195,6 @@ a2enmod rewrite \
         ssl \
         setenvif
 
-# Set hostname and ServerName
-sudo sh -c "echo 'ServerName wordpress' >> /etc/apache2/apache2.conf"
-sudo hostnamectl set-hostname wordpress
-service apache2 restart
-
 # Install PHP 7.0
 apt install -y \
         php \
