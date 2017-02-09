@@ -588,6 +588,9 @@ echo
     echo -e "\e[0m"
 fi
 
+# Prefer IPv6
+sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+
 ## Reboot
 echo "Installations finished. System will now reboot..."
 reboot
