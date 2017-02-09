@@ -25,8 +25,8 @@ HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
 IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 # Repos
-GITHUB_REPO="https://raw.githubusercontent.com/enoch85/wordpress-vm/master"
-STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
+GITHUB_REPO="https://raw.githubusercontent.com/techandme/wordpress-vm/master"
+STATIC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/static"
 # Create user for installing if not existing
 UNIXUSER=wordpress
 UNIXPASS=wordpress

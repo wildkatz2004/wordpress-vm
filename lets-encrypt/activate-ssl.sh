@@ -112,10 +112,10 @@ SCRIPTS=/var/scripts
 if [ -f $SCRIPTS/test-new-config.sh ]
 then
     rm $SCRIPTS/test-new-config.sh
-    wget https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-encrypt/test-new-config.sh -P $SCRIPTS
+    wget https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt/test-new-config.sh -P $SCRIPTS
     chmod +x $SCRIPTS/test-new-config.sh
 else
-    wget https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-encrypt/test-new-config.sh -P $SCRIPTS
+    wget https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt/test-new-config.sh -P $SCRIPTS
     chmod +x $SCRIPTS/test-new-config.sh
 fi
 echo
@@ -312,7 +312,7 @@ else
 | Please check the guide for further information on how to enable SSL.   |
 |                                                                        |
 | This script is developed on GitHub, feel free to contribute:           |
-| https://github.com/enoch85/wordpress-vm                                |
+| https://github.com/techandme/wordpress-vm                              |
 |                                                                        |
 | The script will now do some cleanup and revert the settings.           |
 +------------------------------------------------------------------------+

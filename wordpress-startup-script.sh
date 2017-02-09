@@ -10,8 +10,8 @@ IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
 WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
-STATIC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/static"
-LETS_ENC="https://raw.githubusercontent.com/enoch85/wordpress-vm/master/lets-encrypt"
+STATIC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/static"
+LETS_ENC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt"
 
 # Check if root
 	if [ "$(whoami)" != "root" ]; then
@@ -36,7 +36,7 @@ wget -q --spider http://github.com
 	else
 		echo
 		echo "Network NOT OK. You must have a working Network connection to run this script."
-		echo "Please report this to: https://github.com/enoch85/wordpress-vm/issues/new"
+		echo "Please report this to: https://github.com/techandme/wordpress-vm/issues/new"
 	       	exit 1
 	fi
 
