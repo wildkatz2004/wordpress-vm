@@ -116,17 +116,6 @@ fi
       	mkdir $SCRIPTS
 fi
 
-# Prefer IPv4
-sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
-
-# Set locales
-apt install language-pack-en-base -y
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
-
-# Change DNS
-echo "nameserver 8.26.56.26" > /etc/resolvconf/resolv.conf.d/base
-echo "nameserver 8.20.247.20" >> /etc/resolvconf/resolv.conf.d/base
-
 # Check network
 sudo ifdown $IFACE && sudo ifup $IFACE
 nslookup google.com
@@ -137,6 +126,14 @@ then
 else
     echo "Network OK."
 fi
+
+# Set locales
+apt install language-pack-en-base -y
+sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
+
+# Change DNS
+echo "nameserver 8.26.56.26" > /etc/resolvconf/resolv.conf.d/base
+echo "nameserver 8.20.247.20" >> /etc/resolvconf/resolv.conf.d/base
 
 # Check where the best mirrors are and update
 echo "Locating the best mirrors..."
