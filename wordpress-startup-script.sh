@@ -265,7 +265,7 @@ then
         echo "sudo nano /etc/network/interfaces"
         echo
         echo "If you experience any bugs, please report it here:"
-        echo "https://github.com/nextcloud/vm/issues/new"
+        echo "https://github.com/techandme/wordpress-vm/issues/new"
         echo -e "\e[32m"
         read -p "Press any key to continue..." -n1 -s
         echo -e "\e[0m"
