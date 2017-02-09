@@ -135,6 +135,18 @@ else
     echo "Network OK."
 fi
 
+# Check where the best mirrors are and update
+echo "Locating the best mirrors..."
+apt update -q2
+apt install python-pip -y
+pip install \
+    --upgrade pip \
+    apt-select
+apt-select
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
+sudo mv sources.list /etc/apt/
+clear
+
 # Update system
 apt update -q2
 
