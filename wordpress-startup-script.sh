@@ -338,16 +338,6 @@ echo
 fi
 clear
 
-# Set keyboard layout
-echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
-echo "You must change keyboard layout to your language"
-echo -e "\e[32m"
-read -p "Press any key to change keyboard layout... " -n1 -s
-echo -e "\e[0m"
-dpkg-reconfigure keyboard-configuration
-echo
-clear
-
 # Change Timezone
 echo "Current timezone is $(cat /etc/timezone)"
 echo "You must change timezone to your timezone"
