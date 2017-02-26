@@ -34,7 +34,7 @@ then
         echo "Script exists"
 else
         mkdir -p /var/scripts
-        wget -q https://raw.githubusercontent.com/techandme/wordpress-vm/master/wp-permissions.sh -P /var/scripts/
+        wget -q https://raw.githubusercontent.com/techandme/wordpress-vm/master/static/wp-permissions.sh -P /var/scripts/
 fi
 sudo bash /var/scripts/wp-permissions.sh
 
