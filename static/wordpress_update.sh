@@ -11,8 +11,9 @@ WPATH=/var/www/html/wordpress
 [[ `id -u` -eq 0 ]] || { echo "Must be root to run script, in Ubuntu type: sudo -i"; exit 1; }
 
 # System Upgrade
-sudo apt update -q2
-sudo aptitude full-upgrade -y
+apt update -q2
+apt dist-upgrade -y
+wp cli update --allow-root
 cd $WPATH
 wp db export mysql_backup.sql --allow-root
 mv $WPATH/mysql_backup.sql /var/www/html/mysql_backup.sql
@@ -25,7 +26,6 @@ echo
 echo "This is the current version installed:"
 echo
 wp core version --extra --allow-root
-sleep 5
 
 # Set secure permissions
 FILE="/var/scripts/wp-permissions.sh"
@@ -52,4 +52,4 @@ echo "WORDPRESS UPDATE success-`date +"%Y%m%d"`" >> /var/log/cronjobs_success.lo
 # Un-hash this if you want the system to reboot
 # sudo reboot
 
-exit 0
+exit
