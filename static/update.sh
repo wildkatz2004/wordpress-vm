@@ -1,10 +1,11 @@
 #!/bin/bash
+
+# Tech and Me © - 2017, https://www.techandme.se/
+
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/refactor/lib.sh)
-
-# Tech and Me © - 2017, https://www.techandme.se/
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -12,10 +13,16 @@ true
 DEBUG=0
 debug_mode
 
-$WGET -q --tries=20 --timeout=10 http://www.google.com -O /tmp/google.idx &> /dev/null
-if [ ! -s /tmp/google.idx ]
+# Must be root
+if ! is_root
 then
-    printf "${Red}Not Connected!${Color_Off}\n"
-else
-    printf "Connected!\n"
+    echo "Must be root to run script, in Ubuntu type: sudo -i"
+    exit 1
 fi
+
+mkdir -p "$SCRIPTS"
+
+# Delete, download, run
+run_static_script wordpress_update
+
+exit

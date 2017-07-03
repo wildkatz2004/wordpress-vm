@@ -12,10 +12,16 @@ true
 DEBUG=0
 debug_mode
 
-$WGET -q --tries=20 --timeout=10 http://www.google.com -O /tmp/google.idx &> /dev/null
-if [ ! -s /tmp/google.idx ]
+if [[ "no" == $(ask_yes_or_no "Do you want to create a new user?") ]]
 then
-    printf "${Red}Not Connected!${Color_Off}\n"
+    echo "Not adding another user..."
+    sleep 1
 else
-    printf "Connected!\n"
+    read -r -p "Enter name of the new user: " NEWUSER
+    useradd -m "$NEWUSER" -G sudo
+    while true
+    do
+        sudo passwd "$NEWUSER" && break
+    done
+    sudo -u "$NEWUSER" sudo bash wordpress_install.sh
 fi

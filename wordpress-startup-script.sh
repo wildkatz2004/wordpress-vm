@@ -1,166 +1,117 @@
 #!/bin/bash
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+WPDB=1 && MYCNFPW=1 && FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/refactor/lib.sh)
+unset FIRST_IFACE
+unset CHECK_CURRENT_REPO
+unset MYCNFPW
+unset WPDB
 
-# Tech and Me - ©2017, https://www.techandme.se/
+# Tech and Me © - 2017, https://www.techandme.se/
+
+## If you want debug mode, please activate it further down in the code at line ~60
+
+is_root() {
+    if [[ "$EUID" -ne 0 ]]
+    then
+        return 1
+    else
+        return 0
+    fi
+}
+
+network_ok() {
+    echo "Testing if network is OK..."
+    service networking restart
+    if wget -q -T 20 -t 2 http://github.com -O /dev/null
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Check if root
+if ! is_root
+then
+    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash $SCRIPTS/wordpress-startup-script.sh\n"
+    exit 1
+fi
+
+# Check network
+if network_ok
+then
+    printf "${Green}Online!${Color_Off}\n"
+else
+    echo "Setting correct interface..."
+    [ -z "$IFACE" ] && IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
+    # Set correct interface
+    {
+        sed '/# The primary network interface/q' /etc/network/interfaces
+        printf 'auto %s\niface %s inet dhcp\n# This is an autoconfigured IPv6 interface\niface %s inet6 auto\n' "$IFACE" "$IFACE" "$IFACE"
+    } > /etc/network/interfaces.new
+    mv /etc/network/interfaces.new /etc/network/interfaces
+    service networking restart
+    # shellcheck source=lib.sh
+    CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/refactor/lib.sh)
+    unset CHECK_CURRENT_REPO
+fi
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
 # 0 = OFF
 DEBUG=0
+debug_mode
 
-WWW_ROOT=/var/www/html
-WPATH=$WWW_ROOT/wordpress
-SCRIPTS=/var/scripts
-PW_FILE=/var/mysql_password.txt # Keep in sync with wordpress_install.sh
-IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
-WANIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
-PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
-STATIC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/static"
-LETS_ENC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt"
-
-# DEBUG mode
-if [ $DEBUG -eq 1 ]
+# Check network
+if network_ok
 then
-    set -e
-    set -x
+    printf "${Green}Online!${Color_Off}\n"
 else
+    printf "\nNetwork NOT OK. You must have a working Network connection to run this script.\n"
+    echo "Please report this issue here: $ISSUES"
+    exit 1
+fi
+
+# Check where the best mirrors are and update
+printf "\nTo make downloads as fast as possible when updating you should have mirrors that are as close to you as possible.\n"
+echo "This VM comes with mirrors based on servers in that where used when the VM was released and packaged."
+echo "We recomend you to change the mirrors based on where this is currently installed."
+echo "Checking current mirror..."
+printf "Your current server repository is:  ${Cyan}$REPO${Color_Off}\n"
+
+if [[ "no" == $(ask_yes_or_no "Do you want to try to find a better mirror?") ]]
+then
+    echo "Keeping $REPO as mirror..."
     sleep 1
-fi
-
-# Check if root
-if [ "$(whoami)" != "root" ]
-then
-    echo
-    echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/wordpress-startup-script.sh"
-    echo
-    exit 1
-fi
-
-# Check network
-echo "Testing if network is OK..."
-service networking restart
-    curl -s http://github.com > /dev/null
-if [ $? -eq 0 ]
-then
-    echo -e "\e[32mOnline!\e[0m"
 else
-echo "Setting correct interface..."
-# Set correct interface
-{ sed '/# The primary network interface/q' /etc/network/interfaces; printf 'auto %s\niface %s inet dhcp\n# This is an autoconfigured IPv6 interface\niface %s inet6 auto\n' "$IFACE" "$IFACE" "$IFACE"; } > /etc/network/interfaces.new
-mv /etc/network/interfaces.new /etc/network/interfaces
-service networking restart
+    echo "Locating the best mirrors..."
+    apt update -q4 & spinner_loading
+    apt install python-pip -y
+    pip install \
+        --upgrade pip \
+        apt-select
+    apt-select -m up-to-date -t 5 -c
+    sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
+    if [ -f sources.list ]
+    then
+        sudo mv sources.list /etc/apt/
+    fi
 fi
 
-# Check network
-echo "Testing if network is OK..."
-service networking restart
-    curl -s http://github.com > /dev/null
-if [ $? -eq 0 ]
-then
-    echo -e "\e[32mOnline!\e[0m"
-else
-    echo
-    echo "Network NOT OK. You must have a working Network connection to run this script."
-    echo "Please report this issue here: https://github.com/techandme/wordpress-vm/issues/new"
-    exit 1
-fi
-
-# Get the best mirrors for Ubuntu based on location
-echo "Locating the best mirrors..."
-apt-select
-sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
-if [ -f sources.list ]
-then
-sudo mv sources.list /etc/apt/
-fi
-
-ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-
+echo
 echo "Getting scripts from GitHub to be able to run the first setup..."
-
-# Get security script
-        if [ -f $SCRIPTS/security.sh ];
-                then
-                rm $SCRIPTS/security.sh
-                wget -q $STATIC/security.sh -P $SCRIPTS
-                else
-        wget -q $STATIC/security.sh -P $SCRIPTS
-	fi
-
-# Change MySQL password
-        if [ -f $SCRIPTS/change_mysql_pass.sh ];
-                then
-                rm $SCRIPTS/change_mysql_pass.sh
-                wget -q $STATIC/change_mysql_pass.sh
-                else
-        	wget -q $STATIC/change_mysql_pass.sh -P $SCRIPTS
-	fi
-
-# phpMyadmin
-        if [ -f $SCRIPTS/phpmyadmin_install_ubuntu16.sh ];
-                then
-                rm $SCRIPTS/phpmyadmin_install_ubuntu16.sh
-                wget -q $STATIC/phpmyadmin_install_ubuntu16.sh -P $SCRIPTS
-                else
-        	wget -q $STATIC/phpmyadmin_install_ubuntu16.sh -P $SCRIPTS
-	fi
-# Activate SSL
-        if [ -f $SCRIPTS/activate-ssl.sh ];
-                then
-                rm $SCRIPTS/activate-ssl.sh
-                wget -q $LETS_ENC/activate-ssl.sh -P $SCRIPTS
-                else
-        	wget -q $LETS_ENC/activate-ssl.sh -P $SCRIPTS
-	fi
-# The update script
-        if [ -f $SCRIPTS/wordpress_update.sh ];
-                then
-                rm $SCRIPTS/wordpress_update.sh
-                wget -q $STATIC/wordpress_update.sh -P $SCRIPTS
-                else
-        	wget -q $STATIC/wordpress_update.sh -P $SCRIPTS
-	fi
-# Sets static IP to UNIX
-        if [ -f $SCRIPTS/ip.sh ];
-                then
-                rm $SCRIPTS/ip.sh
-                wget -q $STATIC/ip.sh -P $SCRIPTS
-                else
-      		wget -q $STATIC/ip.sh -P $SCRIPTS
-	fi
-# Tests connection after static IP is set
-        if [ -f $SCRIPTS/test_connection.sh ];
-                then
-                rm $SCRIPTS/test_connection.sh
-                wget -q $STATIC/test_connection.sh -P $SCRIPTS
-                else
-        	wget -q $STATIC/test_connection.sh -P $SCRIPTS
-	fi
-# Sets secure permissions after upgrade
-        if [ -f $SCRIPTS/wp-permissions.sh ];
-                then
-                rm $SCRIPTS/wp-permissions.sh
-                wget -q $STATIC/wp-permissions.sh
-                else
-        	wget -q $STATIC/wp-permissions.sh -P $SCRIPTS
-	fi
-# Get figlet Tech and Me
-	if [ -f $SCRIPTS/techandme.sh ];
-                then
-                rm $SCRIPTS/techandme.sh
-                wget -q $STATIC/techandme.sh
-                else
-        	wget -q $STATIC/techandme.sh -P $SCRIPTS
-	fi
-
-# Get the Welcome Screen when http://$address
-        if [ -f $SCRIPTS/index.php ];
-                then
-                rm $SCRIPTS/index.php
-                wget -q $STATIC/index.php -P $SCRIPTS
-                else
-        	wget -q $STATIC/index.php -P $SCRIPTS
-	fi
+# All the shell scripts in static (.sh)
+download_static_script security
+download_static_script update
+download_static_script ip
+download_static_script test_connection
+download_static_script wp-permissions
+download_static_script change_mysql_pass
+download_static_script techandme
+download_static_script index
+download_le_script activate-ssl
 
 # Make $SCRIPTS excutable
 chmod +x -R $SCRIPTS
@@ -198,6 +149,7 @@ FQN=$(host -TtA $(hostname -s)|grep "has address"|awk '{print $1}') ; \
 if [[ "$FQN" == "" ]]
 then
     FQN=$(hostname -s)
+    echo "Current hostname is: $FQN.localdomain"
 fi
 sudo sh -c "echo 'ServerName $FQN' >> /etc/apache2/apache2.conf"
 sudo hostnamectl set-hostname $FQN
@@ -213,155 +165,194 @@ ff02::2 ip6-allrouters
 ETCHOSTS
 
 # VPS?
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    esac
-}
-
 if [[ "no" == $(ask_yes_or_no "Do you run this script on a *remote* VPS like DigitalOcean, HostGator or similar?") ]]
 then
     # Change IP
-    echo -e "\e[0m"
-    echo "OK, we assume you run this locally and we will now configure your IP to be static."
-    echo -e "\e[1m"
+    printf "\n${Color_Off}OK, we assume you run this locally and we will now configure your IP to be static.${Color_Off}\n"
     echo "Your internal IP is: $ADDRESS"
-    echo -e "\e[0m"
-    echo -e "Write this down, you will need it to set static IP"
-    echo -e "in your router later. It's included in this guide:"
-    echo -e "https://www.techandme.se/open-port-80-443/ (step 1 - 5)"
-    echo -e "\e[32m"
-    read -p "Press any key to set static IP..." -n1 -s
-    echo -e "\e[0m"
-    ifdown $IFACE
-    sleep 1
-    ifup $IFACE
-    sleep 1
-    bash $SCRIPTS/ip.sh
-    if [ "$IFACE" = "" ]
+    printf "\n${Color_Off}Write this down, you will need it to set static IP\n"
+    echo "in your router later. It's included in this guide:"
+    echo "https://www.techandme.se/open-port-80-443/ (step 1 - 5)"
+    any_key "Press any key to set static IP..."
+    ifdown "$IFACE"
+    wait
+    ifup "$IFACE"
+    wait
+    bash "$SCRIPTS/ip.sh"
+    if [ -z "$IFACE" ]
     then
         echo "IFACE is an emtpy value. Trying to set IFACE with another method..."
-        wget -q $STATIC/ip2.sh -P $SCRIPTS
-        bash $SCRIPTS/ip2.sh
-        rm $SCRIPTS/ip2.sh
+        download_static_script ip2
+        bash "$SCRIPTS/ip2.sh"
+        rm -f "$SCRIPTS/ip2.sh"
     fi
-    ifdown $IFACE
-    sleep 1
-    ifup $IFACE
-    sleep 1
+    ifdown "$IFACE"
+    wait
+    ifup "$IFACE"
+    wait
     echo
     echo "Testing if network is OK..."
-    sleep 1
     echo
     CONTEST=$(bash $SCRIPTS/test_connection.sh)
     if [ "$CONTEST" == "Connected!" ]
     then
         # Connected!
-        echo -e "\e[32mConnected!\e[0m"
-        echo
-        echo -e "We will use the DHCP IP: \e[32m$ADDRESS\e[0m. If you want to change it later then just edit the interfaces file:"
-        echo "sudo nano /etc/network/interfaces"
-        echo
+        printf "${Green}Connected!${Color_Off}\n"
+        printf "We will use the DHCP IP: ${Green}$ADDRESS${Color_Off}. If you want to change it later then just edit the interfaces file:\n"
+        printf "sudo nano /etc/network/interfaces\n"
         echo "If you experience any bugs, please report it here:"
-        echo "https://github.com/techandme/wordpress-vm/issues/new"
-        echo -e "\e[32m"
-        read -p "Press any key to continue..." -n1 -s
-        echo -e "\e[0m"
+        echo "$ISSUES"
+        any_key "Press any key to continue..."
     else
         # Not connected!
-        echo -e "\e[31mNot Connected\e[0m\nYou should change your settings manually in the next step."
-        echo -e "\e[32m"
-        read -p "Press any key to open /etc/network/interfaces..." -n1 -s
-        echo -e "\e[0m"
+        printf "${Red}Not Connected${Color_Off}\nYou should change your settings manually in the next step.\n"
+        any_key "Press any key to open /etc/network/interfaces..."
         nano /etc/network/interfaces
         service networking restart
         clear
         echo "Testing if network is OK..."
-        ifdown $IFACE
-        sleep 1
-        ifup $IFACE
-        sleep 1
-        bash $SCRIPTS/test_connection.sh
-        sleep 1
-    fi 
+        ifdown "$IFACE"
+        wait
+        ifup "$IFACE"
+        wait
+        bash "$SCRIPTS/test_connection.sh"
+        wait
+    fi
 else
     echo "OK, then we will not set a static IP as your VPS provider already have setup the network for you..."
-    sleep 5
+    sleep 5 & spinner_loading
 fi
 clear
 
 # Set keyboard layout
 echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
-echo "You must change keyboard layout to your language"
-echo -e "\e[32m"
-read -p "Press any key to change keyboard layout... " -n1 -s
-echo -e "\e[0m"
-dpkg-reconfigure keyboard-configuration
-echo
+if [[ "no" == $(ask_yes_or_no "Do you want to change keyboard layout?") ]]
+then
+    echo "Not changing keyboard layout..."
+    sleep 1
+    clear
+else
+    dpkg-reconfigure keyboard-configuration
 clear
+fi
 
-# Get new server keys
-echo "Adding new SSH keys..."
+# Generate new SSH Keys
+printf "\nGenerating new SSH keys for the server...\n"
 rm -v /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
 
-# Generate new MySQL password
-echo
-bash $SCRIPTS/change_mysql_pass.sh
-rm $SCRIPTS/change_mysql_pass.sh
+# Generate new MARIADB password
+echo "Generating new MARIADB password..."
+if bash "$SCRIPTS/change_mysql_pass.sh" && wait
+then
+   rm "$SCRIPTS/change_mysql_pass.sh"
+   {
+   echo
+   echo "[mysqld]"
+   echo "innodb_large_prefix=on"
+   echo "innodb_file_format=barracuda"
+   echo "innodb_flush_neighbors=0"
+   echo "innodb_adaptive_flushing=1"
+   echo "innodb_flush_method = O_DIRECT"
+   echo "innodb_doublewrite = 0"
+   echo "innodb_file_per_table = 1"
+   echo "innodb_flush_log_at_trx_commit=1"
+   echo "init-connect='SET NAMES utf8mb4'"
+   echo "collation_server=utf8mb4_unicode_ci"
+   echo "character_set_server=utf8mb4"
+   echo "skip-character-set-client-handshake"
+   
+   echo "[mariadb]"
+   echo "innodb_use_fallocate = 1"
+   echo "innodb_use_atomic_writes = 1"
+   echo "innodb_use_trim = 1"
+   } >> /root/.my.cnf
+fi
 
-# Install phpMyadmin
-bash $SCRIPTS/phpmyadmin_install_ubuntu16.sh
-rm $SCRIPTS/phpmyadmin_install_ubuntu16.sh
+# Enable UTF8mb4 (4-byte support)
+printf "\nEnabling UTF8mb4 support on $WPCONFIGDB....\n"
+echo "Please be patient, it may take a while."
+sudo /etc/init.d/mysql restart & spinner_loading
+RESULT="mysqlshow --user=root --password=$MARIADBMYCNFPASS $WPCONFIGDB| grep -v Wildcard | grep -o $WPCONFIGDB"
+if [ "$RESULT" == "$WPCONFIGDB" ]; then
+    check_command mysql -u root -e "ALTER DATABASE $WPCONFIGDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+    wait
+fi
 clear
 
-# Add extra security
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
+whiptail --title "Which apps do you want to install?" --checklist --separate-output "Automatically configure and install selected apps\nSelect by pressing the spacebar" "$WT_HEIGHT" "$WT_WIDTH" 4 \
+"Fail2ban" "(Extra Bruteforce protection)   " OFF \
+"Webmin" "(Server GUI)       " OFF \
+"phpMyadmin" "(*SQL GUI)       " OFF 2>results
+while read -r -u 9 choice
+do
+    case $choice in
+        Fail2ban)
+            run_app_script fail2ban
+
+        ;;
+
+        Webmin)
+            run_app_script webmin
+
+        ;;
+
+        phpMyadmin)
+            run_app_script phpmyadmin_install_ubuntu16
+        ;;
+
+        *)
+        ;;
     esac
-}
-if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
-then
-	bash $SCRIPTS/security.sh
-	rm $SCRIPTS/security.sh
-else
-echo
-    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
-fi
+done 9< results
+rm -f results
 clear
 
 # Change Timezone
 echo "Current timezone is $(cat /etc/timezone)"
-echo "You must change timezone to your timezone"
-echo -e "\e[32m"
-read -p "Press any key to change timezone... " -n1 -s
-echo -e "\e[0m"
+echo "You must change it to your timezone"
+any_key "Press any key to change timezone..."
 dpkg-reconfigure tzdata
-echo
 sleep 3
 clear
 
-# Change password
-echo -e "\e[0m"
-echo "For better security, change the Linux password for user [wordpress]"
-echo "The current password is [wordpress]"
-echo -e "\e[32m"
-read -p "Press any key to change password for Linux... " -n1 -s
-echo -e "\e[0m"
-sudo passwd wordpress
-if [[ $? > 0 ]]
+# Add extra security
+if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
 then
-    sudo passwd wordpress
+    bash $SCRIPTS/security.sh
+    rm "$SCRIPTS"/security.sh
 else
-    sleep 2
+    echo
+    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
+    any_key "Press any key to continue..."
+fi
+clear
+
+# Change password
+printf "${Color_Off}\n"
+echo "For better security, change the system user password for [$UNIXUSER]"
+any_key "Press any key to change password for system user..."
+while true
+do
+    sudo passwd "$UNIXUSER" && break
+done
+echo
+clear
+
+cat << LETSENC
++-----------------------------------------------+
+|  The following script will install a trusted  |
+|  SSL certificate through Let's Encrypt.       |
++-----------------------------------------------+
+LETSENC
+# Let's Encrypt
+if [[ "yes" == $(ask_yes_or_no "Do you want to install SSL?") ]]
+then
+    bash $SCRIPTS/activate-ssl.sh
+else
+    echo
+    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
+    any_key "Press any key to continue..."
 fi
 clear
 
@@ -405,7 +396,7 @@ cat << ENTERNEW2
 +-----------------------------------------------+
 ENTERNEW2
 echo
-echo "Enter FQDN (http://yourdomain.com):"
+echo "Enter FQDN (http(s)://yourdomain.com):"
 read FQDN
 echo
 echo "Enter username:"
@@ -428,8 +419,11 @@ wp search-replace http://$ADDRESS $FQDN --precise --all-tables --path=$WPATH --a
 
 wp user create $USER $EMAIL --role=administrator --user_pass=$NEWWPADMINPASS --path=$WPATH --allow-root
 wp user delete 1 --allow-root --reassign=$USER --path=$WPATH
-echo "WP USER: $USER" > /var/adminpass.txt
-echo "WP PASS: $NEWWPADMINPASS" >> /var/adminpass.txt
+{
+echo "WP USER: $USER"
+echo "WP PASS: $NEWWPADMINPASS" 
+} > /var/adminpass.txt
+
 
 # Show current administrators
 echo
@@ -440,53 +434,28 @@ wp user list --role=administrator --path=$WPATH --allow-root
     echo -e "\e[0m"
 clear
 
-# Upgrade system
-clear
-echo System will now upgrade...
-sleep 2
-echo
-echo
-bash $SCRIPTS/wordpress_update.sh
+# Fixes https://github.com/techandme/wordpress-vm/issues/58
+a2dismod status
+service apache2 reload
 
 # Cleanup 1
-apt autoremove -y
-apt autoclean
-echo "$CLEARBOOT"
-clear
+rm -f "$SCRIPTS/ip.sh"
+rm -f "$SCRIPTS/test_connection.sh"
+rm -f "$SCRIPTS/instruction.sh"
+rm -f "$SCRIPTS/wordpress-startup-script.sh"
+find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
+sed -i "s|instruction.sh|techandme.sh|g" "/home/$UNIXUSER/.bash_profile"
 
-# Success!
-echo -e "\e[32m"
-echo    "+--------------------------------------------------------------------+"
-echo    "| You have sucessfully installed Wordpress! System will now reboot...|"
-echo    "|                                                                    |"
-echo -e "|         \e[0mLogin to Wordpress in your browser:\e[36m" $FQDN"\e[32m          |"
-echo    "|                                                                    |"
-echo -e "|         \e[0mPublish your server online! \e[36mhttps://goo.gl/iUGE2U\e[32m          |"
-echo    "|                                                                    |"
-echo -e "|      \e[0mYour MySQL password is stored in: \e[36m$PW_FILE\e[32m     |"
-echo    "|                                                                    |"
-echo -e "|    \e[91m#################### Tech and Me - 2017 ####################\e[32m    |"
-echo    "+--------------------------------------------------------------------+"
-echo
-read -p "Press any key to continue..." -n1 -s
-echo -e "\e[0m"
-echo
+truncate -s 0 \
+    /root/.bash_history \
+    "/home/$UNIXUSER/.bash_history" \
+    /var/spool/mail/root \
+    "/var/spool/mail/$UNIXUSER" \
+    /var/log/apache2/access.log \
+    /var/log/apache2/error.log \
+    /var/log/cronjobs_success.log
 
-# Cleanup 2
-rm $SCRIPTS/wordpress-startup-script.sh
-rm $SCRIPTS/ip.sh
-rm $SCRIPTS/test_connection.sh
-rm $SCRIPTS/instruction.sh
-rm $WPATH/wp-cli.yml
-sed -i "s|instruction.sh|techandme.sh|g" /home/wordpress/.bash_profile
-cat /dev/null > ~/.bash_history
-cat /dev/null > /var/spool/mail/root
-cat /dev/null > /var/spool/mail/wordpress
-cat /dev/null > /var/log/apache2/access.log
-cat /dev/null > /var/log/apache2/error.log
-cat /dev/null > /var/log/cronjobs_success.log
-sed -i "s|sudo -i||g" /home/wordpress/.bash_profile
-cat /dev/null > /etc/rc.local
+sed -i "s|sudo -i||g" "/home/$UNIXUSER/.bash_profile"
 cat << RCLOCAL > "/etc/rc.local"
 #!/bin/sh -e
 #
@@ -504,36 +473,37 @@ cat << RCLOCAL > "/etc/rc.local"
 exit 0
 
 RCLOCAL
-
 clear
-echo
-echo
-cat << LETSENC
-+-----------------------------------------------+
-|  Ok, now the last part - a proper SSL cert.   |
-|                                               |
-|  The following script will install a trusted  |
-|  SSL certificate through Let's Encrypt.       |
-+-----------------------------------------------+
-LETSENC
-# Let's Encrypt
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    esac
-}
-if [[ "yes" == $(ask_yes_or_no "Do you want to install SSL?") ]]
-then
-        bash $SCRIPTS/activate-ssl.sh
-else
-echo
-    echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
-fi
+
+# Upgrade system
+echo "System will now upgrade..."
+bash $SCRIPTS/update.sh
+
+# Cleanup 2
+apt autoremove -y
+apt autoclean
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e "$(uname -r | cut -f1,2 -d"-")" | grep -e "[0-9]" | xargs sudo apt -y purge)
+echo "$CLEARBOOT"
+
+ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print $2 }')
+# Success!
+clear
+printf "%s\n""${Green}"
+echo    "+--------------------------------------------------------------------+"
+echo    "|      Congratulations! You have successfully installed Nextcloud!   |"
+echo    "|                                                                    |"
+printf "|         ${Color_Off}Login to Wordpress in your browser: ${Cyan}\"$ADDRESS2\"${Green}         |\n"
+echo    "|                                                                    |"
+printf "|         ${Color_Off}Publish your server online! ${Cyan}https://goo.gl/iUGE2U${Green}          |\n"
+echo    "|                                                                    |"
+printf "|         ${Color_Off}To login to MARIADB just type: ${Cyan}'mysql -u root'${Green}             |\n"
+echo    "|                                                                    |"
+printf "|         ${Color_Off}To update this VM just type: ${Green}                              |\n"
+printf "|         ${Cyan}'sudo bash /var/scripts/update.sh'${Green}                         |\n"
+echo    "|                                                                    |"
+printf "|    ${IRed}#################### Tech and Me - 2017 ####################${Green}    |\n"
+echo    "+--------------------------------------------------------------------+"
+printf "${Color_Off}\n"
 
 # Prefer IPv6
 sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
@@ -541,5 +511,3 @@ sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/g
 ## Reboot
 echo "Installations finished. System will now reboot..."
 reboot
-
-exit 0

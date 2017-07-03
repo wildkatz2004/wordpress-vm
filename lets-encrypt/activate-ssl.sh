@@ -1,22 +1,21 @@
-#!bin/bash
+#!/bin/bash
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+. <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/refactor/lib.sh)
 
-# Tech and Me ©2017 - www.techandme.se
+# Tech and Me © - 2017, https://www.techandme.se/
 
-WWW_ROOT=/var/www/html
-WPATH=$WWW_ROOT/wordpress
-ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-dir_before_letsencrypt=/etc
-letsencryptpath=/etc/letsencrypt
-certfiles=$letsencryptpath/live
-ssl_conf="/etc/apache2/sites-available/wordpress_ssl_domain.conf"
-SCRIPTS=/var/scripts
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
 
 # Check if root
-if [ "$(whoami)" != "root" ]
+if ! is_root
 then
-    echo
-    echo -e "\e[31mSorry, you are not root.\n\e[0mYou need to type: \e[36msudo \e[0mbash /var/scripts/activate-ssl.sh"
-    echo
+    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You need to type: ${Cyan}sudo ${Color_Off}bash %s/activate-ssl.sh\n" "$SCRIPTS"
     exit 1
 fi
 
@@ -35,10 +34,10 @@ cat << STARTMSG
 |       you run this script!                                    |
 |                                                               |
 |       You also have to open port 443 against this VMs         |
-|       IP address: $ADDRESS - do this in your router.      |
+|       IP address: "$ADDRESS" - do this in your router.    |
 |       Here is a guide: https://goo.gl/Uyuf65                  |
 |                                                               |
-|       This script is located in /var/scripts and you          |
+|       This script is located in "$SCRIPTS" and you        |
 |       can run this script after you got a domain.             |
 |                                                               |
 |       Please don't run this script if you don't have          |
@@ -47,129 +46,121 @@ cat << STARTMSG
 |                                                               |
 +---------------------------------------------------------------+
 STARTMSG
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-    y|yes) echo "yes" ;;
-    *)     echo "no" ;;
-esac
-}
 if [[ "no" == $(ask_yes_or_no "Are you sure you want to continue?") ]]
 then
     echo
-    echo "OK, but if you want to run this script later, just type: sudo bash /var/scripts/activate-ssl.sh"
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
+    echo "OK, but if you want to run this script later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
+    any_key "Press any key to continue..."
 exit
 fi
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    esac
-}
 if [[ "no" == $(ask_yes_or_no "Have you forwarded port 443 in your router?") ]]
 then
     echo
     echo "OK, but if you want to run this script later, just type: sudo bash /var/scripts/activate-ssl.sh"
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
+    any_key "Press any key to continue..."
     exit
 fi
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    esac
-}
-if [[ "yes" == $(ask_yes_or_no "Do you have a domian that you will use?") ]]
+if [[ "yes" == $(ask_yes_or_no "Do you have a domain that you will use?") ]]
 then
     sleep 1
 else
     echo
     echo "OK, but if you want to run this script later, just type: sudo bash /var/scripts/activate-ssl.sh"
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
+    any_key "Press any key to continue..."
     exit
 fi
-# Install git
-    git --version 2>&1 >/dev/null
-    GIT_IS_AVAILABLE=$?
-# ...
-if [ $GIT_IS_AVAILABLE -eq 1 ]
-then
-    sleep 1
-else
-    apt install git -y -q
-fi
-# Fetch latest version of test-new-config.sh
-SCRIPTS=/var/scripts
-if [ -f $SCRIPTS/test-new-config.sh ]
-then
-    rm $SCRIPTS/test-new-config.sh
-    wget https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt/test-new-config.sh -P $SCRIPTS
-    chmod +x $SCRIPTS/test-new-config.sh
-else
-    wget https://raw.githubusercontent.com/techandme/wordpress-vm/master/lets-encrypt/test-new-config.sh -P $SCRIPTS
-    chmod +x $SCRIPTS/test-new-config.sh
-fi
 echo
+while true
+do
 # Ask for domain name
 cat << ENTERDOMAIN
 +---------------------------------------------------------------+
 |    Please enter the domain name you will use for Wordpress:   |
-|    Like this: example.com, or wordpress.example.com (1/2)     |
+|    Like this: example.com, or wordpress.example.com           |
 +---------------------------------------------------------------+
 ENTERDOMAIN
 echo
-read domain
-function ask_yes_or_no() {
-    read -p "$1 ([y]es or [N]o): "
-    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    esac
-}
+read -r domain
 echo
-if [[ "no" == $(ask_yes_or_no "Is this correct? $domain") ]]
+if [[ "yes" == $(ask_yes_or_no "Is this correct? $domain") ]]
+then
+    break
+fi
+done
+# Check if 443 is open using nmap, if not notify the user
+apt update -q4 & spinner_loading
+if [ "$(dpkg-query -W -f='${Status}' nmap 2>/dev/null | grep -c "ok installed")" == "1" ]
+then
+    echo "nmap is already installed..."
+else
+    apt install nmap -y
+fi
+if [ "$(nmap -sS -p 443 "$WANIP4" -PN | grep -c "open")" == "1" ]
+then
+    apt remove --purge nmap -y
+else
+    echo "Port 443 is not open on $WANIP4. We will do a second try on $domain instead."
+    any_key "Press any key to test $domain... "
+    sed -i "s|127.0.1.1.*|127.0.1.1       $domain wordpress|g" /etc/hosts
+    service networking restart
+    if [[ $(nmap -sS -PN -p 443 "$domain" | grep -m 1 "open" | awk '{print $2}') = open ]]
     then
-    echo
-    echo
-    cat << ENTERDOMAIN2
-+---------------------------------------------------------------+
-|    OK, try again. (2/2)                                       |
-|    Please enter the domain name you will use for Wordpress:   |
-|    Like this: example.com, or wordpress.example.com           |
-|    It's important that it's correct, because the script is    |
-|    based on what you enter.                                   |
-+---------------------------------------------------------------+
-ENTERDOMAIN2
-    echo
-    read domain
-    echo
+        apt remove --purge nmap -y
+    else
+        echo "Port 443 is not open on $domain. Please follow this guide to open ports in your router: https://www.techandme.se/open-port-80-443/"
+        any_key "Press any key to exit..."
+        apt remove --purge nmap -y
+        exit 1
+    fi
+fi
+# Fetch latest version of test-new-config.sh
+check_command download_le_script test-new-config
+# Check if $domain exists and is reachable
+echo
+echo "Checking if $domain exists and is reachable..."
+if wget -q -T 10 -t 2 --spider "$domain"; then
+    sleep 1
+elif wget -q -T 10 -t 2 --spider --no-check-certificate "https://$domain"; then
+    sleep 1
+elif curl -s -k -m 10 "$domain"; then
+    sleep 1
+elif curl -s -k -m 10 "https://$domain" -o /dev/null ; then
+    sleep 1
+else
+    echo "Nope, it's not there. You have to create $domain and point"
+    echo "it to this server before you can run this script."
+    any_key "Press any key to continue..."
+    exit 1
+fi
+# Install letsencrypt
+letsencrypt --version 2> /dev/null
+LE_IS_AVAILABLE=$?
+if [ $LE_IS_AVAILABLE -eq 0 ]
+then
+    letsencrypt --version
+else
+    echo "Installing letsencrypt..."
+    add-apt-repository ppa:certbot/certbot -y
+    apt update -q4 & spinner_loading
+    apt install letsencrypt -y -q
+    apt update -q4 & spinner_loading
+    apt dist-upgrade -y
 fi
 #Fix issue #28
-ssl_conf="/etc/apache2/sites-available/$domain.conf"
-# Check if $ssl_conf exists, and if, then delete
-if [ -f $ssl_conf ]
+ssl_conf="/etc/apache2/sites-available/"$domain.conf""
+# DHPARAM
+DHPARAMS="$CERTFILES/$domain/dhparam.pem"
+# Check if "$ssl.conf" exists, and if, then delete
+if [ -f "$ssl_conf" ]
 then
-    rm $ssl_conf
+    rm -f "$ssl_conf"
 fi
-# Change ServerName in apache.conf
-sed -i "s|ServerName wordpress|ServerName $domain|g" /etc/apache2/apache2.conf
-# Generate wordpress_ssl_domain.conf
-if [ -f $ssl_conf ]
+# Generate vhost.conf
+if [ ! -f "$ssl_conf" ]
 then
-    echo "Virtual Host exists"
-else
     touch "$ssl_conf"
     echo "$ssl_conf was successfully created"
-    sleep 3
+    sleep 2
     cat << SSL_CREATE > "$ssl_conf"
 <VirtualHost *:80>
      ServerName $domain
@@ -197,114 +188,91 @@ else
     SSLCertificateChainFile $certfiles/$domain/chain.pem
     SSLCertificateFile $certfiles/$domain/cert.pem
     SSLCertificateKeyFile $certfiles/$domain/privkey.pem
+    SSLOpenSSLConfCmd DHParameters $DHPARAMS
 </VirtualHost>
 SSL_CREATE
 fi
-##### START FIRST TRY
-# Stop Apache to aviod port conflicts
+# Methods
+default_le="--rsa-key-size 4096 --renew-by-default --agree-tos -d $domain"
+standalone() {
+# Stop Apache to avoid port conflicts
 a2dissite 000-default.conf
 sudo service apache2 stop
-# Check if $letsencryptpath exist, and if, then delete.
-if [ -d "$letsencryptpath" ]
-then
-    rm -R $letsencryptpath
-fi
 # Generate certs
-cd $dir_before_letsencrypt
-git clone https://github.com/letsencrypt/letsencrypt
-cd $letsencryptpath
-./letsencrypt-auto certonly --standalone -d $domain
-# Use for testing
-#./letsencrypt-auto --apache --server https://acme-staging.api.letsencrypt.org/directory -d EXAMPLE.COM
+eval "letsencrypt certonly --standalone $default_le"
+if [ "$?" -eq 0 ]; then
+    echo "success" > /tmp/le_test
+else
+    echo "fail" > /tmp/le_test
+fi
 # Activate Apache again (Disabled during standalone)
 service apache2 start
 a2ensite 000-default.conf
 service apache2 reload
-# Check if $certfiles exists
-if [ -d "$certfiles" ]
-then
+}
+webroot() {
+eval "letsencrypt certonly --webroot --webroot-path $NCPATH $default_le"
+if [ "$?" -eq 0 ]; then
+    echo "success" > /tmp/le_test
+else
+    echo "fail" > /tmp/le_test
+fi
+}
+certonly() {
+eval "letsencrypt certonly $default_le"
+if [ "$?" -eq 0 ]; then
+    echo "success" > /tmp/le_test
+else
+    echo "fail" > /tmp/le_test
+fi
+}
+methods=(standalone webroot certonly)
+create_config() {
+# $1 = method
+local method="$1"
+# Check if $CERTFILES exists
+if [ -d "$CERTFILES" ]
+ then
+    # Generate DHparams chifer
+    if [ ! -f "$DHPARAMS" ]
+    then
+        openssl dhparam -dsaparam -out "$DHPARAMS" 8192
+    fi
     # Activate new config
-    bash /var/scripts/test-new-config.sh $domain.conf
-    exit 0
+    check_command bash "$SCRIPTS/test-new-config.sh" "$domain.conf"
+    exit
+fi
+}
+attempts_left() {
+local method="$1"
+if [ "$method" == "standalone" ]
+then
+    printf "${ICyan}It seems like no certs were generated, we will do 2 more tries.${Color_Off}\n"
+    any_key "Press any key to continue..."
+elif [ "$method" == "webroot" ]
+then
+    printf "${ICyan}It seems like no certs were generated, we will do 1 more try.${Color_Off}\n"
+    any_key "Press any key to continue..."
+elif [ "$method" == "certonly" ]
+then
+    printf "${ICyan}It seems like no certs were generated, we will do 0 more tries.${Color_Off}\n"
+    any_key "Press any key to continue..."
+fi
+}
+# Generate the cert
+for f in "${methods[@]}"; do "$f"
+if [ "$(grep 'success' /tmp/le_test)" == 'success' ]; then
+    rm -f /tmp/le_test
+    create_config "$f"
 else
-    echo -e "\e[96m"
-    echo -e "It seems like no certs were generated, we do three more tries."
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
+    rm -f /tmp/le_test
+    attempts_left "$f"
 fi
-##### START SECOND TRY
-# Check if $letsencryptpath exist, and if, then delete.
-if [ -d "$letsencryptpath" ]
-then
-    rm -R $letsencryptpath
-fi
-# Generate certs
-cd $dir_before_letsencrypt
-git clone https://github.com/letsencrypt/letsencrypt
-cd $letsencryptpath
-./letsencrypt-auto -d $domain
-# Check if $certfiles exists
-if [ -d "$certfiles" ]
-then
-    # Activate new config
-    bash /var/scripts/test-new-config.sh $domain.conf
-    exit 0
-else
-    echo -e "\e[96m"
-    echo -e "It seems like no certs were generated, we do two more tries."
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
-fi
-##### START THIRD TRY
-# Check if $letsencryptpath exist, and if, then delete.
-if [ -d "$letsencryptpath" ]
-then
-    rm -R $letsencryptpath
-fi
-# Generate certs
-cd $dir_before_letsencrypt
-git clone https://github.com/letsencrypt/letsencrypt
-cd $letsencryptpath
-./letsencrypt-auto certonly --agree-tos --webroot -w $WPATH -d $domain
-# Check if $certfiles exists
-if [ -d "$certfiles" ]
-then
-    # Activate new config
-    bash /var/scripts/test-new-config.sh $domain.conf
-    exit 0
-else
-    echo -e "\e[96m"
-    echo -e "It seems like no certs were generated, we do one more try."
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
-fi
-#### START FORTH TRY
-# Check if $letsencryptpath exist, and if, then delete.
-if [ -d "$letsencryptpath" ]
-then
-    rm -R $letsencryptpath
-fi
-# Generate certs
-cd $dir_before_letsencrypt
-git clone https://github.com/letsencrypt/letsencrypt
-cd $letsencryptpath
-./letsencrypt-auto --agree-tos --apache -d $domain
-# Check if $certfiles exists
-if [ -d "$certfiles" ]
-then
-# Activate new config
-    bash /var/scripts/test-new-config.sh $domain.conf
-    exit 0
-else
-    echo -e "\e[96m"
-    echo -e "Sorry, last try failed as well. :/ "
-    echo -e "\e[0m"
-    cat << ENDMSG
+done
+printf "${ICyan}Sorry, last try failed as well. :/${Color_Off}\n\n"
+cat << ENDMSG
 +------------------------------------------------------------------------+
-| The script is located in /var/scripts/activate-ssl.sh                  |
+| The script is located in $SCRIPTS/activate-ssl.sh                  |
 | Please try to run it again some other time with other settings.        |
 |                                                                        |
 | There are different configs you can try in Let's Encrypt's user guide: |
@@ -312,20 +280,13 @@ else
 | Please check the guide for further information on how to enable SSL.   |
 |                                                                        |
 | This script is developed on GitHub, feel free to contribute:           |
-| https://github.com/techandme/wordpress-vm                              |
+| https://github.com/techandme/wordpress-vm                                         |
 |                                                                        |
 | The script will now do some cleanup and revert the settings.           |
 +------------------------------------------------------------------------+
 ENDMSG
-    echo -e "\e[32m"
-    read -p "Press any key to revert settings and exit... " -n1 -s
-    echo -e "\e[0m"
+any_key "Press any key to revert settings and exit... "
 # Cleanup
-    rm -R $letsencryptpath
-    rm $SCRIPTS/test-new-config.sh
-    rm $ssl_conf
-    rm -R /root/.local/share/letsencrypt
-# Change ServerName in apache.conf
-    sed -i "s|ServerName $domain|ServerName wordpress|g" /etc/apache2/apache2.conf
-fi
+apt remove letsencrypt -y
+apt autoremove -y
 clear
