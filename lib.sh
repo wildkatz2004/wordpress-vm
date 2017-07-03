@@ -32,8 +32,6 @@ GATEWAY=$(route -n|grep "UG"|grep -v "UGH"|cut -f 10 -d " ")
 GITHUB_REPO=https://raw.githubusercontent.com/techandme/wordpress-vm/master/master"
 STATIC="$GITHUB_REPO/static"
 LETS_ENC="$GITHUB_REPO/lets-encrypt"
-APP="$GITHUB_REPO/apps"
-NCREPO="https://download.nextcloud.com/server/releases"
 ISSUES="https://github.com/techandme/wordpress-vm/issues"
 
 # User information
