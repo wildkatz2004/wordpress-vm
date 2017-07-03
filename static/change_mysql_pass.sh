@@ -1,25 +1,30 @@
-#!bin/bash
+#!/bin/bash
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/master/lib.sh)
+unset MYCNFPW
 
-# Tech and Me, ©2017 - www.techandme.se
+# Tech and Me © - 2017, https://www.techandme.se/
 
-SHUF=$(shuf -i 17-20 -n 1)
-NEWMYSQLPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-PW_FILE=/var/mysql_password.txt
-OLDMYSQL=$(sed -n -e 's/^.*MySQL root password: //p' $PW_FILE)
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
 
-echo "Generating new MySQL root password..."
-# Change MySQL password
-mysqladmin -u root -p$OLDMYSQL password $NEWMYSQLPASS > /dev/null 2>&1
-if [ $? -eq 0 ]
+# Change MARIADB Password
+if mysqladmin -u root -p"$MARIADBMYCNFPASS" password "$NEWMARIADBPASS" > /dev/null 2>&1
 then
-        echo -e "\e[32mYour new MySQL ROOT password is: $NEWMYSQLPASS\e[0m"
-        echo
-	echo "New MySQL ROOT password: $NEWMYSQLPASS" >> $PW_FILE
+    echo -e "${Green}Your new MARIADB root password is: $NEWMARIADBPASS${Color_Off}"
+    cat << LOGIN > "$MYCNF"
+[client]
+password='$NEWMARIADBPASS'
+LOGIN
+    chmod 0600 $MYCNF
+    exit 0
 else
-        echo "Changing MySQL ROOT password failed."
-        echo "Your old password is: $OLDMYSQL"
+    echo "Changing MARIADB root password failed."
+    echo "Your old password is: $MARIADBMYCNFPASS"
+    exit 1
 fi
-sleep 1
-
-exit 0
-
