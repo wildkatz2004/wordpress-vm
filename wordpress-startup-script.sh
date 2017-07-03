@@ -413,8 +413,11 @@ wp search-replace http://$ADDRESS $FQDN --precise --all-tables --path=$WPATH --a
 
 wp user create $USER $EMAIL --role=administrator --user_pass=$NEWWPADMINPASS --path=$WPATH --allow-root
 wp user delete 1 --allow-root --reassign=$USER --path=$WPATH
-echo "WP USER: $USER" > /var/adminpass.txt
-echo "WP PASS: $NEWWPADMINPASS" >> /var/adminpass.txt
+{
+echo "WP USER: $USER"
+echo "WP PASS: $NEWWPADMINPASS" 
+} > /var/adminpass.txt
+
 
 # Show current administrators
 echo
@@ -489,7 +492,8 @@ printf "|         ${Color_Off}Publish your server online! ${Cyan}https://goo.gl/
 echo    "|                                                                    |"
 printf "|         ${Color_Off}To login to MARIADB just type: ${Cyan}'mysql -u root'${Green}             |\n"
 echo    "|                                                                    |"
-printf "|${Color_Off}To update this VM just type: ${Cyan}'sudo bash /var/scripts/wordpress_update.sh'${Green}|\n"
+printf "|         ${Color_Off}To update this VM just type: ${Green}                              |\n"
+printf "|         ${Cyan}'sudo bash /var/scripts/wordpress_update.sh'${Green}               |\n"
 echo    "|                                                                    |"
 printf "|    ${IRed}#################### Tech and Me - 2017 ####################${Green}    |\n"
 echo    "+--------------------------------------------------------------------+"
