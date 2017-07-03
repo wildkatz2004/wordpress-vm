@@ -35,7 +35,7 @@ network_ok() {
 # Check if root
 if ! is_root
 then
-    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash $SCRIPTS/nextcloud-startup-script.sh\n"
+    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash $SCRIPTS/wordpress-startup-script.sh\n"
     exit 1
 fi
 
@@ -429,29 +429,13 @@ clear
 a2dismod status
 service apache2 reload
 
-# Increase max filesize (expects that changes are made in /etc/php/7.0/apache2/php.ini)
-# Here is a guide: https://www.techandme.se/increase-max-file-size/
-VALUE="# php_value upload_max_filesize 513M"
-if ! grep -Fxq "$VALUE" $NCPATH/.htaccess
-then
-    sed -i 's/  php_value upload_max_filesize 513M/# php_value upload_max_filesize 511M/g' "$NCPATH"/.htaccess
-    sed -i 's/  php_value post_max_size 513M/# php_value post_max_size 511M/g' "$NCPATH"/.htaccess
-    sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' "$NCPATH"/.htaccess
-fi
-
-# Add temporary fix if needed
-bash $SCRIPTS/temporary-fix.sh
-rm "$SCRIPTS"/temporary-fix.sh
-
 # Cleanup 1
-sudo -u www-data php "$NCPATH/occ" maintenance:repair
 rm -f "$SCRIPTS/ip.sh"
 rm -f "$SCRIPTS/test_connection.sh"
 rm -f "$SCRIPTS/instruction.sh"
-rm -f "$NCDATA/nextcloud.log"
-rm -f "$SCRIPTS/nextcloud-startup-script.sh"
+rm -f "$SCRIPTS/wordpress-startup-script.sh"
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
-sed -i "s|instruction.sh|nextcloud.sh|g" "/home/$UNIXUSER/.bash_profile"
+sed -i "s|instruction.sh|techandme.sh|g" "/home/$UNIXUSER/.bash_profile"
 
 truncate -s 0 \
     /root/.bash_history \
@@ -484,7 +468,7 @@ clear
 
 # Upgrade system
 echo "System will now upgrade..."
-bash $SCRIPTS/update.sh
+bash $SCRIPTS/wordpress_update.sh
 
 # Cleanup 2
 apt autoremove -y
@@ -505,7 +489,7 @@ printf "|         ${Color_Off}Publish your server online! ${Cyan}https://goo.gl/
 echo    "|                                                                    |"
 printf "|         ${Color_Off}To login to MARIADB just type: ${Cyan}'mysql -u root'${Green}             |\n"
 echo    "|                                                                    |"
-printf "|   ${Color_Off}To update this VM just type: ${Cyan}'sudo bash /var/scripts/wordpress_update.sh'${Green}  |\n"
+printf "|${Color_Off}To update this VM just type: ${Cyan}'sudo bash /var/scripts/wordpress_update.sh'${Green}|\n"
 echo    "|                                                                    |"
 printf "|    ${IRed}#################### Tech and Me - 2017 ####################${Green}    |\n"
 echo    "+--------------------------------------------------------------------+"

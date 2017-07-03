@@ -76,9 +76,6 @@ else
     printf "${Green}\nRedis installation OK!${Color_Off}\n"
 fi
 
-# Prepare for adding redis configuration
-sed -i "s|);||g" $NCPATH/config/config.php
-
 # Redis performance tweaks
 if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
 then

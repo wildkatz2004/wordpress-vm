@@ -52,7 +52,7 @@ MYCNF=/root/.my.cnf
 [ ! -z "$MYCNFPW" ] && MARIADBMYCNFPASS=$(grep "password" $MYCNF | sed -n "/password/s/^password='\(.*\)'$/\1/p")
 # Path to specific files
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
-SECURE="$SCRIPTS/setup_secure_permissions_nextcloud.sh"
+SECURE="$SCRIPTS/setup_secure_permissions_wordpress.sh"
 SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
 HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
 
@@ -202,8 +202,8 @@ download_static_script() {
     if ! { wget -q "${STATIC}/${1}.sh" -P "$SCRIPTS" || wget -q "${STATIC}/${1}.php" -P "$SCRIPTS" || wget -q "${STATIC}/${1}.py" -P "$SCRIPTS"; }
     then
         echo "{$1} failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|.php|.py' again."
-        echo "If you get this error when running the nextcloud-startup-script then just re-run it with:"
-        echo "'sudo bash $SCRIPTS/nextcloud-startup-script.sh' and all the scripts will be downloaded again"
+        echo "If you get this error when running the wordpress-startup-script then just re-run it with:"
+        echo "'sudo bash $SCRIPTS/wordpress-startup-script.sh' and all the scripts will be downloaded again"
         exit 1
     fi
 }
@@ -216,8 +216,8 @@ download_le_script() {
     if ! { wget -q "${LETS_ENC}/${1}.sh" -P "$SCRIPTS" || wget -q "${LETS_ENC}/${1}.php" -P "$SCRIPTS" || wget -q "${LETS_ENC}/${1}.py" -P "$SCRIPTS"; }
     then
         echo "{$1} failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|.php|.py' again."
-        echo "If you get this error when running the nextcloud-startup-script then just re-run it with:"
-        echo "'sudo bash $SCRIPTS/nextcloud-startup-script.sh' and all the scripts will be downloaded again"
+        echo "If you get this error when running the wordpress-startup-script then just re-run it with:"
+        echo "'sudo bash $SCRIPTS/wordpress-startup-script.sh' and all the scripts will be downloaded again"
         exit 1
     fi
 }

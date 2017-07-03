@@ -23,7 +23,7 @@ fi
 
 ### Local variables ###
 # location of Nextcloud logs
-NCLOG="/var/ncdata/nextcloud.log"
+NCLOG="/var/ncdata/wordpress.log"
 # time to ban an IP that exceeded attempts
 BANTIME_=600000
 # cooldown time for incorrect passwords
@@ -51,8 +51,8 @@ sudo -u www-data php "$NCPATH/occ" config:system:set log_type --value=file
 sudo -u www-data php "$NCPATH/occ" config:system:set logfile  --value="$NCLOG"
 sudo -u www-data php "$NCPATH/occ" config:system:set logtimezone  --value="$(cat /etc/timezone)"
 
-# Create nextcloud.conf file
-cat << NCONF > /etc/fail2ban/filter.d/nextcloud.conf
+# Create wordpress.conf file
+cat << NCONF > /etc/fail2ban/filter.d/wordpress.conf
 [Definition]
 failregex = ^.*Login failed: '.*' \(Remote IP: '<HOST>'.*$
 ignoreregex =
@@ -104,11 +104,11 @@ maxretry = $MAXRETRY_
 # HTTP servers
 #
 
-[nextcloud]
+[wordpress]
 
 enabled  = true
 port     = http,https
-filter   = nextcloud
+filter   = wordpress
 logpath  = $NCLOG
 maxretry = $MAXRETRY_
 FCONF
@@ -121,7 +121,7 @@ check_command service fail2ban restart
 # The End
 echo
 echo "Fail2ban is now sucessfully installed."
-echo "Please use 'fail2ban-client set nextcloud unbanip <Banned IP>' to unban certain IPs"
+echo "Please use 'fail2ban-client set wordpress unbanip <Banned IP>' to unban certain IPs"
 echo "You can also use 'iptables -L -n' to check which IPs that are banned"
 any_key "Press any key to continue..."
 clear
