@@ -247,7 +247,7 @@ cd $WPATH
 wp core download --allow-root --force --debug --path=$WPATH
 
 # Populate DB
-mysql -uroot -p$MARIADBPASS <<MYSQL_SCRIPT
+mysql -uroot -p$MARIADB_PASS <<MYSQL_SCRIPT
 CREATE DATABASE $WPDBNAME;
 CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
 GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
