@@ -105,12 +105,11 @@ echo "Getting scripts from GitHub to be able to run the first setup..."
 # All the shell scripts in static (.sh)
 download_static_script security
 download_static_script wordpress_update
-download_static_script trusted
 download_static_script ip
 download_static_script test_connection
 download_static_script wp-permissions
 download_static_script change_mysql_pass
-download_static_script nextcloud
+download_static_script techandme
 download_static_script index
 download_le_script activate-ssl
 
@@ -271,19 +270,19 @@ then
 fi
 
 # Enable UTF8mb4 (4-byte support)
-printf "\nEnabling UTF8mb4 support on $NCCONFIGDB....\n"
+printf "\nEnabling UTF8mb4 support on $WPCONFIGDB....\n"
 echo "Please be patient, it may take a while."
 sudo /etc/init.d/mysql restart & spinner_loading
-RESULT="mysqlshow --user=root --password=$MARIADBMYCNFPASS $NCCONFIGDB| grep -v Wildcard | grep -o $NCCONFIGDB"
-if [ "$RESULT" == "$NCCONFIGDB" ]; then
-    check_command mysql -u root -e "ALTER DATABASE $NCCONFIGDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+RESULT="mysqlshow --user=root --password=$MARIADBMYCNFPASS $WPCONFIGDB| grep -v Wildcard | grep -o $WPCONFIGDB"
+if [ "$RESULT" == "$WPCONFIGDB" ]; then
+    check_command mysql -u root -e "ALTER DATABASE $WPCONFIGDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
     wait
 fi
 clear
 
 whiptail --title "Which apps do you want to install?" --checklist --separate-output "Automatically configure and install selected apps\nSelect by pressing the spacebar" "$WT_HEIGHT" "$WT_WIDTH" 4 \
 "Fail2ban" "(Extra Bruteforce protection)   " OFF \
-"phpMyadmin" "(*SQL GUI)       " OFF \ 2>results
+"phpMyadmin" "(*SQL GUI)       " OFF 2>results
 
 while read -r -u 9 choice
 do
