@@ -40,9 +40,6 @@ then
     sed -i "s|127.0.1.1.*|127.0.1.1       $FQDOMAIN $(hostname -s)|g" /etc/hosts
 fi
 
-# Set trusted domains
-run_static_script trusted
-
 add_crontab_le() {
 # shellcheck disable=SC2016
 DATE='$(date +%Y-%m-%d_%H:%M)'
