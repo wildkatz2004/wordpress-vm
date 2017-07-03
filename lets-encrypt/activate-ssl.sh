@@ -185,9 +185,9 @@ then
     SetEnv HOME $WPATH
     SetEnv HTTP_HOME $WPATH
 ### LOCATION OF CERT FILES ###
-    SSLCertificateChainFile $certfiles/$domain/chain.pem
-    SSLCertificateFile $certfiles/$domain/cert.pem
-    SSLCertificateKeyFile $certfiles/$domain/privkey.pem
+    SSLCertificateChainFile $CERTFILES/$domain/chain.pem
+    SSLCertificateFile $CERTFILES/$domain/cert.pem
+    SSLCertificateKeyFile $CERTFILES/$domain/privkey.pem
     SSLOpenSSLConfCmd DHParameters $DHPARAMS
 </VirtualHost>
 SSL_CREATE

@@ -139,7 +139,7 @@ cat << EOMSTART
 +---------------------------------------------------------------+
 EOMSTART
 echo -e "\e[32m"
-read -p "Press any key to start the script..." -n1 -s
+read -r -p "Press any key to start the script..." -n1 -s
 echo -e "\e[0m"
 clear
 
@@ -152,10 +152,10 @@ then
     echo "Current hostname is: $FQN.localdomain"
 fi
 sudo sh -c "echo 'ServerName $FQN' >> /etc/apache2/apache2.conf"
-sudo hostnamectl set-hostname $FQN
+sudo hostnamectl set-hostname "$FQN"
 service apache2 restart
 cat << ETCHOSTS > "/etc/hosts"
-127.0.1.1 $FQN.localdomain $FQN
+127.0.1.1 "$FQN.localdomain" "$FQN"
 127.0.0.1 localhost
 
 # The following lines are desirable for IPv6 capable hosts
@@ -364,24 +364,17 @@ cat << ENTERNEW
 ENTERNEW
 
 echo "Enter FQDN (http://yourdomain.com):"
-read FQDN
+read -r FQDN
 echo
 echo "Enter username:"
-read USER
+read -r USER
 echo
 echo "Enter password:"
-read NEWWPADMINPASS
+read -r NEWWPADMINPASS
 echo
 echo "Enter email address:"
-read EMAIL
+read -r EMAIL
 
-	function ask_yes_or_no() {
-    	read -p "$1 ([y]es or [N]o): "
-    	case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
-        y|yes) echo "yes" ;;
-        *)     echo "no" ;;
-    	esac
-}
 echo
 if [[ "no" == $(ask_yes_or_no "Is this correct?  FQDN: $FQDN User: $USER Password: $NEWWPADMINPASS Email: $EMAIL") ]]
 	then
@@ -411,24 +404,24 @@ fi
 clear
 
 echo "$FQDN" > fqdn.txt
-wp option update siteurl < fqdn.txt --allow-root --path=$WPATH
+wp option update siteurl < fqdn.txt --allow-root --path="$WPATH"
 rm fqdn.txt
 
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-wp search-replace http://$ADDRESS $FQDN --precise --all-tables --path=$WPATH --allow-root
+wp search-replace "http://$ADDRESS" "$FQDN" --precise --all-tables --path="$WPATH" --allow-root
 
-wp user create $USER $EMAIL --role=administrator --user_pass=$NEWWPADMINPASS --path=$WPATH --allow-root
-wp user delete 1 --allow-root --reassign=$USER --path=$WPATH
+wp user create "$USER" "$EMAIL" --role=administrator --user_pass="$NEWWPADMINPASS" --path="$WPATH" --allow-root
+wp user delete 1 --allow-root --reassign="$USER" --path="$WPATH"
 {
 echo "WP USER: $USER"
-echo "WP PASS: $NEWWPADMINPASS" 
+echo "WP PASS: $NEWWPADMINPASS"
 } > /var/adminpass.txt
 
 
 # Show current administrators
 echo
 echo "This is the current administrator(s):"
-wp user list --role=administrator --path=$WPATH --allow-root
+wp user list --role=administrator --path="$WPATH" --allow-root
     echo -e "\e[32m"
     read -p "Press any key to continue... " -n1 -s
     echo -e "\e[0m"
