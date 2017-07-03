@@ -1,38 +1,5 @@
 #!/bin/bash
 
-# Tech and Me, ©2017 - www.techandme.se
-
-# OS Version
-OS=$(grep -ic "Ubuntu" /etc/issue.net)
-# Passwords
-SHUF=$(shuf -i 15-20 -n 1)
-MYSQL_PASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-PW_FILE=/var/mysql_password.txt
-# Wordpress user and pass
-WPDBNAME=worpdress_by_www_techandme_se
-WPDBUSER=wordpress_user
-WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-WPADMINUSER=change_this_user
-WPADMINPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-# Directories
-SCRIPTS=/var/scripts
-HTML=/var/www/html
-WPATH=$HTML/wordpress
-# Apache Vhosts
-SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
-HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
-# Network
-IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
-ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-# Repos
-GITHUB_REPO="https://raw.githubusercontent.com/techandme/wordpress-vm/master"
-STATIC="https://raw.githubusercontent.com/techandme/wordpress-vm/master/static"
-# Create user for installing if not existing
-UNIXUSER=wordpress
-UNIXPASS=wordpress
-
-#!/bin/bash
-
 # Tech and Me © - 2017, https://www.techandme.se/
 
 # Prefer IPv4
@@ -59,8 +26,8 @@ then
 fi
 
 # Test RAM size (2GB min) + CPUs (min 1)
-ram_check 2 Nextcloud
-cpu_check 1 Nextcloud
+ram_check 2 Wordpress
+cpu_check 1 Wordpress
 
 # Show current user
 echo
