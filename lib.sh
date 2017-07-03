@@ -52,7 +52,7 @@ MYCNF=/root/.my.cnf
 [ ! -z "$MYCNFPW" ] && MARIADBMYCNFPASS=$(grep "password" $MYCNF | sed -n "/password/s/^password='\(.*\)'$/\1/p")
 # Path to specific files
 PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
-SECURE="$SCRIPTS/setup_secure_permissions_wordpress.sh"
+SECURE="$SCRIPTS/wp_permissionss.sh"
 SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
 HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
 
