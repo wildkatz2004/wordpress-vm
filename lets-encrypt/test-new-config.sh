@@ -1,70 +1,83 @@
 #!/bin/bash
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
 
-SCRIPTS=/var/scripts
+# Tech and Me © - 2017, https://www.techandme.se/
 
-# Acitvate the new config
-        echo -e "\e[0m"
-        echo "Apache will now reboot"
-        echo -e "\e[32m"
-        read -p "Press any key to continue... " -n1 -s
-        echo -e "\e[0m"
-        a2ensite wordpress_ssl_domain.conf
-        a2dissite wordpress_port_443.conf
-        service apache2 restart
-if [[ "$?" == "0" ]];
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
+
+# Activate the new config
+printf "${Color_Off}We will now test that everything is OK\n"
+any_key "Press any key to continue... "
+a2ensite "$1"
+a2dissite wordpress_port_80.conf
+a2dissite wordpress_port_443.conf
+a2dissite 000-default.conf
+if service apache2 restart
 then
-        echo -e "\e[42m"
-        echo "New settings works! SSL is now activated and OK!"
-        echo -e "\e[0m"
-	echo
-	echo "This cert will expire in 90 days, so you have to renew it."
-	echo "There are several ways of doing so, here are some tips and tricks: https://goo.gl/c1JHR0"
-	echo "This script will add a renew cronjob to get you started, edit it by typing:"
-	echo "'crontab -u root -e'"
-	echo "Feel free to contribute to this project: https://goo.gl/vEsWjb"
-	echo -e "\e[32m"
-    	read -p "Press any key to continue... " -n1 -s
-    	echo -e "\e[0m"
-	crontab -u root -l | { cat; echo "@monthly $SCRIPTS/letsencryptrenew.sh"; } | crontab -u root -
-cat << CRONTAB > "/var/scripts/letsencryptrenew.sh"
-#!/bin/sh
-set -x
-systemctl stop apache2.service
-if ! /etc/letsencrypt/letsencrypt-auto renew > /var/log/letsencrypt/renew.log 2>&1 ; then
-        echo Automated renewal failed:
-        cat /var/log/letsencrypt/renew.log
-        exit 1
+    printf "${On_Green}New settings works! SSL is now activated and OK!${Color_Off}\n\n"
+    echo "This cert will expire in 90 days, so you have to renew it."
+    echo "There are several ways of doing so, here are some tips and tricks: https://goo.gl/c1JHR0"
+    echo "This script will add a renew cronjob to get you started, edit it by typing:"
+    echo "'crontab -u root -e'"
+    echo "Feel free to contribute to this project: https://goo.gl/3fQD65"
+    any_key "Press any key to continue..."
+    crontab -u root -l | { cat; echo "@daily $SCRIPTS/letsencryptrenew.sh"; } | crontab -u root -
+
+FQDOMAIN=$(grep -m 1 "ServerName" "/etc/apache2/sites-enabled/$1" | awk '{print $2}')
+if [ "$(hostname)" != "$FQDOMAIN" ]
+then
+    echo "Setting hostname to $FQDOMAIN..."
+    sudo sh -c "echo 'ServerName $FQDOMAIN' >> /etc/apache2/apache2.conf"
+    sudo hostnamectl set-hostname "$FQDOMAIN"
+    # Change /etc/hosts as well
+    sed -i "s|127.0.1.1.*|127.0.1.1       $FQDOMAIN $(hostname -s)|g" /etc/hosts
 fi
-systemctl start apache2.service
-if [[ $? == 0 ]]
-then
-        echo "Let's Encrypt SUCCESS!"--$(date +%Y-%m-%d_%H:%M) >> /var/log/letsencrypt/cronjob.log
+
+# Set trusted domains
+run_static_script trusted
+
+add_crontab_le() {
+# shellcheck disable=SC2016
+DATE='$(date +%Y-%m-%d_%H:%M)'
+cat << CRONTAB > "$SCRIPTS/letsencryptrenew.sh"
+#!/bin/sh
+if ! certbot renew --pre-hook "service apache2 stop" --post-hook "service apache2 start" --quiet --no-self-upgrade > /var/log/letsencrypt/renew.log 2>&1 ; then
+        echo "Let's Encrypt FAILED!"--$DATE >> /var/log/letsencrypt/cronjob.log
 else
-        echo "Let's Encrypt FAILED!"--$(date +%Y-%m-%d_%H:%M) >> /var/log/letsencrypt/cronjob.log
-        reboot
+        echo "Let's Encrypt SUCCESS!"--$DATE >> /var/log/letsencrypt/cronjob.log
+fi
+
+# Check if service is running
+if ! pgrep apache2 > /dev/null
+then
+    service apache2 start
 fi
 CRONTAB
+}
+add_crontab_le
 
 # Makeletsencryptrenew.sh executable
 chmod +x $SCRIPTS/letsencryptrenew.sh
 
 # Cleanup
-rm $SCRIPTS/test-new-config.sh
-rm $SCRIPTS/activate-ssl.sh
+rm $SCRIPTS/test-new-config.sh ## Remove ??
+rm $SCRIPTS/activate-ssl.sh ## Remove ??
 
 else
 # If it fails, revert changes back to normal
-        a2dissite wordpress_ssl_domain.conf
-        a2ensite wordpress_port_443.conf
-        service apache2 restart
-        echo -e "\e[96m"
-        echo "Couldn't load new config, reverted to old settings. SSL is OK!"
-        echo -e "\e[0m"
-        echo -e "\e[32m"
-        read -p "Press any key to continue... " -n1 -s
-        echo -e "\e[0m"
-	exit 1
+    a2dissite "$1"
+    a2ensite wordpress_port_80.conf
+    a2ensite wordpress_port_443.conf
+    a2ensite 000-default.conf
+    service apache2 restart
+    printf "${ICyan}Couldn't load new config, reverted to old settings. Self-signed SSL is OK!${Color_Off}\n"
+    any_key "Press any key to continue... "
+    exit 1
 fi
-
-exit 0
-
