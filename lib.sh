@@ -33,6 +33,7 @@ GITHUB_REPO="https://raw.githubusercontent.com/techandme/wordpress-vm/refactor"
 STATIC="$GITHUB_REPO/static"
 LETS_ENC="$GITHUB_REPO/lets-encrypt"
 ISSUES="https://github.com/techandme/wordpress-vm/issues"
+APP="$GITHUB_REPO/apps"
 
 # User information
 WPDBNAME=worpdress_by_www_techandme_se
