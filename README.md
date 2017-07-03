@@ -1,4 +1,5 @@
-# wordpress-vm
+# Wordpress VM
+[![Build Status](https://travis-ci.org/techandme/wordpress-vm.svg?branch=master)](https://travis-ci.org/techandme/wordpress-vm)
 
 ### https://www.techandme.se
 
