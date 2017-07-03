@@ -138,9 +138,7 @@ cat << EOMSTART
 |    ################# Tech and Me - 2017 #################	|
 +---------------------------------------------------------------+
 EOMSTART
-echo -e "\e[32m"
-read -r -p "Press any key to start the script..." -n1 -s
-echo -e "\e[0m"
+any_key "Press any key to start the script..."
 clear
 
 # Set hostname and ServerName
@@ -362,18 +360,20 @@ cat << ENTERNEW
 |    Please create a new user for Wordpress:	|
 +-----------------------------------------------+
 ENTERNEW
-
+new_wp_user() {
 echo "Enter FQDN (http://yourdomain.com):"
-read -r -p FQDN
+read -r FQDN
 echo
 echo "Enter username:"
-read -r -p USER
+read -r USER
 echo
 echo "Enter password:"
-read -r -p NEWWPADMINPASS
+read -r NEWWPADMINPASS
 echo
 echo "Enter email address:"
-read -r -p EMAIL
+read -r EMAIL
+}
+new_wp_user
 
 echo
 if [[ "no" == $(ask_yes_or_no "Is this correct?  FQDN: $FQDN User: $USER Password: $NEWWPADMINPASS Email: $EMAIL") ]]
@@ -388,18 +388,7 @@ cat << ENTERNEW2
 |    the script is based on what you enter	|
 +-----------------------------------------------+
 ENTERNEW2
-echo
-echo "Enter FQDN (http(s)://yourdomain.com):"
-read FQDN
-echo
-echo "Enter username:"
-read USER
-echo
-echo "Enter password:"
-read NEWWPADMINPASS
-echo
-echo "Enter email address:"
-read EMAIL
+new_wp_user
 fi
 clear
 
@@ -422,9 +411,7 @@ echo "WP PASS: $NEWWPADMINPASS"
 echo
 echo "This is the current administrator(s):"
 wp user list --role=administrator --path="$WPATH" --allow-root
-    echo -e "\e[32m"
-    read -p "Press any key to continue... " -n1 -s
-    echo -e "\e[0m"
+any_key "Press any key to continue..."
 clear
 
 # Fixes https://github.com/techandme/wordpress-vm/issues/58
