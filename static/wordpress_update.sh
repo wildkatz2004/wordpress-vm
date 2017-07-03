@@ -1,14 +1,24 @@
 #!/bin/bash
-#
-## Tech and Me ## - ©2017, https://www.techandme.se/
-#
-# Tested on Ubuntu Server 14.04 and 16.04.
-#
 
-WPATH=/var/www/html/wordpress
+# Tech and Me © - 2017, https://www.techandme.se/
 
-# Must be root
-[[ `id -u` -eq 0 ]] || { echo "Must be root to run script, in Ubuntu type: sudo -i"; exit 1; }
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+. <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/refactor/lib.sh)
+
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
+
+# Check if root
+if ! is_root
+then
+    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash %s/wordpress_update.sh\n" "$SCRIPTS"
+    exit 1
+fi
 
 # System Upgrade
 apt update -q2
