@@ -411,7 +411,7 @@ service apache2 restart
 run_static_script redis-server-ubuntu16
 
 # Set secure permissions final
-run_static_script wp_permissions
+run_static_script wp-permissions
 
 # Prepare for first mount
 download_static_script instruction
