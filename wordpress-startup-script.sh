@@ -104,7 +104,7 @@ echo
 echo "Getting scripts from GitHub to be able to run the first setup..."
 # All the shell scripts in static (.sh)
 download_static_script security
-download_static_script wordpress_update
+download_static_script update
 download_static_script ip
 download_static_script test_connection
 download_static_script wp-permissions
@@ -471,7 +471,7 @@ clear
 
 # Upgrade system
 echo "System will now upgrade..."
-bash $SCRIPTS/wordpress_update.sh
+bash $SCRIPTS/update.sh
 
 # Cleanup 2
 apt autoremove -y
@@ -493,7 +493,7 @@ echo    "|                                                                    |"
 printf "|         ${Color_Off}To login to MARIADB just type: ${Cyan}'mysql -u root'${Green}             |\n"
 echo    "|                                                                    |"
 printf "|         ${Color_Off}To update this VM just type: ${Green}                              |\n"
-printf "|         ${Cyan}'sudo bash /var/scripts/wordpress_update.sh'${Green}               |\n"
+printf "|         ${Cyan}'sudo bash /var/scripts/update.sh'${Green}                       |\n"
 echo    "|                                                                    |"
 printf "|    ${IRed}#################### Tech and Me - 2017 ####################${Green}    |\n"
 echo    "+--------------------------------------------------------------------+"
