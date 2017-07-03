@@ -2,7 +2,7 @@
 #
 ## Tech and Me ## - ©2017, https://www.techandme.se/
 #
-# Tested on Ubuntu Server 14.04.
+# Tested on Ubuntu Server 14.04 and 16.04.
 #
 
 WPATH=/var/www/html/wordpress
@@ -28,28 +28,27 @@ echo
 wp core version --extra --allow-root
 
 # Set secure permissions
-FILE="/var/scripts/wp-permissions.sh"
-if [ -f $FILE ];
+if [ -f /var/scripts/wp-permissions.sh ]
 then
         echo "Script exists"
 else
         mkdir -p /var/scripts
         wget -q https://raw.githubusercontent.com/techandme/wordpress-vm/master/static/wp-permissions.sh -P /var/scripts/
 fi
-sudo bash /var/scripts/wp-permissions.sh
+bash /var/scripts/wp-permissions.sh
 
 # Cleanup un-used packages
-sudo apt autoremove -y
-sudo apt autoclean
+apt autoremove -y
+apt autoclean
 
 # Update GRUB, just in case
-sudo update-grub
+update-grub
 
 # Write to log
 touch /var/log/cronjobs_success.log
 echo "WORDPRESS UPDATE success-`date +"%Y%m%d"`" >> /var/log/cronjobs_success.log
 
 # Un-hash this if you want the system to reboot
-# sudo reboot
+# reboot
 
 exit
