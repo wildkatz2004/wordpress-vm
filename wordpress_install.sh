@@ -54,13 +54,6 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
     exit
 fi
 
-# Check if key is available
-if ! wget -q -T 10 -t 2 "$NCREPO" > /dev/null
-then
-    echo "Nextcloud repo is not available, exiting..."
-    exit 1
-fi
-
 # Check if it's a clean server
 is_this_installed postgresql
 is_this_installed apache2
@@ -254,7 +247,7 @@ cd $WPATH
 wp core download --allow-root --force --debug --path=$WPATH
 
 # Populate DB
-mysql -uroot -p$MYSQL_PASS <<MYSQL_SCRIPT
+mysql -uroot -p$MARIADBPASS <<MYSQL_SCRIPT
 CREATE DATABASE $WPDBNAME;
 CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
 GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
@@ -268,7 +261,10 @@ define( 'WP_REDIS_SCHEME', 'unix' );
 define( 'WP_REDIS_PATH', '/var/run/redis/redis.sock' );
 define( 'WP_AUTO_UPDATE_CORE', true );
 PHP
-echo "Wordpress DB: $WPDBPASS" >> $PW_FILE
+{
+echo "Wordpress DB password:"
+echo "Wordpress DB: $WPDBPASS" >> $
+} >> $MYCNF
 
 # Install Wordpress
 wp core install --allow-root --url=http://$ADDRESS/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
@@ -303,8 +299,7 @@ wp plugin delete akismet --allow-root
 wp plugin delete hello --allow-root
 
 # Secure permissions
-wget -q $STATIC/wp-permissions.sh -P $SCRIPTS
-bash $SCRIPTS/wp-permissions.sh
+run_static_script wp-permissions
 
 # Hardening security
 # create .htaccess to protect uploads directory
@@ -339,10 +334,8 @@ sed -i "s|upload_max_filesize =.*|upload_max_filesize = 1000M|g" /etc/php/7.0/ap
 apt install figlet -y
 
 # Generate $SSL_CONF
-if [ -f $SSL_CONF ];
+if [ ! -f $SSL_CONF ];
         then
-        echo "Virtual Host exists"
-else
         touch "$SSL_CONF"
         cat << SSL_CREATE > "$SSL_CONF"
 <VirtualHost *:443>
@@ -381,10 +374,8 @@ sleep 3
 fi
 
 # Generate $HTTP_CONF
-if [ -f $HTTP_CONF ];
+if [ ! -f $HTTP_CONF ];
         then
-        echo "Virtual Host exists"
-else
         touch "$HTTP_CONF"
         cat << HTTP_CREATE > "$HTTP_CONF"
 
@@ -416,80 +407,17 @@ a2dissite 000-default.conf
 a2dissite default-ssl.conf
 service apache2 restart
 
-# Get script for Redis
-        if [ -f $SCRIPTS/redis-server-ubuntu16.sh ];
-                then
-                echo "redis-server-ubuntu16.sh exists"
-                else
-        wget -q $STATIC/redis-server-ubuntu16.sh -P $SCRIPTS
-fi
-
 # Install Redis
-bash $SCRIPTS/redis-server-ubuntu16.sh
-rm $SCRIPTS/redis-server-ubuntu16.sh
+run_static_script redis-server-ubuntu16
 
 # Set secure permissions final
-bash $SCRIPTS/wp-permissions.sh
+run_static_script wp_permissions
 
-# Change roots .bash_profile
-        if [ -f $SCRIPTS/change-root-profile.sh ];
-                then
-                echo "change-root-profile.sh exists"
-                else
-        wget -q $STATIC/change-root-profile.sh -P $SCRIPTS
-fi
-# Change wordpress .bash_profile
-        if [ -f $SCRIPTS/change-wordpress-profile.sh ];
-                then
-                echo "change-wordpress-profile.sh  exists"
-                else
-        wget -q $STATIC/change-wordpress-profile.sh -P $SCRIPTS
-fi
-# Get startup-script for root
-        if [ -f $SCRIPTS/wordpress-startup-script.sh ];
-                then
-                echo "wordpress-startup-script.sh exists"
-                else
-        wget -q $GITHUB_REPO/wordpress-startup-script.sh -P $SCRIPTS
-fi
-
-# Welcome message after login (change in /home/wordpress/.profile
-        if [ -f $SCRIPTS/instruction.sh ];
-                then
-                echo "instruction.sh exists"
-                else
-        wget -q $STATIC/instruction.sh -P $SCRIPTS
-fi
-# Clears command history on every login
-        if [ -f $SCRIPTS/history.sh ];
-                then
-                echo "history.sh exists"
-                else
-        wget -q $STATIC/history.sh -P $SCRIPTS
-fi
-
-# Change root profile
-        	bash $SCRIPTS/change-root-profile.sh
-if [[ $? > 0 ]]
-then
-	echo "change-root-profile.sh were not executed correctly."
-	sleep 10
-else
-	echo "change-root-profile.sh script executed OK."
-	rm $SCRIPTS/change-root-profile.sh
-	sleep 2
-fi
-# Change wordpress profile
-        	bash $SCRIPTS/change-wordpress-profile.sh
-if [[ $? > 0 ]]
-then
-	echo "change-wordpress-profile.sh were not executed correctly."
-	sleep 10
-else
-	echo "change-wordpress-profile.sh executed OK."
-	rm $SCRIPTS/change-wordpress-profile.sh
-	sleep 2
-fi
+run_static_script change-root-profile
+run_static_script change-wordpress-profile
+download_static_script instruction
+download_static_script history
+download_main_script wordpress-startup-script
 
 # Make $SCRIPTS excutable
 chmod +x -R $SCRIPTS
