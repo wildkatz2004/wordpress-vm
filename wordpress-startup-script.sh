@@ -145,7 +145,7 @@ clear
 
 # Set hostname and ServerName
 echo "Setting hostname..."
-FQN=$(host -TtA $(hostname -s)|grep "has address"|awk '{print $1}') ; \
+FQN=$(host -TtA "$(hostname -s)"|grep "has address"|awk '{print $1}') ; \
 if [[ "$FQN" == "" ]]
 then
     FQN=$(hostname -s)
@@ -364,16 +364,16 @@ cat << ENTERNEW
 ENTERNEW
 
 echo "Enter FQDN (http://yourdomain.com):"
-read -r FQDN
+read -r -p FQDN
 echo
 echo "Enter username:"
-read -r USER
+read -r -p USER
 echo
 echo "Enter password:"
-read -r NEWWPADMINPASS
+read -r -p NEWWPADMINPASS
 echo
 echo "Enter email address:"
-read -r EMAIL
+read -r -p EMAIL
 
 echo
 if [[ "no" == $(ask_yes_or_no "Is this correct?  FQDN: $FQDN User: $USER Password: $NEWWPADMINPASS Email: $EMAIL") ]]
