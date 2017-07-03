@@ -149,6 +149,7 @@ FQN=$(host -TtA $(hostname -s)|grep "has address"|awk '{print $1}') ; \
 if [[ "$FQN" == "" ]]
 then
     FQN=$(hostname -s)
+    echo "Current hostname is: $FQN.localdomain"
 fi
 sudo sh -c "echo 'ServerName $FQN' >> /etc/apache2/apache2.conf"
 sudo hostnamectl set-hostname $FQN
@@ -234,7 +235,6 @@ else
     dpkg-reconfigure keyboard-configuration
 clear
 fi
-
 
 # Generate new SSH Keys
 printf "\nGenerating new SSH keys for the server...\n"
@@ -390,7 +390,7 @@ cat << ENTERNEW2
 +-----------------------------------------------+
 ENTERNEW2
 echo
-echo "Enter FQDN (http://yourdomain.com):"
+echo "Enter FQDN (http(s)://yourdomain.com):"
 read FQDN
 echo
 echo "Enter username:"
@@ -505,5 +505,3 @@ sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/g
 ## Reboot
 echo "Installations finished. System will now reboot..."
 reboot
-
-exit 0
