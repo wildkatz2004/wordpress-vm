@@ -54,7 +54,7 @@ else
     mv /etc/network/interfaces.new /etc/network/interfaces
     service networking restart
     # shellcheck source=lib.sh
-    CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/refactor/lib.sh)
+    CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/refactor/lib.sh)
     unset CHECK_CURRENT_REPO
 fi
 
@@ -426,7 +426,7 @@ wp user list --role=administrator --path=$WPATH --allow-root
     echo -e "\e[0m"
 clear
 
-# Fixes https://github.com/nextcloud/vm/issues/58
+# Fixes https://github.com/techandme/wordpress-vm/issues/58
 a2dismod status
 service apache2 reload
 
