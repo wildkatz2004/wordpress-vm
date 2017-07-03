@@ -225,7 +225,7 @@ apt install -y \
 	php-zip
 
 # Download wp-cli.phar to be able to install Wordpress
-curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+check_command curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
 
@@ -244,7 +244,7 @@ wp --info --allow-root
 
 # Download Wordpress
 cd $WPATH
-wp core download --allow-root --force --debug --path=$WPATH
+check_command wp core download --allow-root --force --debug --path=$WPATH
 
 # Populate DB
 mysql -uroot -p$MARIADB_PASS <<MYSQL_SCRIPT
@@ -263,20 +263,20 @@ define( 'WP_AUTO_UPDATE_CORE', true );
 PHP
 {
 echo "Wordpress DB password:"
-echo "Wordpress DB: $WPDBPASS" >> $
+echo "Wordpress DB: $WPDBPASS"
 } >> $MYCNF
 
 # Install Wordpress
-wp core install --allow-root --url=http://$ADDRESS/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
+check_command wp core install --allow-root --url=http://$ADDRESS/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password=$WPADMINPASS --admin_email=no-reply@techandme.se --skip-email
 echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
 chown wordpress:wordpress /var/adminpass.txt
 
 # Create welcome post
-wget -q $STATIC/welcome.txt
+check_command wget -q $STATIC/welcome.txt
 sed -i "s|wordpress_user_login|$WPADMINUSER|g" welcome.txt
 sed -i "s|wordpress_password_login|$WPADMINPASS|g" welcome.txt
 wp post create ./welcome.txt --post_title='Tech and Me - Welcome' --post_status=publish --path=$WPATH --allow-root
-rm welcome.txt
+rm -f welcome.txt
 wp post delete 1 --force --allow-root
 
 # Show version
