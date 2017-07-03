@@ -41,8 +41,8 @@ WPDBPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1
 WPADMINUSER=change_this_user
 WPADMINPASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
 UNIXUSER=$SUDO_USER
-UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
-ROOT_PROFILE="/root/.bash_profile"
+UNIXUSER_PROFILE=/home/$UNIXUSER/.bash_profile
+ROOT_PROFILE=/root/.bash_profile
 
 # MARIADB
 SHUF=$(shuf -i 25-29 -n 1)
