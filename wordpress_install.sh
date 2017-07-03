@@ -413,11 +413,15 @@ run_static_script redis-server-ubuntu16
 # Set secure permissions final
 run_static_script wp_permissions
 
-run_static_script change-root-profile
-run_static_script change-wordpress-profile
+# Prepare for first mount
 download_static_script instruction
 download_static_script history
-download_main_script wordpress-startup-script
+run_static_script change-root-profile
+run_static_script change-wordpress-profile
+if [ ! -f "$SCRIPTS"/wordpress-startup-script.sh ]
+then
+check_command wget -q "$GITHUB_REPO"/wordpress-startup-script.sh -P "$SCRIPTS"
+fi
 
 # Make $SCRIPTS excutable
 chmod +x -R $SCRIPTS
