@@ -23,5 +23,5 @@ else
     do
         sudo passwd "$NEWUSER" && break
     done
-    sudo -u "$NEWUSER" sudo bash nextcloud_install_production.sh
+    sudo -u "$NEWUSER" sudo bash wordpress_install.sh
 fi
