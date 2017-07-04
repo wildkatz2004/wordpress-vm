@@ -141,27 +141,6 @@ EOMSTART
 any_key "Press any key to start the script..."
 clear
 
-# Set hostname and ServerName
-echo "Setting hostname..."
-FQN=$(host -TtA "$(hostname -s)"|grep "has address"|awk '{print $1}') ; \
-if [[ "$FQN" == "" ]]
-then
-    FQN=$(hostname -s)
-    echo "Current hostname is: $FQN.localdomain"
-fi
-sudo sh -c "echo 'ServerName $FQN' >> /etc/apache2/apache2.conf"
-sudo hostnamectl set-hostname "$FQN"
-service apache2 restart
-cat << ETCHOSTS > "/etc/hosts"
-127.0.1.1 "$FQN.localdomain" "$FQN"
-127.0.0.1 localhost
-
-# The following lines are desirable for IPv6 capable hosts
-::1     localhost ip6-localhost ip6-loopback
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-ETCHOSTS
-
 # VPS?
 if [[ "no" == $(ask_yes_or_no "Do you run this script on a *remote* VPS like DigitalOcean, HostGator or similar?") ]]
 then
