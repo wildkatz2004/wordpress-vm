@@ -261,7 +261,6 @@ define( 'WP_REDIS_SCHEME', 'unix' );
 define( 'WP_REDIS_PATH', '/var/run/redis/redis.sock' );
 define( 'WP_REDIS_PASSWORD', '$REDIS_PASS' );
 define( 'WP_AUTO_UPDATE_CORE', true );
-WP_REDIS_PASSWORD
 PHP
 {
 echo "Wordpress DB password:"
