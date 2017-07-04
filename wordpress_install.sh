@@ -267,6 +267,9 @@ echo "Wordpress DB password:"
 echo "Wordpress DB: $WPDBPASS"
 } >> "$MYCNF"
 
+# Make sure the passwords are the same, this file will be deleted when Redis is run.
+echo "$REDIS_PASS" > /tmp/redis_pass.txt
+
 # Install Wordpress
 check_command wp core install --allow-root --url=http://"$ADDRESS"/ --title=Wordpress --admin_user=$WPADMINUSER --admin_password="$WPADMINPASS" --admin_email=no-reply@techandme.se --skip-email
 echo "WP PASS: $WPADMINPASS" > /var/adminpass.txt
