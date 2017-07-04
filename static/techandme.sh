@@ -17,6 +17,6 @@ echo "$WPADMINUSER"
 echo "$WPADMINPASS"
 echo
 echo "|MySQL|"
-echo "PASS: cat $MYCNF"
+echo "PASS: cat /root/.my.cnf"
 echo
 exit 0
