@@ -17,6 +17,6 @@ echo "$WPADMINUSER"
 echo "$WPADMINPASS"
 echo
 echo "|MySQL|"
-echo "PASS: /var/mysql_password.txt"
+echo "PASS: cat /root/.my.cnf"
 echo
 exit 0
