@@ -470,7 +470,7 @@ ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print
 clear
 printf "%s\n""${Green}"
 echo    "+--------------------------------------------------------------------+"
-echo    "|      Congratulations! You have successfully installed Nextcloud!   |"
+echo    "|      Congratulations! You have successfully installed Wordpress!   |"
 echo    "|                                                                    |"
 printf "|         ${Color_Off}Login to Wordpress in your browser: ${Cyan}\"$ADDRESS2\"${Green}         |\n"
 echo    "|                                                                    |"
