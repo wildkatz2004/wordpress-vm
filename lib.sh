@@ -29,7 +29,7 @@ NETMASK=$($IFCONFIG | grep -w inet |grep -v 127.0.0.1| awk '{print $4}' | cut -d
 GATEWAY=$(route -n|grep "UG"|grep -v "UGH"|cut -f 10 -d " ")
 
 # Repo
-GITHUB_REPO="https://raw.githubusercontent.com/techandme/wordpress-vm/refactor"
+GITHUB_REPO="https://raw.githubusercontent.com/techandme/wordpress-vm/master"
 STATIC="$GITHUB_REPO/static"
 LETS_ENC="$GITHUB_REPO/lets-encrypt"
 ISSUES="https://github.com/techandme/wordpress-vm/issues"
