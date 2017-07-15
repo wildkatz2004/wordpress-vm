@@ -222,6 +222,7 @@ apt install -y \
 	php-pear \
 	php-mbstring \
 	php-mysql \
+	php-soap \
 	php-zip
 
 # Download wp-cli.phar to be able to install Wordpress
