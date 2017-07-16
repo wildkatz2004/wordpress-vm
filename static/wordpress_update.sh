@@ -24,7 +24,7 @@ fi
 # Make sure old instaces can upgrade as well
 if [ ! -f "$MYCNF" ] && [ -f /var/mysql_password.txt ]
 then
-    regressionpw=$(cat /var/mysql_password.txt)
+    regressionpw=$(grep "New MySQL ROOT password:" /var/mysql_password.txt | awk '{print $5}')
 cat << LOGIN > "$MYCNF"
 [client]
 password='$regressionpw'
