@@ -2,13 +2,11 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-WPDB=1 && MYCNFPW=1 && FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/master/lib.sh)
+WPDB=1 && MYCNFPW=1 && FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
 unset MYCNFPW
 unset WPDB
-
-# Tech and Me © - 2017, https://www.techandme.se/
 
 ## If you want debug mode, please activate it further down in the code at line ~60
 
@@ -74,31 +72,7 @@ else
     exit 1
 fi
 
-# Check where the best mirrors are and update
-printf "\nTo make downloads as fast as possible when updating you should have mirrors that are as close to you as possible.\n"
-echo "This VM comes with mirrors based on servers in that where used when the VM was released and packaged."
-echo "We recomend you to change the mirrors based on where this is currently installed."
-echo "Checking current mirror..."
-printf "Your current server repository is:  ${Cyan}$REPO${Color_Off}\n"
 
-if [[ "no" == $(ask_yes_or_no "Do you want to try to find a better mirror?") ]]
-then
-    echo "Keeping $REPO as mirror..."
-    sleep 1
-else
-    echo "Locating the best mirrors..."
-    apt update -q4 & spinner_loading
-    apt install python-pip -y
-    pip install \
-        --upgrade pip \
-        apt-select
-    apt-select -m up-to-date -t 5 -c
-    sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
-    if [ -f sources.list ]
-    then
-        sudo mv sources.list /etc/apt/
-    fi
-fi
 
 echo
 echo "Getting scripts from GitHub to be able to run the first setup..."
@@ -141,78 +115,6 @@ EOMSTART
 any_key "Press any key to start the script..."
 clear
 
-# VPS?
-if [[ "no" == $(ask_yes_or_no "Do you run this script on a *remote* VPS like DigitalOcean, HostGator or similar?") ]]
-then
-    # Change IP
-    printf "\n${Color_Off}OK, we assume you run this locally and we will now configure your IP to be static.${Color_Off}\n"
-    echo "Your internal IP is: $ADDRESS"
-    printf "\n${Color_Off}Write this down, you will need it to set static IP\n"
-    echo "in your router later. It's included in this guide:"
-    echo "https://www.techandme.se/open-port-80-443/ (step 1 - 5)"
-    any_key "Press any key to set static IP..."
-    ifdown "$IFACE"
-    wait
-    ifup "$IFACE"
-    wait
-    bash "$SCRIPTS/ip.sh"
-    if [ -z "$IFACE" ]
-    then
-        echo "IFACE is an emtpy value. Trying to set IFACE with another method..."
-        download_static_script ip2
-        bash "$SCRIPTS/ip2.sh"
-        rm -f "$SCRIPTS/ip2.sh"
-    fi
-    ifdown "$IFACE"
-    wait
-    ifup "$IFACE"
-    wait
-    echo
-    echo "Testing if network is OK..."
-    echo
-    CONTEST=$(bash $SCRIPTS/test_connection.sh)
-    if [ "$CONTEST" == "Connected!" ]
-    then
-        # Connected!
-        printf "${Green}Connected!${Color_Off}\n"
-        printf "We will use the DHCP IP: ${Green}$ADDRESS${Color_Off}. If you want to change it later then just edit the interfaces file:\n"
-        printf "sudo nano /etc/network/interfaces\n"
-        echo "If you experience any bugs, please report it here:"
-        echo "$ISSUES"
-        any_key "Press any key to continue..."
-    else
-        # Not connected!
-        printf "${Red}Not Connected${Color_Off}\nYou should change your settings manually in the next step.\n"
-        any_key "Press any key to open /etc/network/interfaces..."
-        nano /etc/network/interfaces
-        service networking restart
-        clear
-        echo "Testing if network is OK..."
-        ifdown "$IFACE"
-        wait
-        ifup "$IFACE"
-        wait
-        bash "$SCRIPTS/test_connection.sh"
-        wait
-    fi
-else
-    echo "OK, then we will not set a static IP as your VPS provider already have setup the network for you..."
-    sleep 5 & spinner_loading
-fi
-clear
-
-# Set keyboard layout
-echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
-if [[ "no" == $(ask_yes_or_no "Do you want to change keyboard layout?") ]]
-then
-    echo "Not changing keyboard layout..."
-    sleep 1
-    clear
-else
-    dpkg-reconfigure keyboard-configuration
-clear
-fi
-
 # Generate new SSH Keys
 printf "\nGenerating new SSH keys for the server...\n"
 rm -v /etc/ssh/ssh_host_*
@@ -253,14 +155,6 @@ done 9< results
 rm -f results
 clear
 
-# Change Timezone
-echo "Current timezone is $(cat /etc/timezone)"
-echo "You must change it to your timezone"
-any_key "Press any key to change timezone..."
-dpkg-reconfigure tzdata
-sleep 3
-clear
-
 # Add extra security
 if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
 then
@@ -271,17 +165,6 @@ else
     echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
     any_key "Press any key to continue..."
 fi
-clear
-
-# Change password
-printf "${Color_Off}\n"
-echo "For better security, change the system user password for [$UNIXUSER]"
-any_key "Press any key to change password for system user..."
-while true
-do
-    sudo passwd "$UNIXUSER" && break
-done
-echo
 clear
 
 cat << LETSENC
