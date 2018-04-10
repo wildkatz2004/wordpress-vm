@@ -52,27 +52,22 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
     exit
 fi
 
-# Check if it's a clean server
-is_this_installed postgresql
-is_this_installed apache2
-is_this_installed php
-is_this_installed mysql-common
-is_this_installed mariadb-server
+
+MYSQL=$(dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -c "ok installed")
+  if [ $(dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -c "ok installed") -eq 0 ];
+  then
+    echo -e "${YELLOW}Installing mysql-server${NC}"
+    apt-get install mysql-server --yes;
+    elif [ $(dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -c "ok installed") -eq 1 ];
+    then
+      echo -e "${GREEN}mysql-server is installed!${NC}"
+  fi
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
 then
     mkdir -p "$SCRIPTS"
 fi
-
-# Change DNS
-if ! [ -x "$(command -v resolvconf)" ]
-then
-    apt install resolvconf -y -q
-    dpkg-reconfigure resolvconf
-fi
-echo "nameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
-echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
 
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
@@ -93,37 +88,17 @@ fi
 # Update system
 apt update -q4 & spinner_loading
 
-# Write MARIADB pass to file and keep it safe
-{
-echo "[client]"
-echo "password='$MARIADB_PASS'"
-} > "$MYCNF"
-chmod 0600 $MYCNF
-chown root:root $MYCNF
-
-# Install MARIADB
-apt install software-properties-common -y
-sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ftp.ddg.lth.se/mariadb/repo/10.2/ubuntu xenial main'
-sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADB_PASS"
-sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
-apt update -q4 & spinner_loading
-check_command apt install mariadb-server-10.2 -y
-
-# Prepare for Wordpress installation
-# https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
-mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
-mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
-mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
-
 # mysql_secure_installation
-apt -y install expect
+sudo apt-get -y install expect
+
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
-expect \"Enter current password for root (enter for none):\"
+expect \"Enter current password for root:\"
 send \"$MARIADB_PASS\r\"
-expect \"Change the root password?\"
+expect \"Would you like to setup VALIDATE PASSWORD plugin?\"
+send \"n\r\" 
+expect \"Change the password for root ?\"
 send \"n\r\"
 expect \"Remove anonymous users?\"
 send \"y\r\"
@@ -135,11 +110,10 @@ expect \"Reload privilege tables now?\"
 send \"y\r\"
 expect eof
 ")
-echo "$SECURE_MYSQL"
-apt -y purge expect
 
-# Write a new MariaDB config
-run_static_script new_etc_mycnf
+echo "$SECURE_MYSQL"
+
+apt-get -y purge expect
 
 # Install VM-tools
 apt install open-vm-tools -y
@@ -345,15 +319,6 @@ a2dissite 000-default.conf
 a2dissite default-ssl.conf
 service apache2 restart
 
-# Enable UTF8mb4 (4-byte support)
-databases=$(mysql -u root -p"$MARIADB_PASS" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
-for db in $databases; do
-    if [[ "$db" != "performance_schema" ]] && [[ "$db" != _* ]] && [[ "$db" != "information_schema" ]];
-    then
-        echo "Changing to UTF8mb4 on: $db"
-        mysql -u root -p"$MARIADB_PASS" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-    fi
-done
 
 # Enable OPCache for PHP
 phpenmod opcache
