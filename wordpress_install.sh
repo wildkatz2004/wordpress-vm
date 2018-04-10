@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# Tech and Me © - 2017, https://www.techandme.se/
-
 # Prefer IPv4
 sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
 
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/master/lib.sh)
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
 
@@ -90,45 +88,6 @@ if ! nslookup google.com
 then
     echo "Network NOT OK. You must have a working Network connection to run this script."
     exit 1
-fi
-
-# Set locales
-apt install language-pack-en-base -y
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
-
-# Check where the best mirrors are and update
-echo
-printf "Your current server repository is:  ${Cyan}%s${Color_Off}\n" "$REPO"
-if [[ "no" == $(ask_yes_or_no "Do you want to try to find a better mirror?") ]]
-then
-    echo "Keeping $REPO as mirror..."
-    sleep 1
-else
-   echo "Locating the best mirrors..."
-   apt update -q4 & spinner_loading
-   apt install python-pip -y
-   pip install \
-       --upgrade pip \
-       apt-select
-    apt-select -m up-to-date -t 5 -c
-    sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
-    if [ -f sources.list ]
-    then
-        sudo mv sources.list /etc/apt/
-    fi
-fi
-clear
-
-# Set keyboard layout
-echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
-if [[ "no" == $(ask_yes_or_no "Do you want to change keyboard layout?") ]]
-then
-    echo "Not changing keyboard layout..."
-    sleep 1
-    clear
-else
-    dpkg-reconfigure keyboard-configuration
-    clear
 fi
 
 # Update system
@@ -266,11 +225,8 @@ wp core version --allow-root
 sleep 3
 
 # Install Apps
-wp plugin install --allow-root twitter-tweets --activate
-wp plugin install --allow-root social-pug --activate
+
 wp plugin install --allow-root wp-mail-smtp --activate
-wp plugin install --allow-root google-captcha --activate
-wp plugin install --allow-root redis-cache --activate
 
 # set pretty urls
 wp rewrite structure '/%postname%/' --hard --allow-root
@@ -449,15 +405,6 @@ echo "$CLEARBOOT"
 apt autoremove -y
 apt autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
-
-# Install virtual kernels for Hyper-V, and extra for UTF8 kernel module + Collabora and OnlyOffice
-# Kernel 4.4
-apt install --install-recommends -y \
-linux-virtual-lts-xenial \
-linux-tools-virtual-lts-xenial \
-linux-cloud-tools-virtual-lts-xenial \
-linux-image-virtual-lts-xenial \
-linux-image-extra-"$(uname -r)"
 
 # Prefer IPv6
 sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
