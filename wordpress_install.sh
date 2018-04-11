@@ -92,9 +92,11 @@ echo "password='$MARIADB_PASS'"
 chmod 0600 $MYCNF
 chown root:root $MYCNF
 
-# Install MARIADB
+# Install MySQL 5.7
 export DEBIAN_FRONTEND="noninteractive"
 apt install software-properties-common -y
+sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
+sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7'
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
