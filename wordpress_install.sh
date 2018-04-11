@@ -100,7 +100,7 @@ sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7'
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
-check_command apt-get install mysql-server-5.7 -y
+check_command apt-get install mysql-server -y
 
 # Prepare for Wordpress installation
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
