@@ -1,6 +1,10 @@
 # Wordpress VM
 Forked from the folks at https://www.techandme.se
 
+This repository is designed to install the goodies listed below on an a clean freshly provisioned Azure Unbuntu 16.04 image.
+
+If using an Azure image, you'll need to insure that ports 80 and 443 are open.
+
 - MySQL (Latest Version)
 - Apache 2.4
 - Latest Wordpress (updates automatically)
@@ -9,3 +13,6 @@ Forked from the folks at https://www.techandme.se
 To run:
 Paste all of the following in to terminal and hit Return: curl -L -o 'wordpress_install.sh' https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/wordpress_install.sh && sudo bash wordpress_install.sh
 
+***Use at your own risk.***  
+
+***I will not be liable for any issues, problems or errors that may occur to your server(s) and or IT environment at a a result of using the contents of this repository or anything else that resides within my Github code.***
