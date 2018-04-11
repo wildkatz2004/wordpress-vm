@@ -93,12 +93,12 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MARIADB
-check_command apt-get install mysql-common -y
+
 apt install software-properties-common -y
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
-check_command apt-get install mysql-server -y
+check_command apt-get install mysql-server-5.7 -y
 
 # Prepare for Wordpress installation
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
