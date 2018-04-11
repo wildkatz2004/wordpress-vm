@@ -36,7 +36,7 @@ ISSUES="https://github.com/wildkatz2004/wordpress-vm/issues"
 APP="$GITHUB_REPO/apps"
 
 # User information
-WPDBNAME=wordpress_by_www_techandme_se
+WPDBNAME=goodman_wordpress
 WPADMINUSER=change_this_user
 UNIXUSER=$SUDO_USER
 UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
