@@ -54,7 +54,9 @@ fi
 
 # Check if it's a clean server
 is_this_installed postgresql
+is_this_installed apache2
 is_this_installed php
+is_this_installed mysql-common
 is_this_installed mysql-server
 
 # Create $SCRIPTS dir
