@@ -93,7 +93,7 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MARIADB
-
+export DEBIAN_FRONTEND="noninteractive"
 apt install software-properties-common -y
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
