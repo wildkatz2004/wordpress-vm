@@ -1,7 +1,7 @@
 # Wordpress VM
 Forked from the folks at https://www.techandme.se
 
-- MariaDB 10.2
+- MySQL (Latest Version)
 - Apache 2.4
 - Latest Wordpress (updates automatically)
 - WP-CLI
