@@ -52,16 +52,12 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
     exit
 fi
 
-
-MYSQL=$(dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -c "ok installed")
-  if [ $(dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -c "ok installed") -eq 0 ];
-  then
-    echo -e "${YELLOW}Installing mysql-server${NC}"
-    apt-get install mysql-server --yes;
-    elif [ $(dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -c "ok installed") -eq 1 ];
-    then
-      echo -e "${GREEN}mysql-server is installed!${NC}"
-  fi
+# Check if it's a clean server
+is_this_installed postgresql
+is_this_installed apache2
+is_this_installed php
+is_this_installed mysql-common
+is_this_installed mysql-server
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
@@ -87,6 +83,29 @@ fi
 
 # Update system
 apt update -q4 & spinner_loading
+
+# Write MySQL pass to file and keep it safe
+{
+echo "[client]"
+echo "password='$MARIADB_PASS'"
+} > "$MYCNF"
+chmod 0600 $MYCNF
+chown root:root $MYCNF
+
+# Install MARIADB
+apt install software-properties-common -y
+sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ftp.ddg.lth.se/mariadb/repo/10.2/ubuntu xenial main'
+sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
+sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
+apt update -q4 & spinner_loading
+check_command apt-get install mysql-server -y
+
+# Prepare for Wordpress installation
+# https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
+mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
 
 # mysql_secure_installation
 sudo apt-get -y install expect
@@ -114,9 +133,6 @@ expect eof
 echo "$SECURE_MYSQL"
 
 apt-get -y purge expect
-
-# Install VM-tools
-apt install open-vm-tools -y
 
 # Install Apache
 apt install apache2 -y
