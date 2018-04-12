@@ -110,10 +110,10 @@ log_warnings		= 2
 #
 # Enable the slow query log to see queries with especially long duration
 #slow_query_log[={0|1}]
-slow_query_log_file	= /var/log/mysql/mariadb-slow.log
+log_slow_queries       = /var/log/mysql/mysql-slow.log
 long_query_time = 10
 #log_slow_rate_limit	= 1000
-log_slow_verbosity	= query_plan
+
 #log-queries-not-using-indexes
 #log_slow_admin_statements
 #
@@ -124,11 +124,11 @@ log_slow_verbosity	= query_plan
 #report_host		= master1
 #auto_increment_increment = 2
 #auto_increment_offset	= 1
-log_bin			= /var/log/mysql/mariadb-bin
-log_bin_index		= /var/log/mysql/mariadb-bin.index
+log_bin			= /var/log/mysql/mysql-bin
+log_bin_index		= /var/log/mysql/mysql-bin.index
 # not fab for performance, but safer
 #sync_binlog		= 1
-expire_logs_days	= 10
+
 max_binlog_size         = 100M
 # slaves
 #relay_log		= /var/log/mysql/relay-bin
@@ -180,33 +180,14 @@ innodb_use_native_aio = 1
 #
 # * Galera-related settings
 #
-[galera]
-# Mandatory settings
-#wsrep_on=ON
-#wsrep_provider=
-#wsrep_cluster_address=
-#binlog_format=row
-#default_storage_engine=InnoDB
-#innodb_autoinc_lock_mode=2
-#
-# Allow server to accept connections on all interfaces.
-#
-#bind-address=0.0.0.0
-#
-# Optional setting
-#wsrep_slave_threads=1
-innodb_flush_log_at_trx_commit=1
 [mysqldump]
 quick
-quote-names
 max_allowed_packet	= 16M
+
 [mysql]
 default-character-set = utf8mb4
 #no-auto-rehash	# faster start of mysql but no tab completion
-[mariadb]
-innodb_use_fallocate = 1
-innodb_use_atomic_writes = 1
-innodb_use_trim = 1
+
 [isamchk]
 key_buffer		= 16M
 #
@@ -219,6 +200,6 @@ WRITENEW
 # Restart MariaDB
 mysqladmin shutdown --force & spinner_loading
 wait
-check_command systemctl restart mariadb & spinner_loading
+check_command systemctl service mysqld restart & spinner_loading
 
 exit
