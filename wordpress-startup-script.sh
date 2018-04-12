@@ -312,4 +312,5 @@ sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/g
 
 ## Reboot
 echo "Installations finished. System will now reboot..."
+history > history_for_print.txt
 reboot
