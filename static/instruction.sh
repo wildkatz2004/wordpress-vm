@@ -14,7 +14,8 @@ cat << WELCOME
 |    In order to configure everything you have to run the  setup script |
 |    To run the setup script, just type: wordpress			|
 |									|
-|    If you have any questions please email me: wildkatz2004@outlook.com	|
+|    If you have any questions please |
+|    email me: wildkatz2004@outlook.com	|
 +-----------------------------------------------------------------------+
 
 WELCOME
