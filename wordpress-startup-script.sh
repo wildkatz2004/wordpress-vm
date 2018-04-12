@@ -298,12 +298,12 @@ printf "|         ${Color_Off}Login to Wordpress in your browser: ${Cyan}\"$ADDR
 echo    "|                                                                    |"
 printf "|         ${Color_Off}Publish your server online! ${Cyan}https://goo.gl/iUGE2U${Green}          |\n"
 echo    "|                                                                    |"
-printf "|         ${Color_Off}To login to MARIADB just type: ${Cyan}'mysql -u root'${Green}             |\n"
+printf "|         ${Color_Off}To login to MySQL just type: ${Cyan}'mysql -u root'${Green}             |\n"
 echo    "|                                                                    |"
 printf "|         ${Color_Off}To update this VM just type: ${Green}                              |\n"
 printf "|         ${Cyan}'sudo bash /var/scripts/update.sh'${Green}                         |\n"
 echo    "|                                                                    |"
-printf "|    ${IRed}#################### Tech and Me - 2017 ####################${Green}    |\n"
+printf "|    ${IRed}#################### D&B Consulting - 2018 ####################${Green}    |\n"
 echo    "+--------------------------------------------------------------------+"
 printf "${Color_Off}\n"
 
@@ -312,5 +312,5 @@ sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/g
 
 ## Reboot
 echo "Installations finished. System will now reboot..."
-history > history_for_print.txt
+sleep 10
 reboot
