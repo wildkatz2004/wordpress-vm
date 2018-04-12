@@ -94,31 +94,38 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MySQL 5.7
-export DEBIAN_FRONTEND="noninteractive"
-apt install software-properties-common -y
-sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
-sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7'
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
+#export DEBIAN_FRONTEND="noninteractive"
+#apt install software-properties-common -y
+#sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
+#sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7'
+#sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
+#sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
+#apt update -q4 & spinner_loading
+#check_command apt-get install mysql-server -y
+
+# Install MARIADB
+sudo apt-get install software-properties-common
+sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main'
+sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADB_PASS"
+sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
-check_command apt-get install mysql-server -y
+check_command apt install mariadb-server-10.2 -y
 
 # Prepare for Wordpress installation
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
-mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET authentication_string=password('$MARIADB_PASS') WHERE user='root';"
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
 
 # mysql_secure_installation
-sudo apt-get -y install expect
-
+apt -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
-expect \"Enter current password for root:\"
+expect \"Enter current password for root (enter for none):\"
 send \"$MARIADB_PASS\r\"
-expect \"Would you like to setup VALIDATE PASSWORD plugin?\"
-send \"n\r\" 
-expect \"Change the password for root ?\"
+expect \"Change the root password?\"
 send \"n\r\"
 expect \"Remove anonymous users?\"
 send \"y\r\"
@@ -130,10 +137,12 @@ expect \"Reload privilege tables now?\"
 send \"y\r\"
 expect eof
 ")
-
 echo "$SECURE_MYSQL"
+apt -y purge expect
 
-apt-get -y purge expect
+# Write a new MariaDB config
+run_static_script new_etc_mycnf
+
 
 # Install Apache
 apt install apache2 -y
@@ -218,6 +227,7 @@ sleep 3
 # Install Apps
 
 wp plugin install --allow-root wp-mail-smtp --activate
+wp plugin install --allow-root redis-cache --activate
 
 # set pretty urls
 wp rewrite structure '/%postname%/' --hard --allow-root
