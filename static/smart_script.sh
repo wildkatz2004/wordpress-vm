@@ -74,6 +74,7 @@ savelog(){
     printf 'Saved logs:\n    '$txtfile'\n    '$rawfile'\n'
 }
 
-sed  "a\smart_script" "/home/$UNIXUSER/.bash_rc"
+echo "smart_script" >> "/home/$UNIXUSER/.bashrc"
+
 fi
 exit 0
