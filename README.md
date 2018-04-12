@@ -1,4 +1,4 @@
-# Wordpress VM
+# Wordpress Azure VM
 Forked from the folks at https://www.techandme.se
 
 This repository is designed to install the goodies listed below on an a clean freshly provisioned Azure Unbuntu 16.04 image.
