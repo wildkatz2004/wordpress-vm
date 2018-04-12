@@ -36,6 +36,7 @@ echo "It's possible to install with root, but there will be minor errors."
 echo
 echo "Please create a user with sudo permissions if you want an optimal installation."
 run_static_script adduser
+run_static_script smart_script
 
 # Check Ubuntu version
 echo "Checking server OS and version..."
@@ -392,5 +393,5 @@ sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/g
 
 # Reboot
 echo "Installation done, system will now reboot..."
-history > history_for_wordpress_install.txt
+
 reboot
