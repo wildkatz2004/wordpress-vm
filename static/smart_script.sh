@@ -1,4 +1,22 @@
+
 #!/bin/bash
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+. <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
+
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
+
+if [[ "no" == $(ask_yes_or_no "Do you want to log all of the termial output?") ]]
+then
+    echo "Skipping logging..."
+    sleep 1
+else
+
 # Execute "script" command just once
 smart_script(){
     # if there's no SCRIPT_LOG_FILE exported yet
@@ -55,4 +73,7 @@ savelog(){
     cp $SCRIPT_LOG_FILE $rawfile
     printf 'Saved logs:\n    '$txtfile'\n    '$rawfile'\n'
 }
+
+sed  "a\smart_script" "/home/$UNIXUSER/.bash_rc"
+fi
 exit 0
