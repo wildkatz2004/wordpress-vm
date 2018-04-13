@@ -88,6 +88,8 @@ sed -i "s|# requirepass foobared|requirepass $(cat /tmp/redis_pass.txt)|g" $REDI
 redis-cli SHUTDOWN
 rm -f /tmp/redis_pass.txt
 
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
 # Secure Redis
 chown redis:root /etc/redis/redis.conf
 chmod 600 /etc/redis/redis.conf
