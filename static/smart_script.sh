@@ -11,12 +11,7 @@ true
 DEBUG=0
 debug_mode
 
-if [[ "no" == $(ask_yes_or_no "Do you want to log all of the termial output?") ]]
-then
-    echo "Skipping logging..."
-    sleep 1
-else
-
+cat <<-UNIXUSER-ALIAS > "$UNIXUSER_ALIAS"
 # Execute "script" command just once
 smart_script(){
     # if there's no SCRIPT_LOG_FILE exported yet
@@ -74,7 +69,6 @@ savelog(){
     printf 'Saved logs:\n    '$txtfile'\n    '$rawfile'\n'
 }
 
+UNIXUSER-ALIAS
+chown "$UNIXUSER:$UNIXUSER" "$UNIXUSER_ALIAS"
 echo "smart_script" >> "/home/$UNIXUSER/.bashrc"
-
-fi
-exit 0
