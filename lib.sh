@@ -40,6 +40,7 @@ WPDBNAME=goodman_wordpress
 WPADMINUSER=change_this_user
 UNIXUSER=$SUDO_USER
 UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
+UNIXUSER_ALIAS="/home/$UNIXUSER/.bash_alias"
 ROOT_PROFILE="/root/.bash_profile"
 
 # MARIADB
