@@ -85,7 +85,6 @@ download_static_script wp-permissions
 download_static_script change_mysql_pass
 download_static_script techandme
 download_static_script index
-download_static_script smart_script
 download_le_script activate-ssl
 
 # Make $SCRIPTS excutable
