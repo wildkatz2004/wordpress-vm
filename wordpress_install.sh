@@ -227,7 +227,7 @@ sleep 3
 # Install Apps
 
 wp plugin install --allow-root wp-mail-smtp --activate
-wp plugin install --allow-root redis-cache --activate
+wp plugin install --allow-root redis-cache
 
 # set pretty urls
 wp rewrite structure '/%postname%/' --hard --allow-root
