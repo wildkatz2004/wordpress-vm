@@ -202,6 +202,7 @@ define( 'WP_REDIS_SCHEME', 'unix' );
 define( 'WP_REDIS_PATH', '/var/run/redis/redis.sock' );
 define( 'WP_REDIS_PASSWORD', '$REDIS_PASS' );
 define( 'WP_AUTO_UPDATE_CORE', true );
+define('WP_CACHE', true);
 PHP
 
 # Make sure the passwords are the same, this file will be deleted when Redis is run.
@@ -224,18 +225,19 @@ wp post delete 1 --force --allow-root
 wp core version --allow-root
 sleep 3
 
+# delete akismet and hello dolly
+wp plugin delete akismet --allow-root
+wp plugin delete hello --allow-root
+
 # Install Apps
 
 wp plugin install --allow-root wp-mail-smtp --activate
 wp plugin install --allow-root redis-cache
+wp plugin install --allow-root all-in-one-wp-migration
 
 # set pretty urls
 wp rewrite structure '/%postname%/' --hard --allow-root
 wp rewrite flush --hard --allow-root
-
-# delete akismet and hello dolly
-wp plugin delete akismet --allow-root
-wp plugin delete hello --allow-root
 
 # Secure permissions
 run_static_script wp-permissions
