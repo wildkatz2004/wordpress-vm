@@ -364,7 +364,7 @@ echo "opcache.validate_timestamps=1"
 } >> /etc/php/7.0/apache2/php.ini
 
 # Install Redis
-#run_static_script redis-server-ubuntu16
+run_static_script redis-server-ubuntu16
 
 # Set secure permissions final
 run_static_script wp-permissions
