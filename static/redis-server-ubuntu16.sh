@@ -61,10 +61,8 @@ cd redis-stable
 make
 make test
 make install
-mkdir /etc/redis/
-cp /tmp/redis-stable/redis.conf /etc/redis/
-cd ..
-rm -R redis*
+mkdir /etc/redis
+cp /tmp/redis-stable/redis.conf /etc/redis
 
 sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
 sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
@@ -72,7 +70,7 @@ sed -i "s|port 6379|port 0|g" $REDIS_CONF
 sed -i "s|# requirepass foobared|requirepass $(cat /tmp/redis_pass.txt)|g" $REDIS_CONF
 sed -i "s|# supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|# daemonize no|daemonize yes|g" $REDIS_CONF
-sed -i "s|# maxmemory <bytes>|maxmemory 1288490188|g" $REDIS_CONF
+sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
 sed -i "s|# maxmemory-policy noeviction|maxmemory-policy allkeys-lru|g" $REDIS_CONF
 sed -i "s|# bind 127.0.0.1|bind 127.0.0.1|g" $REDIS_CONF
 sed -i" s/^dir \.\//dir \/var\/lib\/redis\//" $REDIS_CONF
@@ -97,7 +95,7 @@ WantedBy=multi-user.target
 EOF
 
 #Use the below command to create a user and user group.
-dduser --system --group --no-create-home redis --quiet
+adduser --system --group --no-create-home redis --quiet
 #Then, you have to create the directory.
 mkdir /var/lib/redis
 #The directory is created and now you have to give the ownership of the directory to the newly created user and user group.
