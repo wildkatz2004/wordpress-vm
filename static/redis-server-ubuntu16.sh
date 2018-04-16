@@ -117,7 +117,7 @@ EOF
 #############################################################################
 install_redis()
 {
-	log "Installing Redis"
+	echo "Installing Redis"
 
 	# Installing build essentials (if missing) and other required tools
 	apt-get -y install build-essential tcl
