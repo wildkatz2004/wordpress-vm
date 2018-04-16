@@ -147,13 +147,11 @@ configure_redis()
 # Configure the general settings
 sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
 sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
-sed -i "s|port 6379|port 0|g" $REDIS_CONF
 sed -i "s|# requirepass foobared|requirepass $(cat /tmp/redis_pass.txt)|g" $REDIS_CONF
 sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
 sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
 sed -i "s|# maxmemory-policy noeviction|maxmemory-policy allkeys-lru|g" $REDIS_CONF
-sed -i "s|# bind 127.0.0.1|bind 127.0.0.1|g" $REDIS_CONF
 sed -i" s/^dir \.\//dir \/var\/lib\/redis\//" $REDIS_CONF
 sed -i "s/^loglevel verbose$/loglevel notice/" $REDIS_CONF
 sed -i "s/^logfile stdout$/logfile \/var\/log\/redis.log/" $REDIS_CONF
@@ -175,8 +173,8 @@ systemctl enable redis
 apt update -q4 & spinner_loading
 sudo apt install -q -y \
     build-essential \
-    tcl8.5 \
-    php7.0-dev \
+    tcl \
+    php-dev \
     php-pear
     
 # Step1
