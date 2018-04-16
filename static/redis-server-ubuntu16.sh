@@ -215,25 +215,90 @@ chown redis:redis /var/lib/redis
 #You have to block the user or group which doesn't have ownership towards the directory.
 chmod 770 /var/lib/redis
 
-sudo apt-get -y install php-redis
-# Install PHPmodule
-if ! pecl install -Z redis
-then
-    echo "PHP module installation failed"
-    sleep 3
-    exit 1
-else
-    printf "${Green}\nPHP module installation OK!${Color_Off}\n"
-fi
-# Set globally doesn't work for some reason
-# touch /etc/php/7.0/mods-available/redis.ini
-# echo 'extension=redis.so' > /etc/php/7.0/mods-available/redis.ini
-# phpenmod redis
-# Setting direct to apache2 works if 'libapache2-mod-php7.0' is installed
-echo 'extension=redis.so' >> /etc/php/7.0/apache2/php.ini
-service apache2 restart
+echo "--------------------------------------------------------------------------------------------"
+echo "Installing Predis on Ubuntu 16.04"
+echo "Read more: https://github.com/nrk/predis"
+echo "Author: Ralf Rottmann | @ralf | http://rottmann.net"
+echo "--------------------------------------------------------------------------------------------"
+PHP_CONF_DIR="/etc/php/7.0/apache2/conf.d"
+echo "Checking prerequisites..."
+echo "Git available?"
+[ ! -s /usr/bin/git ] && sudo apt-get -q -y install git || echo "Git already installed."
+echo "--------------------------------------------------------------------------------------------"
+echo "Step 0: Installing a PHP extension for Redis from https://github.com/phpredis/phpredis"
+cd
+found=$(find / -name "redis.so" 2> /dev/null)
+[[ -n $found ]] && {
+  echo "Library already installed."
+} ||
+{
+  git clone http://github.com/phpredis/phpredis
+	cd phpredis
+	found=$(which phpize)
+	[[ ! -n $found ]] && {
+		echo "Missing phpize. Installing php7.0-dev..."
+		sudo apt-get -q -y install php7.0-dev
+	}
+	phpize
+	./configure
+	make && make install
+	echo "extension=redis.so" > /etc/php/7.0/mods-available/redis.ini
+	sudo ln -sf /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/apache2/conf.d/20-redis.ini
+	sudo ln -sf /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/cli/conf.d/20-redis.ini
+	sudo service apache2l restart
+	echo "Done installing a PHP extension for Redis!"
+}
 
 
+echo "--------------------------------------------------------------------------------------------"
+echo "Step 1: Installing the Minimalistic C client for Redis >= 1.2 from https://github.com/redis/hiredis"
+cd
+found=$(find / -name "libhiredis.so" 2> /dev/null)
+[[ -n $found ]] && {
+  echo "Library already installed."
+} ||
+{
+  git clone http://github.com/redis/hiredis
+	cd hiredis
+	make &&	make install
+	ldconfig	
+	echo "Done."
+}
+echo "--------------------------------------------------------------------------------------------"
+echo "Step 2: Installing PHP bindings for Hiredis Redis client from https://github.com/nrk/phpiredis"
+found=$(find / -name "phpiredis.so" 2> /dev/null)
+[[ -n $found ]] && {
+	echo "phpiredis.so already exists. Please make sure it gets loaded in your php.ini."
+} ||
+{
+	cd
+	[ -s phpiredis ] && {
+		echo Removing folder phpiredis
+		rm -rf phpiredis
+	}
+	git clone https://github.com/nrk/phpiredis.git
+	cd phpiredis
+	found=$(which phpize)
+	[[ ! -n $found ]] && {
+		echo "Missing phpize. Installing php7.0-dev..."
+		sudo apt-get -q -y install php7.0-dev
+	}
+  	phpize
+	./configure --enable-phpiredis --with-hiredis-dir=/usr/local
+	make
+	cd modules
+	acc_php_extension_dir=$(php-config --extension-dir)
+	echo "--------------------------------------------------------------------------------------------"
+	echo "Step 2.1: Copying to PHP extension directory $acc_php_extension_dir"
+	sudo cp phpiredis.* $acc_php_extension_dir
+	echo "Step 2.2: Adding phpiredis.ini to $PHP_CONF_DIR..."
+	[ -s $PHP_CONF_DIR/phpiredis.ini ] && echo "phpiredis.ini already exists" || echo extension=phpiredis.so >> $PHP_CONF_DIR/phpiredis.ini
+	echo "--------------------------------------------------------------------------------------------"
+	echo "Step 2.3: Restarting Apache 2..."
+	apache2ctl restart
+	echo "Done installing Hiredis Redis client!"
+}
+echo "Finished."
 
 
 # Redis performance tweaks
