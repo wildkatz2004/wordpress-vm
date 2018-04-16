@@ -61,17 +61,10 @@ cd redis-stable
 make
 make test
 make install
-make install PREFIX=/usr
-mkdir /etc/redis
-sudo cp /tmp/redis-stable/redis.conf /etc/redis
+mkdir /etc/redis/
+cp /tmp/redis-stable/redis.conf /etc/redis/
 cd ..
 rm -R redis*
-
-adduser --system --group --disabled-login redis --no-create-home --shell /bin/nologin --quiet
-usermod -g www-data redis
-mkdir /var/lib/redis
-chown redis:redis /var/lib/redis
-chmod 770 /var/lib/redis
 
 sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
 sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
@@ -102,6 +95,15 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+
+#Use the below command to create a user and user group.
+dduser --system --group --no-create-home redis --quiet
+#Then, you have to create the directory.
+mkdir /var/lib/redis
+#The directory is created and now you have to give the ownership of the directory to the newly created user and user group.
+chown redis:redis /var/lib/redis
+#You have to block the user or group which doesn't have ownership towards the directory.
+chmod 770 /var/lib/redis
 
 sudo apt-get -y install php-redis
 # Install PHPmodule
