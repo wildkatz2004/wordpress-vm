@@ -53,6 +53,7 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
     exit
 fi
 
+preinstall_lamp
 # Check if it's a clean server
 is_this_installed postgresql
 is_this_installed apache2
