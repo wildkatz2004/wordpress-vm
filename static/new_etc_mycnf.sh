@@ -64,7 +64,7 @@ bind-address		= 127.0.0.1
 #
 # * Fine Tuning
 #
-max_connections		= 100
+max_connections		= 400
 connect_timeout		= 5
 wait_timeout		= 600
 max_allowed_packet	= 16M
@@ -73,15 +73,17 @@ sort_buffer_size	= 4M
 bulk_insert_buffer_size	= 16M
 tmp_table_size		= 32M
 max_heap_table_size	= 32M
+
+
 #
 # * MyISAM
 #
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched. On error, make copy and try a repair.
 myisam_recover_options = BACKUP
-key_buffer_size		= 128M
-#open-files-limit	= 2000
-table_open_cache	= 400
+key_buffer_size		= 256M
+open-files-limit	= 2048
+table_open_cache	= 800
 myisam_sort_buffer_size	= 512M
 concurrent_insert	= 2
 read_buffer_size	= 2M
@@ -147,8 +149,8 @@ max_binlog_size         = 100M
 # Read the manual for more InnoDB related options. There are many!
 default_storage_engine	= InnoDB
 # you can't just change log file size, requires special procedure
-#innodb_log_file_size	= 50M
-innodb_buffer_pool_size	= 256M
+innodb_log_file_size=128M
+innodb_buffer_pool_size=1G
 innodb_log_buffer_size	= 8M
 innodb_file_per_table	= 1
 innodb_open_files	= 400
