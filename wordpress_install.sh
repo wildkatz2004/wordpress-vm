@@ -167,6 +167,7 @@ check_command apt install -y \
 	php-soap \
 	php-zip
 
+apt-get -y install php7.0-opcache php-apcu
 
 # Download wp-cli.phar to be able to install Wordpress
 check_command curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
