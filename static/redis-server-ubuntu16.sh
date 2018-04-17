@@ -152,16 +152,14 @@ sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
 sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
 sed -i "s|# maxmemory-policy noeviction|maxmemory-policy allkeys-lru|g" $REDIS_CONF
-sed -i" s/^dir \.\//dir \/var\/lib\/redis\//" $REDIS_CONF
-sed -i "s/^loglevel verbose$/loglevel notice/" $REDIS_CONF
-sed -i "s/^logfile stdout$/logfile \/var\/log\/redis.log/" $REDIS_CONF
+sudo sed -e "s/^daemonize no$/daemonize yes/" -e "s/^# bind 127.0.0.1$/bind 127.0.0.1/" -e "s/^dir \.\//dir \/var\/lib\/redis\//" -e "s/^loglevel verbose$/loglevel notice/" -e "s/^logfile stdout$/logfile \/var\/log\/redis.log/" $REDIS_CONF | sudo tee /etc/redis/redis.conf
 }
 #############################################################################
 
 start_redis()
 {
 # Start Redis
-systemctl start redis
+sudo systemctl start redis
 sudo systemctl status redis
 sleep 5
 # Enable Redis to Start at Boot
@@ -262,40 +260,7 @@ found=$(find / -name "libhiredis.so" 2> /dev/null)
 	ldconfig	
 	echo "Done."
 }
-echo "--------------------------------------------------------------------------------------------"
-echo "Step 2: Installing PHP bindings for Hiredis Redis client from https://github.com/nrk/phpiredis"
-found=$(find / -name "phpiredis.so" 2> /dev/null)
-[[ -n $found ]] && {
-	echo "phpiredis.so already exists. Please make sure it gets loaded in your php.ini."
-} ||
-{
-	cd
-	[ -s phpiredis ] && {
-		echo Removing folder phpiredis
-		rm -rf phpiredis
-	}
-	git clone https://github.com/nrk/phpiredis.git
-	cd phpiredis
-	found=$(which phpize)
-	[[ ! -n $found ]] && {
-		echo "Missing phpize. Installing php7.0-dev..."
-		sudo apt-get -q -y install php7.0-dev
-	}
-  	phpize
-	./configure --enable-phpiredis --with-hiredis-dir=/usr/local
-	make
-	cd modules
-	acc_php_extension_dir=$(php-config --extension-dir)
-	echo "--------------------------------------------------------------------------------------------"
-	echo "Step 2.1: Copying to PHP extension directory $acc_php_extension_dir"
-	sudo cp phpiredis.* $acc_php_extension_dir
-	echo "Step 2.2: Adding phpiredis.ini to $PHP_CONF_DIR..."
-	[ -s $PHP_CONF_DIR/phpiredis.ini ] && echo "phpiredis.ini already exists" || echo extension=phpiredis.so >> $PHP_CONF_DIR/phpiredis.ini
-	echo "--------------------------------------------------------------------------------------------"
-	echo "Step 2.3: Restarting Apache 2..."
-	apache2ctl restart
-	echo "Done installing Hiredis Redis client!"
-}
+
 echo "Finished."
 
 
