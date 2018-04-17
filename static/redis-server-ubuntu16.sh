@@ -117,27 +117,34 @@ EOF
 #############################################################################
 install_redis()
 {
-	echo "Installing Redis"
+#Download Redis package and unpack
 
-	# Installing build essentials (if missing) and other required tools
-	apt-get -y install build-essential tcl
+mkdir -p /tmp/redis
+cd /tmp/redis
+wget http://download.redis.io/releases/redis-stable.tar.gz
+tar xzf redis-stable.tar.gz
+cd redis-stable
+#Next step is to compile Redis with make utility and install
 
-    # Redis: Download and Extract the Source Code
-    cd /tmp
-    curl -O http://download.redis.io/redis-stable.tar.gz
-    tar xzvf redis-stable.tar.gz
-    cd redis-stable
+make
+sudo make install clean
+#Add user redis
 
-    # Build and Install Redis
-    make
-    make test
-    make install
+sudo useradd -s /bin/false -d /var/lib/redis -M redis
+#create Redis pid file directory
 
-    mkdir /etc/redis
-    cp /tmp/redis-stable/redis.conf /etc/redis
+sudo mkdir /var/run/redis/ -p && sudo chown redis:redis /var/run/redis
+#create Redis config directory
 
+sudo mkdir /etc/redis && sudo chown redis:redis /etc/redis -Rf
+#create Redis logs directory
 
-	echo "Redis package was downloaded and built successfully"
+sudo mkdir /var/log/redis/ -p && sudo chown redis:redis /var/log/redis/ -Rf
+#create Redis config and put it to /etc/redis/redis.conf:
+
+sudo mkdir /etc/redis
+sudo cp redis.conf /etc/redis/redis.conf
+sudo chown redis:redis /etc/redis/redis.conf
 }
 
 #############################################################################
@@ -152,7 +159,35 @@ sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
 sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
 sed -i "s|# maxmemory-policy noeviction|maxmemory-policy allkeys-lru|g" $REDIS_CONF
-sudo sed -e "s/^daemonize no$/daemonize yes/" -e "s/^# bind 127.0.0.1$/bind 127.0.0.1/" -e "s/^dir \.\//dir \/var\/lib\/redis\//" -e "s/^loglevel verbose$/loglevel notice/" -e "s/^logfile stdout$/logfile \/var\/log\/redis.log/" $REDIS_CONF | sudo tee /etc/redis/redis.conf
+sudo sed -e "s/^dir \.\//dir \/var\/lib\/redis\//" -e "s/^loglevel verbose$/loglevel notice/" -e "s/^logfile stdout$/logfile \/var\/log\/redis.log/" $REDIS_CONF | sudo tee /etc/redis/redis.conf
+
+# Redis performance tweaks
+if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
+then
+    echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
+fi
+
+# Create a Redis systemd Unit File
+cat << EOF > /etc/systemd/system/redis.service
+[Unit]
+Description=Redis Server
+After=network.target
+
+[Service]
+Type=forking
+User=redis
+Group=redis
+ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+ExecReload=/bin/kill -USR2 $MAINPID
+ExecStop=/usr/local/bin/redis-cli shutdown
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo 'never' | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null
+
 }
 #############################################################################
 
@@ -161,12 +196,32 @@ start_redis()
 # Start Redis
 sudo systemctl start redis
 sudo systemctl status redis
-sleep 5
-# Enable Redis to Start at Boot
 systemctl enable redis
 }
 #############################################################################
+install_php7()
+{
+#InstallPhpRedis for PHP 7
+#Install required package. Use proper package name for your php version. e.g. php7.0-dev, php7.1-dev, php7.2-dev
 
+apt-get install php7.1-dev
+#Download PhpRedis
+
+cd /tmp
+wget https://github.com/phpredis/phpredis/archive/master.zip -O phpredis.zip
+#Unpack, compile and install PhpRedis
+
+unzip -o /tmp/phpredis.zip && mv /tmp/phpredis-* /tmp/phpredis && cd /tmp/phpredis && phpize && ./configure && make && sudo make install
+#Now it is necessary to add compiled extension to php config
+
+#Add PhpRedis extension to PHP 7. Use proper path to your php configs e.g. /etc/php/7.1/ , /etc/php/7.2/
+
+sudo touch /etc/php/7.1/mods-available/redis.ini && echo extension=redis.so > /etc/php/7.1/mods-available/redis.ini
+sudo ln -s /etc/php/7.1/mods-available/redis.ini /etc/php/7.1/apache2/conf.d/redis.ini
+sudo ln -s /etc/php/7.1/mods-available/redis.ini /etc/php/7.1/fpm/conf.d/redis.ini
+sudo ln -s /etc/php/7.1/mods-available/redis.ini /etc/php/7.1/cli/conf.d/redis.ini
+}
+#############################################################################
 # Get packages to be able to install Redis
 apt update -q4 & spinner_loading
 sudo apt install -q -y \
@@ -181,106 +236,17 @@ tune_network
 
 # Step 2
 install_redis
-
+rm -f /tmp/redis_pass.txt
 # Step 3
 configure_redis
-
-# Create a Redis systemd Unit File
-cat << EOF > /etc/systemd/system/redis.service
-[Unit]
-Description=Redis In-Memory Data Store
-After=network.target
-
-[Service]
-User=redis
-Group=redis
-ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
-ExecStop=/usr/local/bin/redis-cli shutdown
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-#Use the below command to create a user and user group.
-adduser --system --group --no-create-home redis --quiet
-#Then, you have to create the directory.
-mkdir /var/lib/redis
-#The directory is created and now you have to give the ownership of the directory to the newly created user and user group.
-chown redis:redis /var/lib/redis
-#You have to block the user or group which doesn't have ownership towards the directory.
-chmod 770 /var/lib/redis
-
-echo "--------------------------------------------------------------------------------------------"
-echo "Installing Predis on Ubuntu 16.04"
-echo "Read more: https://github.com/nrk/predis"
-echo "Author: Ralf Rottmann | @ralf | http://rottmann.net"
-echo "--------------------------------------------------------------------------------------------"
-PHP_CONF_DIR="/etc/php/7.0/apache2/conf.d"
-echo "Checking prerequisites..."
-echo "Git available?"
-[ ! -s /usr/bin/git ] && sudo apt-get -q -y install git || echo "Git already installed."
-echo "--------------------------------------------------------------------------------------------"
-echo "Step 0: Installing a PHP extension for Redis from https://github.com/phpredis/phpredis"
-cd
-found=$(find / -name "redis.so" 2> /dev/null)
-[[ -n $found ]] && {
-  echo "Library already installed."
-} ||
-{
-  git clone http://github.com/phpredis/phpredis
-	cd phpredis
-	found=$(which phpize)
-	[[ ! -n $found ]] && {
-		echo "Missing phpize. Installing php7.0-dev..."
-		sudo apt-get -q -y install php7.0-dev
-	}
-	phpize
-	./configure
-	make && make install
-	echo "extension=redis.so" > /etc/php/7.0/mods-available/redis.ini
-	sudo ln -sf /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/apache2/conf.d/20-redis.ini
-	sudo ln -sf /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/cli/conf.d/20-redis.ini
-	sudo service apache2l restart
-	echo "Done installing a PHP extension for Redis!"
-}
-
-
-echo "--------------------------------------------------------------------------------------------"
-echo "Step 1: Installing the Minimalistic C client for Redis >= 1.2 from https://github.com/redis/hiredis"
-cd
-found=$(find / -name "libhiredis.so" 2> /dev/null)
-[[ -n $found ]] && {
-  echo "Library already installed."
-} ||
-{
-  git clone http://github.com/redis/hiredis
-	cd hiredis
-	make &&	make install
-	ldconfig	
-	echo "Done."
-}
-
-echo "Finished."
-
-
-# Redis performance tweaks
-if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
-then
-    echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
-fi
-
-redis-cli SHUTDOWN
-rm -f /tmp/redis_pass.txt
-
-echo 'never' > /sys/kernel/mm/transparent_hugepage/enabled
-
-# Secure Redis
-chown redis:root /etc/redis/redis.conf
-chmod 600 /etc/redis/redis.conf
+# Step 4
+install_php7
 
 # Start Redis
 start_redis
+
+#Start php7
+sudo service php7.1-fpm restart
 
 # Clean
 rm -rf /tmp/redis-stable
