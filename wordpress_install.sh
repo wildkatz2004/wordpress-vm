@@ -105,6 +105,7 @@ chown root:root $MYCNF
 #check_command apt-get install mysql-server -y
 
 # Install MARIADB
+export DEBIAN_FRONTEND=noninteractive
 sudo apt-get install software-properties-common
 sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
 sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main'
@@ -112,6 +113,22 @@ sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password 
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
 check_command apt install mariadb-server-10.2 -y
+
+	## Start things and set to start on boot.
+	echo "Intializing MariaDB and setting to boot on startup."
+	if [ "${DISTRO}" == "Ubuntu" ]; then
+		if [ "${release}" == '16'* ]; then
+			systemctl start mysql > /dev/null 2>&1
+			systemctl enable mysql > /dev/null 2>&1
+		else
+			service mysql start > /dev/null 2>&1
+			update-rc.d mysql enable > /dev/null 2>&1
+		fi
+	fi
+
+	echo -e $"Complete! \nYou now have a installed MariaDB."
+	
+	
 
 # Prepare for Wordpress installation
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
