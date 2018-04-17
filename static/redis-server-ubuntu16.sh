@@ -129,8 +129,8 @@ cd redis-stable
 make
 sudo make install clean
 #Add user redis
+sudo adduser --system --group --no-create-home redis -q
 
-sudo useradd -s /bin/false -d /var/lib/redis -M redis
 #create Redis pid file directory
 
 sudo mkdir /var/run/redis/ -p && sudo chown redis:redis /var/run/redis
@@ -142,9 +142,9 @@ sudo mkdir /etc/redis && sudo chown redis:redis /etc/redis -Rf
 sudo mkdir /var/log/redis/ -p && sudo chown redis:redis /var/log/redis/ -Rf
 #create Redis config and put it to /etc/redis/redis.conf:
 
-sudo mkdir /etc/redis
+
 sudo cp redis.conf /etc/redis/redis.conf
-sudo chown redis:redis /etc/redis/redis.conf
+
 }
 
 #############################################################################
