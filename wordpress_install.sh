@@ -114,24 +114,7 @@ sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_
 apt update -q4 & spinner_loading
 check_command apt install mariadb-server-10.2 -y
 
-	## Start things and set to start on boot.
-	echo "Intializing MariaDB and setting to boot on startup."
-	if [ "${DISTRO}" == "Ubuntu" ]; then
-		if [ "${release}" == '16'* ]; then
-			systemctl start mysql > /dev/null 2>&1
-			systemctl enable mysql > /dev/null 2>&1
-		else
-			service mysql start > /dev/null 2>&1
-			update-rc.d mysql enable > /dev/null 2>&1
-		fi
-	fi
-
-	echo -e $"Complete! \nYou now have a installed MariaDB."
-	
-	
-
-# Prepare for Wordpress installation
-# https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
+# https://blog.v-gar.de/2018/02/en-solved-error-1698-28000-in-mysqlmariadb/
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
@@ -163,7 +146,7 @@ run_static_script new_etc_mycnf
 
 
 # Install Apache
-apt install apache2 -y
+check_command apt install apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -173,7 +156,8 @@ a2enmod rewrite \
         setenvif
 
 # Install PHP 7.0
-apt install -y \
+apt update -q4 & spinner_loading
+check_command apt install -y \
         php \
 	libapache2-mod-php \
 	php-mcrypt \
@@ -182,6 +166,7 @@ apt install -y \
 	php-mysql \
 	php-soap \
 	php-zip
+
 
 # Download wp-cli.phar to be able to install Wordpress
 check_command curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
@@ -248,10 +233,10 @@ wp plugin delete akismet --allow-root
 wp plugin delete hello --allow-root
 
 # Install Apps
-
-wp plugin install --allow-root wp-mail-smtp --activate
-wp plugin install --allow-root redis-cache --activate
-wp plugin install --allow-root all-in-one-wp-migration --activate
+wp plugin install --allow-root opcache
+wp plugin install --allow-root wp-mail-smtp
+wp plugin install --allow-root redis-cache
+wp plugin install --allow-root all-in-one-wp-migration
 
  sed -i "s|define( 'AI1WM_MAX_FILE_SIZE', 536870912 )|define( 'AI1WM_MAX_FILE_SIZE', 536870912 * 8 )|g" /var/www/html/wordpress/wp-content/plugins/all-in-one-wp-migration/constants.php
 
@@ -376,12 +361,14 @@ phpenmod opcache
 echo "# OPcache settings for Wordpress"
 echo "opcache.enable=1"
 echo "opcache.enable_cli=1"
-echo "opcache.interned_strings_buffer=8"
-echo "opcache.max_accelerated_files=10000"
-echo "opcache.memory_consumption=128"
-echo "opcache.save_comments=1"
+echo "opcache.interned_strings_buffer=16"
+echo "opcache.max_accelerated_files=7963"
+echo "opcache.memory_consumption=192"
+echo "opcache.revalidate_path=1"
 echo "opcache.revalidate_freq=1"
 echo "opcache.validate_timestamps=1"
+echo "opcache.enable_file_override=0"
+echo "opcache.fast_shutdown=1"
 } >> /etc/php/7.0/apache2/php.ini
 
 # Install Redis
