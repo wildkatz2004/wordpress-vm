@@ -344,6 +344,163 @@ any_key() {
     echo
 }
 
+check_command_exist(){
+    if [ ! "$(command -v "${1}")" ]; then
+        log "Error" "${1} is not installed, please install it and try again."
+        exit 1
+    fi
+}
+
+check_installed(){
+    local cmd=${1}
+    local location=${2}
+    if [ -d "${location}" ]; then
+        log "Info" "${location} already exists, skipped the installation."
+        add_to_env "${location}"
+    else
+        ${cmd}
+    fi
+}
+
+check_ram(){
+    get_os_info
+    if [ ${ramsum} -lt 480 ]; then
+        log "Error" "Not enough memory. The LAMP installation needs memory: ${tram}MB*RAM + ${swap}MB*SWAP >= 480MB"
+        exit 1
+    fi
+    [ ${ramsum} -lt 600 ] && disable_fileinfo="--disable-fileinfo" || disable_fileinfo=""
+}
+
+ubuntuversion(){
+    if check_sys sysRelease ubuntu; then
+        local version=$( get_opsy )
+        local code=${1}
+        echo ${version} | grep -q "${code}"
+        if [ $? -eq 0 ]; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
+}
+
+
+#Check system
+check_sys(){
+    local checkType=${1}
+    local value=${2}
+
+    local release=''
+    local systemPackage=''
+
+    if [[ -f /etc/redhat-release ]]; then
+        release="centos"
+        systemPackage="yum"
+    elif cat /etc/issue | grep -Eqi "debian"; then
+        release="debian"
+        systemPackage="apt"
+    elif cat /etc/issue | grep -Eqi "ubuntu"; then
+        release="ubuntu"
+        systemPackage="apt"
+    elif cat /etc/issue | grep -Eqi "centos|red hat|redhat"; then
+        release="centos"
+        systemPackage="yum"
+    elif cat /proc/version | grep -Eqi "debian"; then
+        release="debian"
+        systemPackage="apt"
+    elif cat /proc/version | grep -Eqi "ubuntu"; then
+        release="ubuntu"
+        systemPackage="apt"
+    elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
+        release="centos"
+        systemPackage="yum"
+    fi
+
+    if [[ ${checkType} == "sysRelease" ]]; then
+        if [ "$value" == "$release" ]; then
+            return 0
+        else
+            return 1
+        fi
+    elif [[ ${checkType} == "packageManager" ]]; then
+        if [ "$value" == "$systemPackage" ]; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+}
+
+get_os_info(){
+    cname=$( awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo | sed 's/^[ \t]*//;s/[ \t]*$//' )
+    cores=$( awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo )
+    freq=$( awk -F: '/cpu MHz/ {freq=$2} END {print freq}' /proc/cpuinfo | sed 's/^[ \t]*//;s/[ \t]*$//' )
+    tram=$( free -m | awk '/Mem/ {print $2}' )
+    swap=$( free -m | awk '/Swap/ {print $2}' )
+    up=$( awk '{a=$1/86400;b=($1%86400)/3600;c=($1%3600)/60;d=$1%60} {printf("%ddays, %d:%d:%d\n",a,b,c,d)}' /proc/uptime )
+    load=$( w | head -1 | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//' )
+    opsy=$( get_opsy )
+    arch=$( uname -m )
+    lbit=$( getconf LONG_BIT )
+    host=$( hostname )
+    kern=$( uname -r )
+    ramsum=$( expr $tram + $swap )
+}
+
+display_os_info(){
+    clear
+    echo
+    echo "+-------------------------------------------------------------------+"
+    echo "| Auto Install LAMP(On Azure Unbuntu 16.04)                         |"
+    echo "|                                                                   |"
+    echo "|                                                                   |"
+    echo "+-------------------------------------------------------------------+"
+    echo
+    echo "--------------------- System Information ----------------------------"
+    echo
+    echo "CPU model            : ${cname}"
+    echo "Number of cores      : ${cores}"
+    echo "CPU frequency        : ${freq} MHz"
+    echo "Total amount of ram  : ${tram} MB"
+    echo "Total amount of swap : ${swap} MB"
+    echo "System uptime        : ${up}"
+    echo "Load average         : ${load}"
+    echo "OS                   : ${opsy}"
+    echo "Arch                 : ${arch} (${lbit} Bit)"
+    echo "Kernel               : ${kern}"
+    echo "Hostname             : ${host}"
+    echo "IPv4 address         : $(get_ip)"
+    echo
+    echo "---------------------------------------------------------------------"
+}
+#Install tools
+install_tool(){
+    log "Info" "Starting to install development tools..."
+    if check_sys packageManager apt; then
+        apt-get -y update > /dev/null 2>&1
+        apt-get -y install gcc g++ make wget perl curl bzip2 libreadline-dev net-tools python python-dev cron ca-certificates > /dev/null 2>&1
+    elif check_sys packageManager yum; then
+        yum install -y yum-utils epel-release gcc gcc-c++ make wget perl curl bzip2 readline readline-devel net-tools python python-devel crontabs ca-certificates > /dev/null 2>&1
+        yum-config-manager --enable epel > /dev/null 2>&1
+    fi
+    log "Info" "Install development tools completed..."
+
+    check_command_exist "gcc"
+    check_command_exist "g++"
+    check_command_exist "make"
+    check_command_exist "wget"
+    check_command_exist "perl"
+    check_command_exist "netstat"
+}
+
+#Pre-installation
+preinstall_lamp(){
+    check_ram
+    display_os_info
+}
+
 ## bash colors
 # Reset
 Color_Off='\e[0m'       # Text Reset
