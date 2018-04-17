@@ -128,22 +128,20 @@ cd redis-stable
 
 make
 sudo make install clean
-#Add user redis
-sudo adduser --system --group --no-create-home redis -q
+sudo mkdir /etc/redis
 
-#create Redis pid file directory
-
-sudo mkdir /var/run/redis/ -p && sudo chown redis:redis /var/run/redis
-#create Redis config directory
-
-sudo mkdir /etc/redis && sudo chown redis:redis /etc/redis -Rf
-#create Redis logs directory
-
-sudo mkdir /var/log/redis/ -p && sudo chown redis:redis /var/log/redis/ -Rf
-#create Redis config and put it to /etc/redis/redis.conf:
-
-
-sudo cp redis.conf /etc/redis/redis.conf
+#Then copy the configuration file to that directory.
+sudo cp /tmp/redis-stable/redis.conf /etc/redis
+#Now, edit the configuration file.
+sudo nano /etc/redis/redis.conf
+#Use the below command to create a user and user group.
+sudo adduser --system --group --no-create-home redis
+#Then, you have to create the directory.
+sudo mkdir /var/lib/redis
+#The directory is created and now you have to give the ownership of the directory to the newly created user and user group.
+sudo chown redis:redis /var/lib/redis
+#You have to block the user or group which doesn't have ownership towards the directory.
+sudo chmod 770 /var/lib/redis
 
 }
 
@@ -159,7 +157,7 @@ sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
 sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
 sed -i "s|# maxmemory-policy noeviction|maxmemory-policy allkeys-lru|g" $REDIS_CONF
-sudo sed -e "s/^dir \.\//dir \/var\/lib\/redis\//" -e "s/^loglevel verbose$/loglevel notice/" -e "s/^logfile stdout$/logfile \/var\/log\/redis.log/" $REDIS_CONF | sudo tee /etc/redis/redis.conf
+sed -i "s|dir ./|dir /var/lib/redis|g" $REDIS_CONF
 
 # Redis performance tweaks
 if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
@@ -204,7 +202,7 @@ install_php7()
 #InstallPhpRedis for PHP 7
 #Install required package. Use proper package name for your php version. e.g. php7.0-dev, php7.1-dev, php7.2-dev
 
-apt-get install php7.1-dev
+apt-get install -y php-dev
 #Download PhpRedis
 
 cd /tmp
@@ -216,10 +214,10 @@ unzip -o /tmp/phpredis.zip && mv /tmp/phpredis-* /tmp/phpredis && cd /tmp/phpred
 
 #Add PhpRedis extension to PHP 7. Use proper path to your php configs e.g. /etc/php/7.1/ , /etc/php/7.2/
 
-sudo touch /etc/php/7.1/mods-available/redis.ini && echo extension=redis.so > /etc/php/7.1/mods-available/redis.ini
-sudo ln -s /etc/php/7.1/mods-available/redis.ini /etc/php/7.1/apache2/conf.d/redis.ini
-sudo ln -s /etc/php/7.1/mods-available/redis.ini /etc/php/7.1/fpm/conf.d/redis.ini
-sudo ln -s /etc/php/7.1/mods-available/redis.ini /etc/php/7.1/cli/conf.d/redis.ini
+sudo touch /etc/php/7.0/mods-available/redis.ini && echo extension=redis.so > /etc/php/7.0/mods-available/redis.ini
+sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/apache2/conf.d/redis.ini
+sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/fpm/conf.d/redis.ini
+sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/cli/conf.d/redis.ini
 }
 #############################################################################
 # Get packages to be able to install Redis
@@ -228,7 +226,8 @@ sudo apt install -q -y \
     build-essential \
     tcl \
     php-dev \
-    php-pear
+    php-pear \
+    unzip
     
 # Step1
 tune_memory
