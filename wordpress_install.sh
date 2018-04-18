@@ -157,17 +157,13 @@ a2enmod rewrite \
 
 # Install PHP 7.0
 apt update -q4 & spinner_loading
-check_command apt install -y \
-        php \
-	libapache2-mod-php \
-	php-mcrypt \
-	php-pear \
-	php-mbstring \
-	php-mysql \
-	php-soap \
-	php-zip
-
+apt-get -y install php-dev libapache2-mod-fastcgi php7.0-fpm php7.0
+apt-get -y install libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip php-pear php7.0-soap
 apt-get -y install php7.0-opcache php-apcu
+# Next, enable the following Apache modules...
+a2enmod actions fastcgi alias
+# Restart Apache
+systemctl restart apache2.service
 
 # Download wp-cli.phar to be able to install Wordpress
 check_command curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
@@ -353,7 +349,7 @@ a2ensite wordpress_port_443.conf
 a2ensite wordpress_port_80.conf
 a2dissite 000-default.conf
 a2dissite default-ssl.conf
-service apache2 restart
+systemctl restart apache2.service
 
 
 # Enable OPCache for PHP
