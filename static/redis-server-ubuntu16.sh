@@ -126,14 +126,12 @@ tar xzf redis-stable.tar.gz
 cd redis-stable
 #Next step is to compile Redis with make utility and install
 
-make
+sudo make
 sudo make install clean
 sudo mkdir /etc/redis
 
 #Then copy the configuration file to that directory.
-sudo cp /tmp/redis-stable/redis.conf /etc/redis
-#Now, edit the configuration file.
-sudo nano /etc/redis/redis.conf
+sudo cp /tmp/redis/redis-stable/redis.conf /etc/redis
 #Use the below command to create a user and user group.
 sudo adduser --system --group --no-create-home redis
 #Then, you have to create the directory.
@@ -143,6 +141,7 @@ sudo chown redis:redis /var/lib/redis
 #You have to block the user or group which doesn't have ownership towards the directory.
 sudo chmod 770 /var/lib/redis
 
+configure_redis
 }
 
 #############################################################################
@@ -150,8 +149,8 @@ sudo chmod 770 /var/lib/redis
 configure_redis()
 {
 # Configure the general settings
-sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
-sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
+#sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+#sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
 sed -i "s|# requirepass foobared|requirepass $(cat /tmp/redis_pass.txt)|g" $REDIS_CONF
 sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
@@ -205,13 +204,12 @@ cd /tmp
 wget https://github.com/phpredis/phpredis/archive/master.zip -O phpredis.zip
 #Unpack, compile and install PhpRedis
 
-sudo unzip -o /tmp/phpredis.zip && cd /tmp/phpredis
-sudo phpize && ./configure --enable-redis-igbinary && make && sudo make install
+unzip -o /tmp/phpredis.zip && cd /tmp/phpredis-master
+phpize && ./configure && make && make install
 #Now it is necessary to add compiled extension to php config
 
 #Add PhpRedis extension to PHP 7. Use proper path to your php configs e.g. /etc/php/7.1/ , /etc/php/7.2/
-
-sudo touch /etc/php/7.0/mods-available/redis.ini && echo extension=redis.so > /etc/php/7.0/mods-available/redis.ini
+echo 'extension=redis.so' | sudo tee /etc/php/7.0/mods-available/redis.ini
 sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/apache2/conf.d/redis.ini
 sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/fpm/conf.d/redis.ini
 sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/cli/conf.d/redis.ini
@@ -233,12 +231,12 @@ tune_network
 # Step 2
 install_redis
 rm -f /tmp/redis_pass.txt
+
 # Step 3
-configure_redis
-# Step 4
 install_php7
 
-# Start Redis
+# Step 4
+# Start Redis 
 start_redis
 
 #Start php7
