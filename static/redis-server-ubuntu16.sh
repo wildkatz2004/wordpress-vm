@@ -200,16 +200,13 @@ systemctl enable redis
 install_php7()
 {
 #InstallPhpRedis for PHP 7
-#Install required package. Use proper package name for your php version. e.g. php7.0-dev, php7.1-dev, php7.2-dev
-
-apt-get install -y php-dev
 #Download PhpRedis
-
 cd /tmp
 wget https://github.com/phpredis/phpredis/archive/master.zip -O phpredis.zip
 #Unpack, compile and install PhpRedis
 
-unzip -o /tmp/phpredis.zip && mv /tmp/phpredis-* /tmp/phpredis && cd /tmp/phpredis && phpize && ./configure && make && sudo make install
+sudo unzip -o /tmp/phpredis.zip && cd /tmp/phpredis
+sudo phpize && ./configure --enable-redis-igbinary && make && sudo make install
 #Now it is necessary to add compiled extension to php config
 
 #Add PhpRedis extension to PHP 7. Use proper path to your php configs e.g. /etc/php/7.1/ , /etc/php/7.2/
