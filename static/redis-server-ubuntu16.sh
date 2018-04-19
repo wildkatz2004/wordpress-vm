@@ -248,8 +248,8 @@ sudo service php7.0-fpm restart
 sudo service php7.0-fpm status
 
 # Clean
-rm -rf /tmp/redis-stable
-rm /tmp/redis-stable.tar.gz
+rm -rf /tmp/*
+
 
 # Cleanup
 apt purge -y \
