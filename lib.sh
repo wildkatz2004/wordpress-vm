@@ -132,6 +132,18 @@ then
 fi
 }
 
+log(){
+    if   [ "${1}" == "Warning" ]; then
+        echo -e "[${Yellow}${1}${PLAIN}] ${2}"
+    elif [ "${1}" == "Error" ]; then
+        echo -e "[${Red}${1}${PLAIN}] ${2}"
+    elif [ "${1}" == "Info" ]; then
+        echo -e "[${Green}${1}${PLAIN}] ${2}"
+    else
+        echo -e "[${1}] ${2}"
+    fi
+}
+
 # Install_if_not program
 install_if_not () {
 if [[ "$(is_this_installed "${1}")" != "${1} is installed, it must be a clean server." ]]
