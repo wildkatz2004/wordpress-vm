@@ -17,6 +17,70 @@ then
     exit 1
 fi
 
+#create mysql cnf
+create_mysql_my_cnf(){
+
+    local mysqlDataLocation=${1}
+    local my_cnf_location=${2}
+
+    local memory=512M
+    local storage=InnoDB
+    local totalMemory=$(awk 'NR==1{print $2}' /proc/meminfo)
+    
+    if [[ ${totalMemory} -lt 393216 ]]; then
+        memory=256M
+        storage=MyISAM
+    elif [[ ${totalMemory} -lt 786432 ]]; then
+        memory=512M
+        storage=MyISAM
+    elif [[ ${totalMemory} -lt 1572864 ]]; then
+        memory=1G
+    elif [[ ${totalMemory} -lt 3145728 ]]; then
+        memory=2G
+    elif [[ ${totalMemory} -lt 6291456 ]]; then
+        memory=4G
+    elif [[ ${totalMemory} -lt 12582912 ]]; then
+        memory=8G
+    elif [[ ${totalMemory} -lt 25165824 ]]; then
+        memory=16G
+    else
+        memory=32G
+    fi
+    
+        case ${memory} in
+        256M)innodb_log_file_size=32M;innodb_buffer_pool_size=64M;key_buffer_size=16M;open_files_limit=512;table_open_cache=200;max_connections=64;;
+        512M)innodb_log_file_size=32M;innodb_buffer_pool_size=128M;key_buffer_size=32M;open_files_limit=512;table_open_cache=200;max_connections=128;;
+        1G)innodb_log_file_size=64M;innodb_buffer_pool_size=256M;key_buffer_size=64M;open_files_limit=1024;table_open_cache=400;max_connections=256;;
+        2G)innodb_log_file_size=64M;innodb_buffer_pool_size=512M;key_buffer_size=128M;open_files_limit=1024;table_open_cache=400;max_connections=300;;
+        4G)innodb_log_file_size=128M;innodb_buffer_pool_size=1G;key_buffer_size=256M;open_files_limit=2048;table_open_cache=800;max_connections=400;;
+        8G)innodb_log_file_size=256M;innodb_buffer_pool_size=2G;key_buffer_size=512M;open_files_limit=4096;table_open_cache=1600;max_connections=400;;
+        16G)innodb_log_file_size=512M;innodb_buffer_pool_size=4G;key_buffer_size=1G;open_files_limit=8192;table_open_cache=2000;max_connections=512;;
+        32G)innodb_log_file_size=512M;innodb_buffer_pool_size=8G;key_buffer_size=2G;open_files_limit=65535;table_open_cache=2048;max_connections=1024;;
+        *) echo "input error, please input a number";;
+    esac
+
+    if ${binlog}; then
+        binlog="# BINARY LOGGING #\nlog-bin = ${mysqlDataLocation}/mysql-bin\nserver-id = 1\nexpire-logs-days = 14\nsync-binlog = 1"
+        binlog=$(echo -e $binlog)
+    else
+        binlog=""
+    fi
+
+    if [ "$storage" == "InnoDB" ]; then
+        key_buffer_size=32M
+        if ! is_64bit && [[ `echo $innodb_buffer_pool_size | tr -d G` -ge 4 ]]; then
+            innodb_buffer_pool_size=2G
+        fi
+
+    elif [ "$storage" == "MyISAM" ]; then
+        innodb_log_file_size=32M
+        innodb_buffer_pool_size=8M
+        if ! is_64bit && [[ `echo $key_buffer_size | tr -d G` -ge 4 ]]; then
+            key_buffer_size=2G
+        fi
+    fi
+
+    
 /bin/cat <<WRITENEW >"$ETCMYCNF"
 # MariaDB database server configuration file.
 #
@@ -52,7 +116,9 @@ pid-file  = /var/run/mysqld/mysqld.pid
 socket  = /var/run/mysqld/mysqld.sock
 port  = 3306
 basedir = /usr
-datadir = /var/lib/mysql
+# DATA STORAGE #
+datadir                        = ${mysqlDataLocation}
+
 tmpdir  = /tmp
 lc_messages_dir = /usr/share/mysql
 lc_messages = en_US
@@ -64,7 +130,7 @@ bind-address		= 127.0.0.1
 #
 # * Fine Tuning
 #
-max_connections		= 400
+max_connections		= ${max_connections}
 connect_timeout		= 5
 wait_timeout		= 600
 max_allowed_packet	= 16M
@@ -81,9 +147,9 @@ max_heap_table_size	= 32M
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched. On error, make copy and try a repair.
 myisam_recover_options = BACKUP
-key_buffer_size		= 256M
-open-files-limit	= 2048
-table_open_cache	= 800
+key_buffer_size		= ${key_buffer_size}
+open-files-limit	= ${open_files_limit}
+table_open_cache	= ${table_open_cache}
 myisam_sort_buffer_size	= 512M
 concurrent_insert	= 2
 read_buffer_size	= 2M
@@ -149,8 +215,12 @@ max_binlog_size         = 100M
 # Read the manual for more InnoDB related options. There are many!
 default_storage_engine	= InnoDB
 # you can't just change log file size, requires special procedure
-innodb_log_file_size=128M
-innodb_buffer_pool_size=1G
+# INNODB #
+innodb-log-files-in-group      = 2
+innodb-log-file-size           = ${innodb_log_file_size}
+innodb-flush-log-at-trx-commit = 1
+innodb-file-per-table          = 1
+innodb-buffer-pool-size        = ${innodb_buffer_pool_size}
 innodb_log_buffer_size	= 8M
 innodb_file_per_table	= 1
 innodb_open_files	= 400
@@ -211,12 +281,22 @@ innodb_use_atomic_writes = 1
 innodb_use_trim = 1
 [isamchk]
 key_buffer		= 16M
+
 #
 # * IMPORTANT: Additional settings that can override those from this file!
 #   The files must end with '.cnf', otherwise they'll be ignored.
 #
+
+# LOGGING #
+log-error                      = ${mysqlDataLocation}/mysql-error.log
+
 !includedir /etc/mysql/conf.d/
 WRITENEW
+
+}
+
+create_mysql_my_cnf "/var/lib/mysql" "ETCMYCNF"
+
 
 # Restart MariaDB
 mysqladmin shutdown --force & spinner_loading
