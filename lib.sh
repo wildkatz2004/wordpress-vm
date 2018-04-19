@@ -433,6 +433,24 @@ check_sys(){
     fi
 }
 
+get_ip(){
+    local IP=$( ip addr | egrep -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | egrep -v "^192\.168|^172\.1[6-9]\.|^172\.2[0-9]\.|^172\.3[0-2]\.|^10\.|^127\.|^255\.|^0\." | head -n 1 )
+    [ -z ${IP} ] && IP=$( wget -qO- -t1 -T2 ipv4.icanhazip.com )
+    [ -z ${IP} ] && IP=$( wget -qO- -t1 -T2 ipinfo.io/ip )
+    [ ! -z ${IP} ] && echo ${IP} || echo
+}
+
+get_ip_country(){
+    local country=$( wget -qO- -t1 -T2 ipinfo.io/$(get_ip)/country )
+    [ ! -z ${country} ] && echo ${country} || echo
+}
+
+get_opsy(){
+    [ -f /etc/redhat-release ] && awk '{print ($1,$3~/^[0-9]/?$3:$4)}' /etc/redhat-release && return
+    [ -f /etc/os-release ] && awk -F'[= "]' '/PRETTY_NAME/{print $3,$4,$5}' /etc/os-release && return
+    [ -f /etc/lsb-release ] && awk -F'[="]+' '/DESCRIPTION/{print $2}' /etc/lsb-release && return
+}
+
 get_os_info(){
     cname=$( awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo | sed 's/^[ \t]*//;s/[ \t]*$//' )
     cores=$( awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo )
@@ -447,6 +465,16 @@ get_os_info(){
     host=$( hostname )
     kern=$( uname -r )
     ramsum=$( expr $tram + $swap )
+}
+
+get_php_extension_dir(){
+    local phpConfig=${1}
+    ${phpConfig} --extension-dir
+}
+
+get_php_version(){
+    local phpConfig=${1}
+    ${phpConfig} --version | cut -d'.' -f1-2
 }
 
 display_os_info(){
