@@ -4,10 +4,15 @@ ADDRESS=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0
 WPADMINUSER=$(grep "WP USER:" /var/adminpass.txt)
 WPADMINPASS=$(grep "WP PASS:" /var/adminpass.txt)
 clear
-figlet -f small Tech and Me
-echo "           https://www.techandme.se"
+figlet -f small D&B Consulting
+echo "           http://duanebritting.com/"
 echo
-echo
+# Check php version
+ php -v
+# Check apache version
+apachectl -v
+# Check mysql version
+mysql --version
 echo "|NETWORK|"
 echo "WAN IP: $WANIP"
 echo "LAN IP: $ADDRESS"
