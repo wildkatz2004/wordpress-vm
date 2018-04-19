@@ -157,6 +157,9 @@ sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
 sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
 sed -i "s|# maxmemory-policy noeviction|maxmemory-policy allkeys-lru|g" $REDIS_CONF
 sed -i "s|dir ./|dir /var/lib/redis|g" $REDIS_CONF
+sed -i "s|save 60 10000|# save 60 10000|g" $REDIS_CONF
+sed -i "s|save 300 10|# save 300 10|g" $REDIS_CONF
+sed -i "s|save 900 1|# save 900 1|g" $REDIS_CONF
 
 # Redis performance tweaks
 if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
@@ -183,7 +186,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-echo 'never' | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null
+sudo echo 'never' | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null
 
 }
 #############################################################################
@@ -240,7 +243,9 @@ install_php7
 start_redis
 
 #Start php7
-sudo service php7.1-fpm restart
+sudo service php7.0-fpm status
+sudo service php7.0-fpm restart
+sudo service php7.0-fpm status
 
 # Clean
 rm -rf /tmp/redis-stable
