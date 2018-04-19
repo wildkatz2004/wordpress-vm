@@ -195,8 +195,10 @@ start_redis()
 {
 # Start Redis
 sudo systemctl start redis
-sudo systemctl status redis
+sudo systemctl status redis | cat
+sudo systemctl stop redis
 sudo systemctl enable redis
+sudo systemctl restart redis
 }
 #############################################################################
 install_php7()
@@ -243,9 +245,9 @@ install_php7
 start_redis
 
 #Start php7
-sudo service php7.0-fpm status
+sudo service php7.0-fpm status | cat
 sudo service php7.0-fpm restart
-sudo service php7.0-fpm status
+
 
 # Clean
 rm -rf /tmp/*
