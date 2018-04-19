@@ -233,7 +233,7 @@ wp plugin delete hello --allow-root
 wp plugin install --allow-root opcache
 wp plugin install --allow-root wp-mail-smtp
 wp plugin install --allow-root redis-cache
-wp plugin install --allow-root all-in-one-wp-migration
+wp plugin install --allow-root all-in-one-wp-migration --activate
 
  sed -i "s|define( 'AI1WM_MAX_FILE_SIZE', 536870912 )|define( 'AI1WM_MAX_FILE_SIZE', 536870912 * 8 )|g" /var/www/html/wordpress/wp-content/plugins/all-in-one-wp-migration/constants.php
 
