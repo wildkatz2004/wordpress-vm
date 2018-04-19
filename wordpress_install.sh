@@ -156,10 +156,10 @@ a2enmod rewrite \
         setenvif
 
 # Install PHP 7.0
-apt update -q4 & spinner_loading
-apt-get -y install php-dev libapache2-mod-fastcgi php7.0-fpm php7.0
-apt-get -y install libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip php-pear php7.0-soap
-apt-get -y install php7.0-opcache php-apcu
+check_command apt update -q4 & spinner_loading
+check_command apt-get -y install php-dev libapache2-mod-fastcgi php7.0-fpm php7.0
+check_command apt-get -y install libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip php-pear php7.0-soap
+check_command apt-get -y install php7.0-opcache php-apcu
 # Next, enable the following Apache modules...
 a2enmod actions fastcgi alias
 # Restart Apache
@@ -194,7 +194,7 @@ CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
 GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
-wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass="$WPDBPASS" --dbhost=localhost --extra-php <<PHP
+check_command wp core config --allow-root --dbname=$WPDBNAME --dbuser=$WPDBUSER --dbpass="$WPDBPASS" --dbhost=localhost --extra-php <<PHP
 define( 'WP_DEBUG', false );
 define( 'WP_CACHE_KEY_SALT', 'wpredis_' );
 define( 'WP_REDIS_MAXTTL', 9600);
