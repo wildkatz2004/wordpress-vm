@@ -196,7 +196,7 @@ start_redis()
 # Start Redis
 sudo systemctl start redis
 sudo systemctl status redis
-systemctl enable redis
+sudo systemctl enable redis
 }
 #############################################################################
 install_php7()
