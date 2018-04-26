@@ -5,7 +5,7 @@ This repository is designed to install the goodies listed below on an a clean fr
 
 If using an Azure image, you'll need to insure that ports 80 and 443 are open.
 
-- MySQL (Latest Version)
+- MariaDB 10.2 (Latest Version)
 - Apache 2.4
 - Latest Wordpress (updates automatically)
 - WP-CLI
