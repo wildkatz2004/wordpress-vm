@@ -98,6 +98,7 @@ Alias /phpmyadmin $PHPMYADMINDIR
     <IfModule mod_authz_core.c>
 # Apache 2.4
       <RequireAny>
+        Require ip $CLIENTSIDEIP
         Require ip $WANIP4
         Require ip $ADDRESS
         Require ip 127.0.0.1
