@@ -141,8 +141,8 @@ do
 
         ;;
         
-        Redis Cache)
-            # Install Redis
+        Redis_Cache)
+           
               run_static_script redis-server-ubuntu16
 
         ;;
