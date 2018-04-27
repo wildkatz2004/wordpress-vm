@@ -83,6 +83,8 @@ then
     exit 1
 fi
 
+#Changing local timezone to Central Standard
+sudo timedatectl set-timezone America/Mexico_City
 # Update system
 apt update -q4 & spinner_loading
 
@@ -146,24 +148,51 @@ run_static_script new_etc_mycnf
 
 
 # Install Apache
-check_command apt install apache2 -y
+check_command apt install apache2 libapache2-modsecurity -y
+
 a2enmod rewrite \
         headers \
         env \
         dir \
         mime \
         ssl \
-        setenvif
+        setenvif \
+        mod-security
+
+
+cp /etc/modsecurity/modsecurity.conf-recommended modsecurity.conf
 
 # Install PHP 7.0
 check_command apt update -q4 & spinner_loading
 check_command apt-get -y install php-dev libapache2-mod-fastcgi php7.0-fpm php7.0
-check_command apt-get -y install libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip php-pear php7.0-soap
+check_command apt-get -y install libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip php-pear php7.0-soap php7.0-curl php7.0-json php7.0-cgi
 check_command apt-get -y install php7.0-opcache php-apcu
+
+     if [ -f  /etc/apache2/conf-available/php7.0-fpm.conf ]; then
+        mv /etc/apache2/conf-available/php7.0-fpm.conf  /etc/apache2/conf-available/php7.0-fpm.conf.bak
+        sudo a2disconf php7.0-fpm.conf
+     fi
+
+cat > /etc/apache2/conf-available/php-fpm.conf  << EOF 
+<IfModule mod_fastcgi.c>
+  AddHandler php.fcgi .php
+  Action php.fcgi /php.fcgi
+  Alias /php.fcgi /usr/lib/cgi-bin/php.fcgi
+  FastCgiExternalServer /usr/lib/cgi-bin/php.fcgi -socket /run/php/php7.0-fpm.sock -pass-header Authorization -idle-timeout 3600
+  <Directory /usr/lib/cgi-bin>
+    Require all granted
+  </Directory>
+</IfModule>
+EOF
+
+#enable /etc/apache2/conf-available/php-fpm.confcat
+sudo a2enconf php-fpm.conf
 # Next, enable the following Apache modules...
 a2enmod actions fastcgi alias
+# And disable this module, which is mod_php:
+sudo a2dismod php7.0
 # Restart Apache
-systemctl restart apache2.service
+systemctl restart apache2
 
 # Download wp-cli.phar to be able to install Wordpress
 check_command curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
