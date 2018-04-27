@@ -130,6 +130,7 @@ fi
 
 whiptail --title "Which apps do you want to install?" --checklist --separate-output "Automatically configure and install selected apps\nSelect by pressing the spacebar" "$WT_HEIGHT" "$WT_WIDTH" 4 \
 "Fail2ban" "(Extra Bruteforce protection)   " OFF \
+"Redis Cache" "(Caching)       " OFF \
 "Webmin" "(Server GUI)       " OFF \
 "phpMyadmin" "(*SQL GUI)       " OFF 2>results
 while read -r -u 9 choice
@@ -137,6 +138,11 @@ do
     case $choice in
         Fail2ban)
             run_app_script fail2ban
+
+        ;;
+        
+        Redis Cache)
+            run_app_script webmin
 
         ;;
 
