@@ -142,7 +142,8 @@ do
         ;;
         
         Redis Cache)
-            run_app_script webmin
+            # Install Redis
+              run_static_script redis-server-ubuntu16
 
         ;;
 
