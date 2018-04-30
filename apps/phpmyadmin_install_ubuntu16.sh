@@ -100,7 +100,6 @@ Alias /phpmyadmin $PHPMYADMINDIR
       <RequireAny>
         Require ip $CLIENTSIDEIP
         Require ip $WANIP4
-        Require ip $ADDRESS
         Require ip 127.0.0.1
         Require ip ::1
       </RequireAny>
@@ -111,7 +110,6 @@ Alias /phpmyadmin $PHPMYADMINDIR
         Order Deny,Allow
         Deny from All
         Allow from $WANIP4
-        Allow from $ADDRESS
         Allow from ::1
         Allow from localhost
     </IfModule>
