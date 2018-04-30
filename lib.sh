@@ -490,6 +490,13 @@ get_php_version(){
     ${phpConfig} --version | cut -d'.' -f1-2
 }
 
+is_64bit(){
+    if [ `getconf WORD_BIT` = '32' ] && [ `getconf LONG_BIT` = '64' ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 display_os_info(){
     clear
     echo
