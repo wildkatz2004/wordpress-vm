@@ -57,12 +57,16 @@ fi
 apt update -q2
 apt dist-upgrade -y
 # Update Redis PHP extention
-if type pecl > /dev/null 2>&1
+
+if is_this_installed redis-cache
 then
-    install_if_not php7.0-dev
-    echo "Trying to upgrade the Redis Pecl extenstion..."
-    pecl upgrade redis
-    service apache2 restart
+    if type pecl > /dev/null 2>&1
+    then
+        install_if_not php7.0-dev
+        echo "Trying to upgrade the Redis Pecl extenstion..."
+        pecl upgrade redis
+        service apache2 restart
+    fi
 fi
 wp cli update --allow-root
 cd $WPATH
