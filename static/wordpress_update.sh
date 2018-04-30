@@ -60,6 +60,9 @@ apt dist-upgrade -y
 
 if is_this_installed redis-cache
 then
+
+echo "Redis Not installed"
+else
     if type pecl > /dev/null 2>&1
     then
         install_if_not php7.0-dev
