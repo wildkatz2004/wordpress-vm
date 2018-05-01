@@ -71,7 +71,36 @@ fi
 # Enable $SPAMHAUS
 sed -i "s|#MS_WhiteList /etc/spamhaus.wl|MS_WhiteList $SPAMHAUS|g" /etc/apache2/mods-enabled/spamhaus.conf
 
-check_command service apache2 restart
+# Install mod_security
+apt update -q4 & spinner_loading
+apt -y install libapache2-modsecurity
+mv /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+check_command systemctl restart apache2
+
+/etc/apache2/mods-enabled/security2.conf
+
+rm -rf /usr/share/modsecurity-crs
+
+git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git /usr/share/modsecurity-crs
+
+cd /usr/share/modsecurity-crs 
+
+mv crs-setup.conf.example crs-setup.conf
+
+if [ -f  /etc/apache2/mods-enabled/security2.conf ]; then
+        rm /etc/apache2/mods-enabled/security2.conf 
+fi
+
+cat > /etc/apache2/mods-enabled/security2.conf  << EOF 
+ <IfModule security2_module> 
+     SecDataDir /var/cache/modsecurity 
+     IncludeOptional /etc/modsecurity/*.conf 
+     IncludeOptional "/usr/share/modsecurity-crs/*.conf 
+     IncludeOptional "/usr/share/modsecurity-crs/rules/*.conf 
+ </IfModule>
+EOF
+
+check_command systemctl restart apache2
 echo "Security added!"
 sleep 3
 
