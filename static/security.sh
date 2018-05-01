@@ -92,13 +92,17 @@ for f in `ls base_rules`; do sudo ln -s ../base_rules/$f activated_rules/$f; don
 if [ -f /etc/modsecurity/modsecurity.conf-recommended ]; then
        cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
 fi
-
+sudo sed -i "s/SecRuleEngine DetectionOnly/SecRuleEngine On/" /etc/modsecurity/modsecurity.conf
+sudo sed -i "s/SecResponseBodyAccess On/SecResponseBodyAccess Off/" /etc/modsecurity/modsecurity.conf
 
 if [ -f  /etc/apache2/mods-enabled/security2.conf ]; then
+	a2dismod  security2
         rm /etc/apache2/mods-enabled/security2.conf 
+	check_command systemctl restart apache2
 fi
 
-cat >> /etc/apache2/mods-enabled/security2.conf  << EOF 
+
+cat > /etc/apache2/mods-enabled/security2.conf  << EOF 
  <IfModule security2_module>
 	# Default Debian dir for modsecurity's persistent data
 	SecDataDir /var/cache/modsecurity
@@ -112,8 +116,8 @@ cat >> /etc/apache2/mods-enabled/security2.conf  << EOF
 	IncludeOptional /usr/share/modsecurity-crs/owasp-crs.load
 </IfModule>
 EOF
-check_commanda2enmod headers
-check_commanda2enmod security2
+check_command a2enmod headers
+check_command a2enmod security2
 check_command systemctl restart apache2
 echo "Security added!"
 sleep 3
