@@ -107,16 +107,16 @@ chown root:root $MYCNF
 #check_command apt-get install mysql-server -y
 
 # Install MARIADB
-export DEBIAN_FRONTEND=noninteractive
-sudo apt-get install software-properties-common
+apt install software-properties-common -y
 sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main'
+sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ftp.ddg.lth.se/mariadb/repo/10.2/ubuntu xenial main'
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
 check_command apt install mariadb-server-10.2 -y
 
-# https://blog.v-gar.de/2018/02/en-solved-error-1698-28000-in-mysqlmariadb/
+# Prepare for Wordpress installation
+# https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
@@ -160,18 +160,39 @@ a2enmod rewrite \
 
 
 
-# Install PHP 7.0
-check_command apt update -q4 & spinner_loading
-check_command apt-get -y install php-dev libapache2-mod-fastcgi php7.0-fpm php7.0
-check_command apt-get -y install libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip php-pear php7.0-soap php7.0-curl php7.0-json php7.0-cgi
-check_command apt-get -y install php7.0-opcache php-apcu
+apt install -y \
+        php \
+	php7.0-fpm \
+	php7.0-common \
+	php7.0-mbstring \
+	php7.0-xmlrpc \
+	php7.0-gd \
+	php7.0-xml \
+	php7.0-mysql \
+	php7.0-cli \
+	php7.0-zip \
+	php7.0-curl \
+	libapache2-mod-php \
+    libapache2-mod-fastcgi
+    
+sudo a2dismod php mpm_prefork
+sudo a2enmod actions fastcgi alias mpm_worker 
+    
+# Configure PHP
+sed -i "s|allow_url_fopen =.*|allow_url_fopen = On|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|max_execution_time =.*|max_execution_time = 360|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|file_uploads =.*|file_uploads = On|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|upload_max_filesize =.*|upload_max_filesize = 100M|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|memory_limit =.*|memory_limit = 256M|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|post_max_size =.*|post_max_size = 110M|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|cgi.fix_pathinfo =.*|cgi.fix_pathinfo=0|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|date.timezone =.*|date.timezone = Europe/Stockholm|g" /etc/php/7.0/fpm/php.ini
 
-     if [ -f  /etc/apache2/conf-available/php7.0-fpm.conf ]; then
-        mv /etc/apache2/conf-available/php7.0-fpm.conf  /etc/apache2/conf-available/php7.0-fpm.conf.bak
-        sudo a2disconf php7.0-fpm.conf
-     fi
+if [ -f  /etc/apache2/conf-available/php7.0-fpm.conf ]; then
+      rm /etc/apache2/conf-available/php7.0-fpm.conf
+fi
 
-cat > /etc/apache2/conf-available/php-fpm.conf  << EOF 
+cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF 
 <IfModule mod_fastcgi.c>
   AddHandler php.fcgi .php
   Action php.fcgi /php.fcgi
@@ -184,13 +205,13 @@ cat > /etc/apache2/conf-available/php-fpm.conf  << EOF
 EOF
 
 #enable /etc/apache2/conf-available/php-fpm.confcat
-sudo a2enconf php-fpm.conf
+sudo a2enconf php7.0-fpm
 # Next, enable the following Apache modules...
 a2enmod actions fastcgi alias
 # And disable this module, which is mod_php:
 sudo a2dismod php7.0
 # Restart Apache
-systemctl restart apache2
+sudo service apache2 restart && sudo service php7.0-fpm restart
 
 # Download wp-cli.phar to be able to install Wordpress
 check_command curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
@@ -289,18 +310,6 @@ allow from all
 </Files>
 EOL
 
-# Change values in php.ini (increase max file size)
-# max_execution_time
-sed -i "s|max_execution_time =.*|max_execution_time = 3500|g" /etc/php/7.0/apache2/php.ini
-# max_input_time
-sed -i "s|max_input_time =.*|max_input_time = 3600|g" /etc/php/7.0/apache2/php.ini
-# memory_limit
-sed -i "s|memory_limit =.*|memory_limit = 512M|g" /etc/php/7.0/apache2/php.ini
-# post_max
-sed -i "s|post_max_size =.*|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.ini
-# upload_max
-sed -i "s|upload_max_filesize =.*|upload_max_filesize = 1000M|g" /etc/php/7.0/apache2/php.ini
-
 # Install Figlet
 apt install figlet -y
 
@@ -378,6 +387,15 @@ a2dissite 000-default.conf
 a2dissite default-ssl.conf
 systemctl restart apache2.service
 
+# Enable UTF8mb4 (4-byte support)
+databases=$(mysql -u root -p"$MARIADB_PASS" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
+for db in $databases; do
+    if [[ "$db" != "performance_schema" ]] && [[ "$db" != _* ]] && [[ "$db" != "information_schema" ]];
+    then
+        echo "Changing to UTF8mb4 on: $db"
+        mysql -u root -p"$MARIADB_PASS" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    fi
+done
 
 # Enable OPCache for PHP
 phpenmod opcache
