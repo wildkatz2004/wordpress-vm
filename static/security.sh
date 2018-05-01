@@ -85,7 +85,6 @@ fi
 if [ -f  /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf.example  ]; then
         cp /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf.example /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf
 fi
-sudo 
 
 sudo ln -s ../modsecurity_crs_10_setup.conf activated_rules/modsecurity_crs_10_setup.conf
 for f in `ls base_rules`; do sudo ln -s ../base_rules/$f activated_rules/$f; done
