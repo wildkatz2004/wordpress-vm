@@ -161,7 +161,7 @@ do
     esac
 done 9< results
 rm -f results
-clear
+
 
 # Add extra security
 if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
@@ -173,7 +173,7 @@ else
     echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
     any_key "Press any key to continue..."
 fi
-clear
+
 
 cat << LETSENC
 +-----------------------------------------------+
