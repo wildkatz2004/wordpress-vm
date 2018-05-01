@@ -148,7 +148,7 @@ run_static_script new_etc_mycnf
 
 
 # Install Apache
-check_command apt install apache2 libapache2-modsecurity -y
+check_command apt install apache2 -y
 
 a2enmod rewrite \
         headers \
@@ -156,11 +156,9 @@ a2enmod rewrite \
         dir \
         mime \
         ssl \
-        setenvif \
-        mod-security
+        setenvif 
 
 
-cp /etc/modsecurity/modsecurity.conf-recommended modsecurity.conf
 
 # Install PHP 7.0
 check_command apt update -q4 & spinner_loading
