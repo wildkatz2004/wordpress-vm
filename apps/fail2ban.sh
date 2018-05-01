@@ -103,7 +103,7 @@ bantime  = 172800
 maxretry = 1
 EOT
 
-sed -i "s|SecAuditLogRelevantStatus "^(?:5|4(?!04))"|#SecAuditLogRelevantStatus "^(?:5|4(?!04))"|g" /etc/apache2/modsecurity/modsecurity.conf
+sed -i "s|SecAuditLogRelevantStatus |#SecAuditLogRelevantStatus |g" /etc/modsecurity/modsecurity.conf
 # Update settings
 check_command update-rc.d fail2ban defaults
 check_command update-rc.d fail2ban enable
