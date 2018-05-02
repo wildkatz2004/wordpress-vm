@@ -548,7 +548,74 @@ preinstall_lamp(){
     check_ram
     display_os_info
 }
+error_detect_depends(){
+    local command=${1}
+    local work_dir=`pwd`
+    local depend=`echo "$1" | awk '{print $4}'`
+    log "Info" "Starting to install package ${depend}"
+    ${command} > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        distro=`get_opsy`
+        version=`cat /proc/version`
+        architecture=`uname -m`
+        mem=`free -m`
+        disk=`df -ah`
+        cat >> ${cur_dir}/lamp.log<<EOF
+        Errors Detail:
+        Distributions:${distro}
+        Architecture:${architecture}
+        Version:${version}
+        Memery:
+        ${mem}
+        Disk:
+        ${disk}
+        Issue:failed to install ${depend}
+EOF
+        echo
+        echo "+------------------+"
+        echo "|  ERROR DETECTED  |"
+        echo "+------------------+"
+        echo "Installation package ${depend} failed."
+        echo "The Full Log is available at ${cur_dir}/lamp.log"
 
+        exit 1
+    fi
+}
+
+error_detect(){
+    local command=${1}
+    local work_dir=`pwd`
+    local cur_soft=`echo ${work_dir#$cur_dir} | awk -F'/' '{print $3}'`
+    ${command}
+    if [ $? -ne 0 ]; then
+        distro=`get_opsy`
+        version=`cat /proc/version`
+        architecture=`uname -m`
+        mem=`free -m`
+        disk=`df -ah`
+        cat >>${cur_dir}/lamp.log<<EOF
+        Errors Detail:
+        Distributions:$distro
+        Architecture:$architecture
+        Version:$version
+        Memery:
+        ${mem}
+        Disk:
+        ${disk}
+        PHP Version: $php
+        PHP compile parameter: ${php_configure_args}
+        Issue:failed to install ${cur_soft}
+EOF
+        echo
+        echo "+------------------+"
+        echo "|  ERROR DETECTED  |"
+        echo "+------------------+"
+        echo "Installation ${cur_soft} failed."
+        echo "The Full Log is available at ${cur_dir}/lamp.log"
+        echo "Please visit website: https://lamp.sh/faq.html for help"
+        exit 1
+    fi
+}
 ## bash colors
 # Reset
 Color_Off='\e[0m'       # Text Reset
