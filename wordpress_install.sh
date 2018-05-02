@@ -148,7 +148,25 @@ run_static_script new_etc_mycnf
 
 
 # Install Apache
+install_apache(){
+    echo "Starting to install dependencies packages for Apache..."
+    local apt_list=(openssl libssl-dev libxml2-dev lynx lua-expat-dev libjansson-dev)
+    local yum_list=(zlib-devel openssl-devel libxml2-devel lynx expat-devel lua-devel lua jansson-devel)
+    if check_sys packageManager apt; then
+        for depend in ${apt_list[@]}; do
+            error_detect_depends "apt-get -y install ${depend}"
+        done
+    elif check_sys packageManager yum; then
+        for depend in ${yum_list[@]}; do
+            error_detect_depends "yum -y install ${depend}"
+        done
+    fi
+    echo "Install dependencies packages for Apache completed..."
+    
 check_command apt install apache2 -y
+}
+
+install_apache
 
 a2enmod rewrite \
         headers \
@@ -159,21 +177,39 @@ a2enmod rewrite \
         setenvif 
 
 
+install_php_depends(){
 
-apt install -y \
-        php \
-	php7.0-fpm \
-	php7.0-common \
-	php7.0-mbstring \
-	php7.0-xmlrpc \
-	php7.0-gd \
-	php7.0-xml \
-	php7.0-mysql \
-	php7.0-cli \
-	php7.0-zip \
-	php7.0-curl \
-	libapache2-mod-php \
-    libapache2-mod-fastcgi
+    if check_sys packageManager apt; then
+        apt_depends=(
+            autoconf patch m4 bison libbz2-dev libgmp-dev libicu-dev libldb-dev libpam0g-dev
+            libldap-2.4-2 libldap2-dev libsasl2-dev libsasl2-modules-ldap libc-client2007e-dev libkrb5-dev
+            autoconf2.13 pkg-config libxslt1-dev zlib1g-dev libpcre3-dev libtool unixodbc-dev libtidy-dev
+            libjpeg-dev libpng-dev libfreetype6-dev libpspell-dev libmhash-dev libenchant-dev libmcrypt-dev
+            libcurl4-gnutls-dev libwebp-dev libxpm-dev libvpx-dev libreadline-dev snmp libsnmp-dev
+        )
+        log "Info" "Starting to install dependencies packages for PHP..."
+        for depend in ${apt_depends[@]}
+        do
+            error_detect_depends "apt-get -y install ${depend}"
+        done
+        log "Info" "Install dependencies packages for PHP completed..."
+	
+}
+
+install_php_depends(){
+
+    if check_sys packageManager apt; then
+        apt_php_package=(php \php7.0-fpm 	php7.0-common 	php7.0-mbstring php7.0-xmlrpc php7.0-gd php7.0-xml 
+	php7.0-mysql php7.0-cli\php7.0-zip php7.0-curl libapache2-mod-php libapache2-mod-fastcgi
+        )
+        log "Info" "Starting to install dependencies packages for PHP..."
+        for depend in ${apt_php_package[@]}
+        do
+            error_detect_depends "apt-get -y install ${depend}"
+        done
+        log "Info" "Install dependencies packages for PHP completed..."
+	
+}
     
 sudo a2dismod php mpm_prefork
 sudo a2enmod actions fastcgi alias mpm_worker 
