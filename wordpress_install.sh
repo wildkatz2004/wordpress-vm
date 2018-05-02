@@ -215,8 +215,7 @@ install_php(){
 
 install_php_depends
 install_php
-sudo a2dismod php mpm_prefork
-sudo a2enmod actions fastcgi alias mpm_worker 
+
     
 # Configure PHP
 sed -i "s|allow_url_fopen =.*|allow_url_fopen = On|g" /etc/php/7.0/fpm/php.ini
@@ -226,7 +225,7 @@ sed -i "s|upload_max_filesize =.*|upload_max_filesize = 100M|g" /etc/php/7.0/fpm
 sed -i "s|memory_limit =.*|memory_limit = 256M|g" /etc/php/7.0/fpm/php.ini
 sed -i "s|post_max_size =.*|post_max_size = 110M|g" /etc/php/7.0/fpm/php.ini
 sed -i "s|cgi.fix_pathinfo =.*|cgi.fix_pathinfo=0|g" /etc/php/7.0/fpm/php.ini
-sed -i "s|date.timezone =.*|date.timezone = Europe/Stockholm|g" /etc/php/7.0/fpm/php.ini
+sed -i "s|date.timezone =.*|date.timezone = US/Central|g" /etc/php/7.0/fpm/php.ini
 
 if [ -f  /etc/apache2/conf-available/php7.0-fpm.conf ]; then
       rm /etc/apache2/conf-available/php7.0-fpm.conf
@@ -247,7 +246,8 @@ EOF
 #enable /etc/apache2/conf-available/php-fpm.confcat
 sudo a2enconf php7.0-fpm
 # Next, enable the following Apache modules...
-a2enmod actions fastcgi alias
+sudo a2dismod php mpm_prefork
+sudo a2enmod actions fastcgi alias mpm_worker 
 # And disable this module, which is mod_php:
 sudo a2dismod php7.0
 # Restart Apache
