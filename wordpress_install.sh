@@ -193,24 +193,27 @@ install_php_depends(){
             error_detect_depends "apt-get -y install ${depend}"
         done
         log "Info" "Install dependencies packages for PHP completed..."
+     fi
 	
 }
 
 install_php(){
 
     if check_sys packageManager apt; then
-        apt_php_package=(php php7.0-fpm php7.0-common php7.0-mbstring php7.0-xmlrpc php7.0-gd php7.0-xml 
-	php7.0-mysql php7.0-cli php7.0-zip php7.0-curl libapache2-mod-php libapache2-mod-fastcgi
+        apt_php_package=(
+		php php7.0-fpm php7.0-common php7.0-mbstring php7.0-xmlrpc php7.0-gd php7.0-xml 
+		php7.0-mysql php7.0-cli php7.0-zip php7.0-curl libapache2-mod-php libapache2-mod-fastcgi
         )
-        log "Info" "Starting to install dependencies packages for PHP..."
+        log "Info" "Starting to install primary packages for PHP..."
         for depend in ${apt_php_package[@]}
         do
             error_detect_depends "apt-get -y install ${depend}"
         done
         log "Info" "Install dependencies packages for PHP completed..."
-	
+     fi
 }
 
+install_php_depends
 install_php
 sudo a2dismod php mpm_prefork
 sudo a2enmod actions fastcgi alias mpm_worker 
