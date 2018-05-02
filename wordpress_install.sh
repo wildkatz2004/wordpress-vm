@@ -149,7 +149,7 @@ run_static_script new_etc_mycnf
 
 # Install Apache
 install_apache(){
-    echo "Starting to install dependencies packages for Apache..."
+    log "Info" "Starting to install dependencies packages for Apache..."
     local apt_list=(openssl libssl-dev libxml2-dev lynx lua-expat-dev libjansson-dev)
     local yum_list=(zlib-devel openssl-devel libxml2-devel lynx expat-devel lua-devel lua jansson-devel)
     if check_sys packageManager apt; then
@@ -161,7 +161,7 @@ install_apache(){
             error_detect_depends "yum -y install ${depend}"
         done
     fi
-    echo "Install dependencies packages for Apache completed..."
+    log "Info" "Install dependencies packages for Apache completed..."
     
 check_command apt install apache2 -y
 }
