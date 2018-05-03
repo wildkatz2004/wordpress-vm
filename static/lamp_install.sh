@@ -153,6 +153,24 @@ install_php(){
      fi
 }
 
+#create mysql cnf
+create_php_fpm_conf(){
+
+    cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF 
+    <IfModule mod_fastcgi.c>
+      AddHandler php.fcgi .php
+      Action php.fcgi /php.fcgi
+      Alias /php.fcgi /usr/lib/cgi-bin/php.fcgi
+      FastCgiExternalServer /usr/lib/cgi-bin/php.fcgi -socket /run/php/php7.0-fpm.sock -pass-header Authorization -idle-timeout 3600
+      <Directory /usr/lib/cgi-bin>
+        Require all granted
+      </Directory>
+    </IfModule>
+    EOF
+
+    log "Info" "create php7.0-fpm.conf file at /etc/apache2/conf-available/php7.0-fpm.conf completed."
+
+}
 
 # Configure PHP Function
 configure_php(){
@@ -171,17 +189,7 @@ configure_php(){
           rm /etc/apache2/conf-available/php7.0-fpm.conf
     fi
 
-    cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF 
-    <IfModule mod_fastcgi.c>
-      AddHandler php.fcgi .php
-      Action php.fcgi /php.fcgi
-      Alias /php.fcgi /usr/lib/cgi-bin/php.fcgi
-      FastCgiExternalServer /usr/lib/cgi-bin/php.fcgi -socket /run/php/php7.0-fpm.sock -pass-header Authorization -idle-timeout 3600
-      <Directory /usr/lib/cgi-bin>
-        Require all granted
-      </Directory>
-    </IfModule>
-    EOF
+    create_php_fpm_conf
 
     #enable /etc/apache2/conf-available/php-fpm.confcat
     sudo a2enconf php7.0-fpm
@@ -209,4 +217,4 @@ lamp(){
 #Run it
 cur_dir=`pwd`
 
-lamp 2>&1 | tee ${cur_dir}/lamp.log
+lamp #2>&1 | tee ${cur_dir}/lamp.log
