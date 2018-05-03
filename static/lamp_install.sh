@@ -104,6 +104,9 @@ install_apache(){
 
     #Install Apache
     check_command apt install apache2 -y
+    
+    #Config Mod Security
+    mv /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
 
     #Enable Apache Modules
     a2enmod rewrite \
