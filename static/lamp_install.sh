@@ -156,7 +156,7 @@ install_php(){
 #create mysql cnf
 create_php_fpm_conf(){
 
-    cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF 
+cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF 
     <IfModule mod_fastcgi.c>
       AddHandler php.fcgi .php
       Action php.fcgi /php.fcgi
@@ -166,7 +166,7 @@ create_php_fpm_conf(){
         Require all granted
       </Directory>
     </IfModule>
-    EOF
+EOF
 
     log "Info" "create php7.0-fpm.conf file at /etc/apache2/conf-available/php7.0-fpm.conf completed."
 
