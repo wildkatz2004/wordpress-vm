@@ -100,16 +100,16 @@ cat << EOMSTART
 |   This script will do the final setup for you                 |
 |   Scipt was created to configure Unbuntu 16.04                |   
 |                                                               |
-|   - Genereate new server SSH keys				                |
+|   - Genereate new server SSH keys                             |
 |                                                               |
 |   - Create a new WP user                                      |
 |   - Upgrade the system                                        |
 |   - Activate SSL (Let's Encrypt)                              |
-|   - Install phpMyadmin				                        |
+|   - Install phpMyadmin                                        |
 |                                                               |
 |                                                               |
 |   - Set new password to the Linux system (user: wordpress)	|
-|								                                |
+|                                                               |
 |    ################# Wordpress - 2018 #################	    |
 +---------------------------------------------------------------+
 EOMSTART
