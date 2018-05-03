@@ -75,25 +75,19 @@ sed -i "s|#MS_WhiteList /etc/spamhaus.wl|MS_WhiteList $SPAMHAUS|g" /etc/apache2/
 apt-get -y install libxml2 libxml2-dev libxml2-utils libaprutil1 libaprutil1-dev libapache2-modsecurity
 
 check_command systemctl restart apache2
+
+
+cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+
+sudo sed -i "s/SecRuleEngine DetectionOnly/SecRuleEngine On/" /etc/modsecurity/modsecurity.conf
+sudo sed -i "s/SecResponseBodyAccess On/SecResponseBodyAccess Off/" /etc/modsecurity/modsecurity.conf
+sed -i "s|SecAuditLogRelevantStatus |#SecAuditLogRelevantStatus |g" /etc/modsecurity/modsecurity.conf
+
 rm -rf /usr/share/modsecurity-crs
 apt-get install -y git
 git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git /usr/share/modsecurity-crs
 
-if [ -f  /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf ]; then
-        cp /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf /usr/share/modsecurity-crs/backup/modsecurity_crs_10_setup.conf.bak
-fi
-if [ -f  /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf.example  ]; then
-        cp /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf.example /usr/share/modsecurity-crs/modsecurity_crs_10_setup.conf
-fi
-
-sudo ln -s ../modsecurity_crs_10_setup.conf activated_rules/modsecurity_crs_10_setup.conf
-for f in `ls base_rules`; do sudo ln -s ../base_rules/$f activated_rules/$f; done
-
-if [ -f /etc/modsecurity/modsecurity.conf-recommended ]; then
-       cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
-fi
-sudo sed -i "s/SecRuleEngine DetectionOnly/SecRuleEngine On/" /etc/modsecurity/modsecurity.conf
-sudo sed -i "s/SecResponseBodyAccess On/SecResponseBodyAccess Off/" /etc/modsecurity/modsecurity.conf
+cp /usr/share/modsecurity-crs/crs-setup.conf.example /usr/share/modsecurity-crs/crs-setup.conf
 
 if [ -f  /etc/apache2/mods-enabled/security2.conf ]; then
 	a2dismod  security2
