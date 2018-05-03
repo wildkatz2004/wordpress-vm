@@ -81,7 +81,7 @@ run_static_script new_etc_mycnf
 }
 
 # Install Apache Function
-install_apache(){
+install_apache_depends(){
 
     #Install Apache dependencies
     log "Info" "Starting to install dependencies packages for Apache..."
@@ -97,6 +97,10 @@ install_apache(){
         done
     fi
     log "Info" "Install dependencies packages for Apache completed..."
+}
+
+
+install_apache(){
 
     #Install Apache
     check_command apt install apache2 -y
@@ -204,14 +208,12 @@ configure_php(){
 lamp(){
 
   install_mariadb
+  #install_apache_depends
   install_apache
-  install_php_depends
+  #install_php_depends
   install_php
   configure_php
 
 }
 
-#Run it
-cur_dir=`pwd`
-
-lamp #2>&1 | tee ${cur_dir}/lamp.log
+lamp 
