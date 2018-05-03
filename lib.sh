@@ -79,6 +79,7 @@ RSHUF=$(shuf -i 30-35 -n 1)
 REDIS_PASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$RSHUF" | head -n 1)
 
 # Extra security
+SPAMHAUSCONF=/etc/apache2/mods-available/spamhaus.conf
 SPAMHAUS=/etc/spamhaus.wl
 ENVASIVE=/etc/apache2/mods-enabled/evasive.conf
 APACHE2=/etc/apache2/apache2.conf
