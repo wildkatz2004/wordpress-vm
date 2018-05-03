@@ -1,4 +1,9 @@
+#!/bin/bash
 
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
 
 # Run WordPress Install Function
 wordpress_install(){
