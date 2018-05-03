@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Tech and Me © - 2017, https://www.techandme.se/
+
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
@@ -81,27 +83,6 @@ maxretry = $MAXRETRY_
 findtime = $FINDTIME_
 bantime  = $BANTIME_
 FCONF
-
-cat << SCONF > /etc/fail2ban/jail.d/modsec.conf
-# Fail2Ban configuration file
-#
-# Author: Florian Roth
-
-[Definition]
-failregex = \[.*?\]\s[\w-]*\s<HOST>\s
-ignoreregex =
-SCONF
-
-cat <<EOT >> /etc/fail2ban/jail.conf
-[modsec]
-enabled  = true
-filter   = modsec
-action   = iptables-multiport[name=ModSec, port="http,https"]
-#           sendmail-buffered[name=ModSec, lines=5, dest=you@mail.com]
-logpath  = /var/log/apache2/modsec_audit.log
-bantime  = 172800
-maxretry = 1
-EOT
 
 # Update settings
 check_command update-rc.d fail2ban defaults
