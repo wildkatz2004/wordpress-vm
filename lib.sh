@@ -80,7 +80,7 @@ REDIS_PASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$RSHUF" | head -n 
 
 # Extra security
 SPAMHAUS=/etc/spamhaus.wl
-ENVASIVE=/etc/apache2/mods-available/mod-evasive.load
+ENVASIVE=/etc/apache2/mods-enabled/evasive.conf
 APACHE2=/etc/apache2/apache2.conf
 
 ## functions
