@@ -18,10 +18,11 @@ apt update -q4 & spinner_loading
 apt -y install libapache2-mod-evasive
 mkdir /var/log/mod_evasive
 chown -R www-data: /var/log/mod_evasive
-if [ ! -f $ENVASIVE ]
-then
-    touch $ENVASIVE
-    cat << ENVASIVE >> "$ENVASIVE"
+
+if [ -f $ENVASIVE ]; then
+     rm  $ENVASIVE
+	  
+cat > "$ENVASIVE" << EOF 
 <IfModule mod_evasive20.c>
 	DOSPageCount        5
 	DOSSiteCount        50
@@ -30,7 +31,9 @@ then
 	DOSBlockingPeriod   600
 	DOSLogDir           "/var/log/mod_evasive"
 </IfModule>
+EOF
 fi
+
 sudo systemctl restart apache2.service
 # Protect against Slowloris
 #apt -y install libapache2-mod-qos
