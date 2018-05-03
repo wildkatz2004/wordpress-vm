@@ -2,8 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/master/lib.sh)
-unset CHECK_CURRENT_REPO
+ . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
