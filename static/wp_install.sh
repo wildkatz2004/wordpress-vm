@@ -5,6 +5,8 @@ true
 # shellcheck source=lib.sh
 CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
 
+unset CHECK_CURRENT_REPO
+
 # Run WordPress Install Function
 wordpress_install(){
 
