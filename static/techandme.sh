@@ -5,7 +5,7 @@ WPADMINUSER=$(grep "WP USER:" /var/adminpass.txt)
 WPADMINPASS=$(grep "WP PASS:" /var/adminpass.txt)
 MYSQLVER=$(mysql --version|awk '{ print $5 }'|awk -F\, '{ print $1 }')
 clear
-figlet -f small D&B Consulting
+figlet -f small D"&"B Consulting
 echo "           http://duanebritting.com/"
 echo
 # Check php version
