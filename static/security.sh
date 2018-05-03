@@ -16,22 +16,22 @@ debug_mode
 # Protect against DDOS
 apt update -q4 & spinner_loading
 apt -y install libapache2-mod-evasive
-mkdir -p /var/log/apache2/evasive
-chown -R www-data:root /var/log/apache2/evasive
+mkdir /var/log/mod_evasive
+chown -R www-data: /var/log/mod_evasive
 if [ ! -f $ENVASIVE ]
 then
     touch $ENVASIVE
-    cat << ENVASIVE > "$ENVASIVE"
-DOSHashTableSize 2048
-DOSPageCount 20  # maximum number of requests for the same page
-DOSSiteCount 300  # total number of requests for any object by the same client IP on the same listener
-DOSPageInterval 1.0 # interval for the page count threshold
-DOSSiteInterval 1.0  # interval for the site count threshold
-DOSBlockingPeriod 10.0 # time that a client IP will be blocked for
-DOSLogDir
-ENVASIVE
+    cat << ENVASIVE >> "$ENVASIVE"
+<IfModule mod_evasive20.c>
+	DOSPageCount        5
+	DOSSiteCount        50
+	DOSPageInterval     1
+	DOSSiteInterval     1
+	DOSBlockingPeriod   600
+	DOSLogDir           "/var/log/mod_evasive"
+</IfModule>
 fi
-
+sudo systemctl restart apache2.service
 # Protect against Slowloris
 #apt -y install libapache2-mod-qos
 a2enmod reqtimeout # http://httpd.apache.org/docs/2.4/mod/mod_reqtimeout.html
