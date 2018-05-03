@@ -1,11 +1,10 @@
 #!/bin/bash
-
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
-
-unset CHECK_CURRENT_REPO
+WPDB=1 && MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/techandme/wordpress-vm/master/lib.sh)
+unset MYCNFPW
+unset WPDB
 
 # Run WordPress Install Function
 wordpress_install(){
@@ -33,7 +32,7 @@ cd "$WPATH"
 check_command wp core download --allow-root --force --debug --path="$WPATH"
 
 # Populate DB
-mysql -uroot -p"$MARIADB_PASS" <<MYSQL_SCRIPT
+mysql -uroot -p"$MARIADBMYCNFPASS" <<MYSQL_SCRIPT
 CREATE DATABASE $WPDBNAME;
 CREATE USER '$WPDBUSER'@'localhost' IDENTIFIED BY '$WPDBPASS';
 GRANT ALL PRIVILEGES ON $WPDBNAME.* TO '$WPDBUSER'@'localhost';
