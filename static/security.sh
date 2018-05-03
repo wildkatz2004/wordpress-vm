@@ -40,7 +40,7 @@ sudo systemctl restart apache2.service
 a2enmod reqtimeout # http://httpd.apache.org/docs/2.4/mod/mod_reqtimeout.html
 
 # Protect against DNS Injection
-apt -y install libapache2-mod-spamhaus
+apt-get -y install libapache2-mod-spamhaus
 if [ ! -f $SPAMHAUS ]
 then
     touch $SPAMHAUS
@@ -68,7 +68,8 @@ else
 fi
 
 # Enable $SPAMHAUS
-sed -i "s|#MS_WhiteList /etc/spamhaus.wl|MS_WhiteList $SPAMHAUS|g" /etc/apache2/mods-enabled/spamhaus.conf
+sed -i "s|#MS_WhiteList /etc/spamhaus.wl|MS_WhiteList /etc/spamhaus.wl|g" $SPAMHAUSCONF
+sed -i "s|#MS_CacheSize 512|MS_CacheSize 256|g" $SPAMHAUSCONF
 
 check_command service apache2 restart
 echo "Security added!"
