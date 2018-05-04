@@ -31,7 +31,13 @@ if [ ! -f $SSL_CONF ];
     AllowOverride All
     Require all granted
     </Directory>
-
+   <FilesMatch \.php$>
+        # 2.4.10+ can proxy to unix socket
+        SetHandler "proxy:unix:/var/run/php/php7.2-fpm.sock|fcgi://localhost/"
+ 
+        # Else we can just use a tcp socket:
+        #SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
     SetEnv HOME $WPATH
     SetEnv HTTP_HOME $WPATH
 
@@ -70,6 +76,13 @@ if [ ! -f $HTTP_CONF ];
     AllowOverride All
     Require all granted
     </Directory>
+       <FilesMatch \.php$>
+        # 2.4.10+ can proxy to unix socket
+        SetHandler "proxy:unix:/var/run/php/php7.2-fpm.sock|fcgi://localhost/"
+ 
+        # Else we can just use a tcp socket:
+        #SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
 
 </VirtualHost>
 HTTP_CREATE
