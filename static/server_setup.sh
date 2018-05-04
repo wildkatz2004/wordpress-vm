@@ -249,6 +249,27 @@ log "Info" "Completed enabling of OPCache for PHP..."
 # Set secure permissions final
 run_static_script wp-permissions
 
+#cration of robots.txt
+log "Info" "Attempting to create robot.txt file..."
+sleep 3
+cat > $WPATHrobots.txt <<EOL
+User-agent: *
+Disallow: /cgi-bin
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wp-content/
+Disallow: /wp-content/plugins/
+Disallow: /wp-content/themes/
+Disallow: /trackback
+Disallow: */trackback
+Disallow: */*/trackback
+Disallow: */*/feed/*/
+Disallow: */feed
+Disallow: /*?*
+Disallow: /tag
+Disallow: /?author=*
+EOL
+
 # Prepare for first mount
 download_static_script instruction
 download_static_script history
