@@ -16,7 +16,7 @@ cur_dir=`pwd`
 #lamp main process
 lamp(){
 
-  run_static_script wordpress_install
+  run_static_script server_setup
 }
 
 #Run it
