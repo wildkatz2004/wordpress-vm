@@ -179,9 +179,10 @@ apt-cache show php
 
 	if check_sys packageManager apt; then
 		apt_php_package=(
-			phpversion phpversion-fpm phpversion-common phpversion-mbstring phpversion-xmlrpc phpversion-gd phpversion-xml
-			phpversion-mysql phpversioncli phpversion-zip phpversion-curl zip unzip
-			libapache2-mod-php libapache2-mod-fastcgi
+		php7.2-cli php7.2-dev php7.2-pgsql php7.2-sqlite3 php7.2-gd php7.2-curl php-memcached 
+		php7.2-imap php7.2-mysql php7.2-mbstring php7.2-xml php-imagick php7.2-zip php7.2-bcmath php7.2-soap 
+		php7.2-intl php7.2-readline php7.2-common php7.2-pspell php7.2-tidy php7.2-xmlrpc php7.2-xsl 
+		php7.2-opcache php-apcu	libapache2-mod-php libapache2-mod-fastcgi
 		)
 		log "Info" "Starting to install primary packages for PHP..."
 		for depend in ${apt_php_package[@]}
