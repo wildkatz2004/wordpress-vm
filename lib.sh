@@ -134,13 +134,19 @@ then
 fi
 }
 
+# Define Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+PLAIN='\033[0m'
+
 log(){
     if   [ "${1}" == "Warning" ]; then
         echo -e "[${Yellow}${1}${PLAIN}] ${2}"
     elif [ "${1}" == "Error" ]; then
         echo -e "[${Red}${1}${PLAIN}] ${2}"
     elif [ "${1}" == "Info" ]; then
-        echo -e "[${Green}${1}${PLAIN}] ${2}"
+        echo -e "[${Green}${1}${PLAIN}] [${PLAIN}${2}${PLAIN}] "
     else
         echo -e "[${1}] ${2}"
     fi
