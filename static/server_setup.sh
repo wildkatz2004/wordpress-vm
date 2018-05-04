@@ -94,10 +94,7 @@ apt update -q4 & spinner_loading
 
 apt-add-repository ppa:ondrej/apache2 -y
 apt-add-repository ppa:ondrej/php -y
-apt-get update; apt-get install -y 
-build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
-lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
-python-pip supervisor unattended-upgrades whois zsh imagemagick
+
 
 #Install base packages
 install_base_packages(){
