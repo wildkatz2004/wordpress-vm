@@ -102,20 +102,13 @@ install_apache_depends(){
 
 install_apache(){
 
-    #Install Apache
-    check_command sudo apt install apache2 libapache2-mod-fastcgi -y
-    
-    #Enable Apache Modules
-    a2enmod rewrite \
-            headers \
-            ssl \
-            setenvif 
+	#Install Apache
+	check_command sudo apt install apache2 libapache2-mod-fastcgi -y
+	#Enable Modules and Make Apache Config changes
+	configure_apache
 }
 
 configure_apache(){
-
-    #Install Apache
-    check_command sudo apt install apache2 libapache2-mod-fastcgi -y
     
     #Enable Apache Modules
     a2enmod rewrite \
