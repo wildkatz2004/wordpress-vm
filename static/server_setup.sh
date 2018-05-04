@@ -98,24 +98,26 @@ apt-add-repository ppa:ondrej/php -y
 
 
 #Install base packages
-log "Info" "Preparing to install base packages..."
-any_key "Press any key to continue the script..."
 install_base_packages(){
-
-    #Start Install base packages
-    log "Info" "Starting to install base packages..."
-    local apt_list=(build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
-    lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
-    python-pip supervisor unattended-upgrades whois zsh imagemagick)
- 
+log "Info" "Starting to install base packages..."
     if check_sys packageManager apt; then
-        for depend in ${apt_list[@]}; do
+        apt_depends=(
+        build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
+        lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
+        python-pip supervisor unattended-upgrades whois zsh imagemagick
+        )
+        log "Info" "Starting to install dependencies packages for PHP..."
+        for depend in ${apt_depends[@]}
+        do
             error_detect_depends "apt-get -y install ${depend}"
         done
-
-    fi
-    log "Info" "Install base packages completed..."
+         log "Info" "Install base packages completed..."
+     fi
+	
 }
+log "Info" "Preparing to install base packages..."
+any_key "Press any key to continue the script..."
+install_base_packages
 
 #Install Composer
 log "Info" "Preparing to install Composer..."
