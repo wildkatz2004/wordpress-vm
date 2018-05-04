@@ -91,11 +91,18 @@ apt update -q4 & spinner_loading
 
 #The Perfect Server - Ubuntu LAMP 7.2
 #https://webdock.io/en/docs/stacks/ubuntu-lamp-72
+if [[ "yes" == $(ask_yes_or_no "Begin adding apache2 and php repositories... ?") ]]
+then
+	log "Info" "Adding apache2 and php repositories..."
+	apt-add-repository ppa:ondrej/apache2 -y
+	apt-add-repository ppa:ondrej/php -y
+	log "Info" "Completed adding apache2 and php repositories..."
+else
+    echo
+    echo "OK, moving to next step"
+    any_key "Press any key to continue..."
+fi
 
-log "Info" "Adding apache2 and php repositories..."
-apt-add-repository ppa:ondrej/apache2 -y
-apt-add-repository ppa:ondrej/php -y
-log "Info" "Completed adding apache2 and php repositories..."
 
 
 #Install base packages
@@ -116,28 +123,59 @@ install_base_packages(){
      fi
 	
 }
-log "Info" "Preparing to install base packages..."
-any_key "Press any key to continue the script..."
-install_base_packages
-log "Info" "Completed installing base packages..."
+
+if [[ "yes" == $(ask_yes_or_no "Begin installing base packages...?") ]]
+then
+	log "Info" "Preparing to install base packages..."
+	install_base_packages
+	log "Info" "Completed installing base packages..."
+else
+    echo
+    echo "OK, moving to next step"
+    any_key "Press any key to continue..."
+fi
+
 
 #Install Composer
-log "Info" "Preparing to install Composer..."
-any_key "Press any key to continue the script..."
-#curl -sS https://getcomposer.org/installer | php
-#mv composer.phar /usr/local/bin/composer
+if [[ "yes" == $(ask_yes_or_no "Begin installing Composer...?") ]]
+then
+	log "Info" "Preparing to install Composer..."
+	curl -sS https://getcomposer.org/installer | php
+	mv composer.phar /usr/local/bin/composer
+else
+    echo
+    echo "OK, moving to next step"
+    any_key "Press any key to continue..."
+fi
+
 
 # Install Lamp
-log "Info" "Preparing to install LAMP..."
-any_key "Press any key to continue the script..."
-run_static_script lamp_install
-log "Info" "Completed installing LAMP..."
+if [[ "yes" == $(ask_yes_or_no "Begin installing LAMP...?") ]]
+then
+	log "Info" "Preparing to install LAMP..."
+	run_static_script lamp_install
+	log "Info" "Completed installing LAMP..."
+else
+    echo
+    echo "OK, moving to next step"
+    any_key "Press any key to continue..."
+fi
+
+
 
 # Install WordPress
-log "Info" "Preparing to install WordPress..."
-any_key "Press any key to continue the script..."
-run_static_script wp_install
-log "Info" "Completed installing WordPress..."
+if [[ "yes" == $(ask_yes_or_no "Begin installing WordPress...?") ]]
+then
+	log "Info" "Preparing to install WordPress..."
+	run_static_script wp_install
+	log "Info" "Completed installing WordPress..."
+else
+    echo
+    echo "OK, moving to next step"
+    any_key "Press any key to continue..."
+fi
+
+
 
 log "Info" "Setup unattended security upgrades..."
 
