@@ -137,8 +137,7 @@ configure_apache(){
 	#Tweak Apache settings - let's hide what OS and Webserver this server is running	    
 	sed -i "s/ServerTokens OS/ServerTokens Prod/" /etc/apache2/conf-available/security.conf
 	sed -i "s/ServerSignature On/ServerSignature Off/" /etc/apache2/conf-available/security.conf	    
-	
-systemctl restart php7.2-fpm; systemctl restart apache2;	
+		
 }
 
 # Install PHP Dependencies Function
