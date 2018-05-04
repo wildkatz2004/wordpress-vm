@@ -89,11 +89,60 @@ sudo timedatectl set-timezone America/Mexico_City
 # Update system
 apt update -q4 & spinner_loading
 
+#The Perfect Server - Ubuntu LAMP 7.2
+#https://webdock.io/en/docs/stacks/ubuntu-lamp-72
+
+apt-add-repository ppa:ondrej/apache2 -y
+apt-add-repository ppa:ondrej/php -y
+apt-get update; apt-get install -y 
+build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
+lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
+python-pip supervisor unattended-upgrades whois zsh imagemagick
+
+#Install base packages
+install_base_packages(){
+
+    #Start Install base packages
+    log "Info" "Starting to install base packages..."
+    local apt_list=(build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
+    lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
+    python-pip supervisor unattended-upgrades whois zsh imagemagick)
+ 
+    if check_sys packageManager apt; then
+        for depend in ${apt_list[@]}; do
+            error_detect_depends "apt-get -y install ${depend}"
+        done
+
+    fi
+    log "Info" "Install base packages completed..."
+}
+
+#Install Composer
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+
 # Install Lamp
 run_static_script lamp_install
 
 # Install WordPress
 run_static_script wp_install
+#Setup unattended security upgrades
+cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
+Unattended-Upgrade::Allowed-Origins {
+"Ubuntu xenial-security";
+};
+Unattended-Upgrade::Package-Blacklist {
+//
+};
+EOF
+
+cat > /etc/apt/apt.conf.d/10periodic << EOF
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
 
 # Install Figlet
 apt install figlet -y
