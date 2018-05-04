@@ -93,8 +93,9 @@ apt update -q4 & spinner_loading
 #https://webdock.io/en/docs/stacks/ubuntu-lamp-72
 
 log "Info" "Adding apache2 and php repositories..."
-#apt-add-repository ppa:ondrej/apache2 -y
-#apt-add-repository ppa:ondrej/php -y
+apt-add-repository ppa:ondrej/apache2 -y
+apt-add-repository ppa:ondrej/php -y
+log "Info" "Completed adding apache2 and php repositories..."
 
 
 #Install base packages
@@ -117,7 +118,8 @@ install_base_packages(){
 }
 log "Info" "Preparing to install base packages..."
 any_key "Press any key to continue the script..."
-#install_base_packages
+install_base_packages
+log "Info" "Completed installing base packages..."
 
 #Install Composer
 log "Info" "Preparing to install Composer..."
@@ -129,11 +131,13 @@ any_key "Press any key to continue the script..."
 log "Info" "Preparing to install LAMP..."
 any_key "Press any key to continue the script..."
 run_static_script lamp_install
+log "Info" "Completed installing LAMP..."
 
 # Install WordPress
 log "Info" "Preparing to install WordPress..."
 any_key "Press any key to continue the script..."
 run_static_script wp_install
+log "Info" "Completed installing WordPress..."
 
 log "Info" "Setup unattended security upgrades..."
 
@@ -153,6 +157,7 @@ APT::Periodic::Download-Upgradeable-Packages "1";
 APT::Periodic::AutocleanInterval "7";
 APT::Periodic::Unattended-Upgrade "1";
 EOF
+log "Info" "Completed setup unattended security upgrades..."
 
 # Install Figlet
 apt install figlet -y
@@ -161,6 +166,7 @@ apt install figlet -y
 log "Info" "Preparing to Create VirtualHost Files..."
 any_key "Press any key to continue the script..."
 run_static_script create_vhost_files
+log "Info" "Completed preparing Create VirtualHost Files..."
 
 # Enable new config
 log "Info" "Preparing to enable to VirtualHost Files..."
@@ -170,7 +176,7 @@ a2ensite wordpress_port_80.conf
 a2dissite 000-default.conf
 a2dissite default-ssl.conf
 systemctl restart apache2.service
-
+log "Info" "Completed enabling of VirtualHost Files..."
 
 # Enable UTF8mb4 (4-byte support)
 log "Info" "Attempting to Enable UTF8mb4 ..."
@@ -185,7 +191,7 @@ for db in $databases; do
 done
 
 # Enable OPCache for PHP
-log "Info" "Attempting to Enable Enable OPCache for PHP..."
+log "Info" "Attempting to Enable OPCache for PHP..."
 any_key "Press any key to continue the script..."
 phpenmod opcache
 {
@@ -201,7 +207,7 @@ echo "opcache.validate_timestamps=1"
 echo "opcache.enable_file_override=0"
 echo "opcache.fast_shutdown=1"
 } >> /etc/php/7.2/apache2/php.ini
-
+log "Info" "Completed enabling of OPCache for PHP..."
 # Set secure permissions final
 run_static_script wp-permissions
 
