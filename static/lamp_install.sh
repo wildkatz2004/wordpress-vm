@@ -17,6 +17,8 @@ then
     exit 1
 fi
 
+#Variable(s)
+phptoinstall=7.2
 #Install MariaDB Function
 
 install_mariadb(){
@@ -101,20 +103,42 @@ install_apache_depends(){
 
 
 install_apache(){
-
+	log "Info" "What version of php-fpm will be install: php$phptoinstall-fpm..."
+	
 	#Install Apache
-	check_command sudo apt install apache2 libapache2-mod-fastcgi -y
+	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi php$phptoinstall-fpm
 	#Enable Modules and Make Apache Config changes
 	configure_apache
+	#Restart PHP-FPM and Apache
+	systemctl restart php7.2-fpm
+	systemctl restart apache2
 }
 
 configure_apache(){
-    
-    #Enable Apache Modules
-    a2enmod rewrite \
-            headers \
-            ssl \
-            setenvif 
+
+       #Enable Apache Modules
+           apache_modules=(
+		suexec rewrite ssl actions include cgi actions fastcgi proxy_fcgi alias
+        )
+        log "Info" "Starting to enable Apache Modules..."
+        for apachemod in ${apache_modules[@]}
+        do
+		if (( $(ps -ef | grep -v grep | grep ${apachemod} | wc -l) > 0 ))
+		then
+		echo "${apachemod} is running"
+		else
+		service ${apachemod} start  # (if the service isn't running already)
+		fi             
+        done
+        log "Info" "Enabling Apache Modules Completed..."
+     fi
+
+
+	#Tweak Apache settings - let's hide what OS and Webserver this server is running	    
+	sed -i "s/ServerTokens OS/ServerTokens Prod/" /etc/apache2/conf-available/security.conf
+	sed -i "s/ServerSignature On/ServerSignature Off/" /etc/apache2/conf-available/security.conf	    
+	
+systemctl restart php7.2-fpm; systemctl restart apache2;	
 }
 
 # Install PHP Dependencies Function
@@ -279,14 +303,35 @@ configure_php(){
 configure_php_7_2(){
 	a2enmod actions fastcgi alias proxy_fcgi
 	# Configure PHP
+	sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
+	sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
+	sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/cli/php.ini
+	sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/cli/php.ini
+	# Configure PHP-FPM
 	sed -i "s|allow_url_fopen =.*|allow_url_fopen = On|g" /etc/php/7.2/fpm/php.ini
 	sed -i "s|max_execution_time =.*|max_execution_time = 360|g" /etc/php/7.2/fpm/php.ini
 	sed -i "s|file_uploads =.*|file_uploads = On|g" /etc/php/7.2/fpm/php.ini
-	sed -i "s|upload_max_filesize =.*|upload_max_filesize = 100M|g" /etc/php/7.2/fpm/php.ini
-	sed -i "s|memory_limit =.*|memory_limit = 256M|g" /etc/php/7.2/fpm/php.ini
-	sed -i "s|post_max_size =.*|post_max_size = 110M|g" /etc/php/7.2/fpm/php.ini
 	sed -i "s|cgi.fix_pathinfo =.*|cgi.fix_pathinfo=0|g" /etc/php/7.2/fpm/php.ini
-	sed -i "s|date.timezone =.*|date.timezone = Europe/Stockholm|g" /etc/php/7.2/fpm/php.ini	
+	sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
+	sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
+	sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.2/fpm/php.ini
+	sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.2/fpm/php.ini
+	sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/fpm/php.ini
+	sed -i "s/upload_max_filesize = .*/upload_max_filesize = 256M/" /etc/php/7.2/fpm/php.ini
+	sed -i "s/post_max_size = .*/post_max_size = 256M/" /etc/php/7.2/fpm/php.ini
+	sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/fpm/php.ini
+	#Tune PHP-FPM pool settings
+	sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.2/fpm/pool.d/www.conf
+	sed -i "s/;request_terminate_timeout.*/request_terminate_timeout = 60/" /etc/php/7.2/fpm/pool.d/www.conf
+	sed -i "s/pm\.max_children.*/pm.max_children = 70/" /etc/php/7.2/fpm/pool.d/www.conf
+	sed -i "s/pm\.start_servers.*/pm.start_servers = 20/" /etc/php/7.2/fpm/pool.d/www.conf
+	sed -i "s/pm\.min_spare_servers.*/pm.min_spare_servers = 20/" /etc/php/7.2/fpm/pool.d/www.conf
+	sed -i "s/pm\.max_spare_servers.*/pm.max_spare_servers = 35/" /etc/php/7.2/fpm/pool.d/www.conf
+	sed -i "s/;pm\.max_requests.*/pm.max_requests = 500/" /etc/php/7.2/fpm/pool.d/www.conf	
+	
+	#Configure sessions directory permissions
+	chmod 733 /var/lib/php/sessions
+	chmod +t /var/lib/php/sessions
 
     if [ -f  /etc/apache2/conf-available/php7.2-fpm.conf ]; then
           rm /etc/apache2/conf-available/php7.2-fpm.conf
