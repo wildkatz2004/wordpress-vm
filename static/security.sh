@@ -24,11 +24,12 @@ if [ -f $ENVASIVE ]; then
 	  
 cat > "$ENVASIVE" << EOF 
 <IfModule mod_evasive20.c>
-	DOSPageCount        5
-	DOSSiteCount        50
+	DOSHashTableSize 3097
+	DOSPageCount        20
+	DOSSiteCount        300
 	DOSPageInterval     1
 	DOSSiteInterval     1
-	DOSBlockingPeriod   600
+	DOSBlockingPeriod   10
 	DOSLogDir           "/var/log/mod_evasive"
 </IfModule>
 EOF
