@@ -93,20 +93,20 @@ apt update -q4 & spinner_loading
 #https://webdock.io/en/docs/stacks/ubuntu-lamp-72
 
 log "Info" "Adding apache2 and php repositories..."
-apt-add-repository ppa:ondrej/apache2 -y
-apt-add-repository ppa:ondrej/php -y
+#apt-add-repository ppa:ondrej/apache2 -y
+#apt-add-repository ppa:ondrej/php -y
 
 
 #Install base packages
 install_base_packages(){
-log "Info" "Starting to install base packages..."
+
     if check_sys packageManager apt; then
         apt_depends=(
         build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
         lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
         python-pip supervisor unattended-upgrades whois zsh imagemagick
         )
-        log "Info" "Starting to install dependencies packages for PHP..."
+        log "Info" "Starting to install base packages..."
         for depend in ${apt_depends[@]}
         do
             error_detect_depends "apt-get -y install ${depend}"
@@ -117,13 +117,13 @@ log "Info" "Starting to install base packages..."
 }
 log "Info" "Preparing to install base packages..."
 any_key "Press any key to continue the script..."
-install_base_packages
+#install_base_packages
 
 #Install Composer
 log "Info" "Preparing to install Composer..."
 any_key "Press any key to continue the script..."
-curl -sS https://getcomposer.org/installer | php
-mv composer.phar /usr/local/bin/composer
+#curl -sS https://getcomposer.org/installer | php
+#mv composer.phar /usr/local/bin/composer
 
 # Install Lamp
 log "Info" "Preparing to install LAMP..."
