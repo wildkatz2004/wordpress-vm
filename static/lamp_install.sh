@@ -185,13 +185,16 @@ configure_apache(){
 		fi
 		apache_enable_module "$apachemod" "load"
 		systemctl restart apache2
-		return 0
+		
 	done
         log "Info" "Enabling Apache Modules Completed..."
 	
+	log "Info" "Attempting tweaks to /etc/apache2/conf-available/security.conf"
 	#Tweak Apache settings - let's hide what OS and Webserver this server is running	    
 	sed -i "s/ServerTokens OS/ServerTokens Prod/" /etc/apache2/conf-available/security.conf
 	sed -i "s/ServerSignature On/ServerSignature Off/" /etc/apache2/conf-available/security.conf	    
+	log "Info" "Tweaks completed"
+	sudo systemctl restart apache2
 		
 }
 
@@ -287,7 +290,7 @@ fi
 }
 #create mysql cnf
 create_php_fpm_conf(){
-
+log "Info" "Beginning creation of php7.0-fpm.conf"
 cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF 
     <IfModule mod_fastcgi.c>
       AddHandler php.fcgi .php
@@ -299,13 +302,13 @@ cat > /etc/apache2/conf-available/php7.0-fpm.conf << EOF
       </Directory>
     </IfModule>
 EOF
-
-    log "Info" "create php7.0-fpm.conf file at /etc/apache2/conf-available/php7.0-fpm.conf completed."
+log "Info" "Completed creation of php7.0-fpm.conf"
+log "Info" "create php7.0-fpm.conf file at /etc/apache2/conf-available/php7.0-fpm.conf completed."
 
 }
 
 create_php_fpm_7_2_conf(){
-
+log "Info" "Beginning creation of php7.2-fpm.conf"
 cat > /etc/apache2/conf-available/$phptoinstall-fpm.conf << EOF 
     <IfModule mod_fastcgi.c>
       AddHandler php.fcgi .php
@@ -318,13 +321,14 @@ cat > /etc/apache2/conf-available/$phptoinstall-fpm.conf << EOF
     </IfModule>
 EOF
 
-    log "Info" "create php7.2-fpm.conf file at /etc/apache2/conf-available/php7.2-fpm.conf completed."
+log "Info" "Completed creation of php7.2-fpm.conf"
+log "Info" "create php7.2-fpm.conf file at /etc/apache2/conf-available/php7.2-fpm.conf completed."
 
 }
 
 # Configure PHP Function
 configure_php(){
-    a2enmod actions fastcgi alias proxy_fcgi
+log "Info" "Beginning php.ini edits."
     # Configure PHP
     sed -i "s|allow_url_fopen =.*|allow_url_fopen = On|g" /etc/php/7.0/fpm/php.ini
     sed -i "s|max_execution_time =.*|max_execution_time = 360|g" /etc/php/7.0/fpm/php.ini
@@ -350,12 +354,12 @@ configure_php(){
     sudo a2dismod php7.0
     # Restart Apache
     sudo service apache2 restart && sudo service php7.0-fpm restart
-
+log "Info" "Php.ini edits completed."
 }
 
 # Configure PHP Function
 configure_php_7_2(){
-
+log "Info" "Beginning php.ini edits."
 	# Configure PHP
 	sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
 	sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
@@ -394,24 +398,27 @@ configure_php_7_2(){
     create_php_fpm_7_2_conf
     sudo a2dismod php7.2
     sudo a2dismod mpm_prefork mpm_worker 
-    a2enmod actions fastcgi alias proxy_fcgi mpm_event
+    a2enmod mpm_event headers
     sudo a2enconf php7.2-fpm 
     # Restart Apache
     sudo service apache2 restart && sudo service php7.2-fpm restart
-
+log "Info" "Php.ini edits completed."
 }
 
 # Install Lamp
 lamp(){
-
-  install_mariadb
-  #install_apache_depends
-  install_apache
-  #install_php_depends
-  #install_php
-  install_php7_2
-  #configure_php
-
+	log "Info" "Beginning MariaDB install..."
+	install_mariadb
+	log "Info" "MariaDB install completed..."
+	#install_apache_depends
+	log "Info" "Beginning Apache install..."	
+	install_apache
+	log "Info" "Apache install completed..."	
+	#install_php_depends
+	#install_php
+	log "Info" "Beginning PHP install..."	
+	install_php7_2
+	log "Info" "PHP install completed..."	
 }
 
 lamp 
