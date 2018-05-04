@@ -82,6 +82,60 @@ apt -y purge expect
 run_static_script new_etc_mycnf
 }
 
+apache_check_module() {
+	echo "Checking for ${2} ${1}.${3}"
+	if [ ! -f "/etc/apache2/mods-${2}/${1}.${3}" ]
+	then
+		echo "Not found"
+		return 1
+	fi
+	echo "Found, checking for loading directives"
+	if [ "$3" == "load" ]
+	then
+		result=$(grep -E "^[^#]*LoadModule\\s*${1}_module" "/etc/apache2/mods-${2}/${1}.${3}")
+ 		if [ -z "$result" ]
+		then
+			"Loading directive not found"
+			return 1
+		fi
+	fi
+	echo "Detected ${2} ${1}.${3} configuration, setting up integration"
+	return 0
+}
+
+apache_force_enable_module() {
+	echo "Force enabling module ${1}.${2}"
+	if [ ! -f "/etc/apache2/mods-available/${1}.${2}" ]
+	then
+		echo "WARNING: Unsupported ${1}, not configuring"
+		return 1
+	fi
+	echo "Available module found"
+	rm -f "/etc/apache2/mods-enabled/${1}.${2}"
+	echo "Removed possible duplicates"
+	apache_enable_module $1 $2
+	echo "Completed force enabling"
+	return 0
+}
+
+apache_enable_module() {
+	echo "Enabling module ${1}.${2}"
+	if [ ! -f "/etc/apache2/mods-available/${1}.${2}" ]
+	then
+		echo "WARNING: Could not enable ${1}, not configuring"
+		return 1
+	fi
+	echo "Found available module"
+	if [ -f "/etc/apache2/mods-enabled/${1}.${2}" ]
+	then
+		echo "Module already enabled"
+		return 0
+	fi
+	echo "Creating a symlink"
+	ln -s "../mods-available/${1}.${2}" "/etc/apache2/mods-enabled/${1}.${2}"
+	echo "Finished creating a symlink"
+	return 0
+}
 # Install Apache Function
 install_apache_depends(){
 
@@ -122,14 +176,17 @@ configure_apache(){
         )
         log "Info" "Starting to enable Apache Modules..."
         for apachemod in ${apache_modules[@]}
-        do
-		if (( $(ps -ef | grep -v grep | grep ${apachemod} | wc -l) > 0 ))
+	do
+		if ! apache_check_module "${apachemod}" "enabled" "load"; then continue; fi
+		if [ "$apachemod" == "proxy_fcgi" ]
 		then
-		echo "${apachemod} is running"
-		else
-		service ${apachemod} start  # (if the service isn't running already)
-		fi             
-        done
+			if ! apache_check_module "proxy" "enabled" "load"; then continue; fi
+			if ! apache_check_module "proxy" "enabled" "conf"; then continue; fi
+		fi
+		apache_enable_module "$apachemod" "load"
+		systemctl restart apache2
+		return 0
+	done
         log "Info" "Enabling Apache Modules Completed..."
 	
 	#Tweak Apache settings - let's hide what OS and Webserver this server is running	    
@@ -210,7 +267,7 @@ apt-cache show php
 		do
 		    error_detect_depends "apt-get -y install ${depend}"
 		done
-		log "Info" "Install dependencies packages for PHP completed..."
+		log "Info" "Install primary packages for PHP completed..."
 	fi
 	
 # Configure PHP
@@ -335,13 +392,10 @@ configure_php_7_2(){
     fi
 
     create_php_fpm_7_2_conf
-    
+    sudo a2dismod php7.2
     sudo a2dismod mpm_prefork mpm_worker 
     a2enmod actions fastcgi alias proxy_fcgi mpm_event
     sudo a2enconf php7.2-fpm 
-
-    # And disable this module, which is mod_php:
-    sudo a2dismod php7.2
     # Restart Apache
     sudo service apache2 restart && sudo service php7.2-fpm restart
 
