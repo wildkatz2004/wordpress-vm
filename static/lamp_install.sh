@@ -172,7 +172,7 @@ configure_apache(){
 
        #Enable Apache Modules
            apache_modules=(
-		suexec rewrite ssl actions include cgi actions fastcgi proxy_fcgi alias
+		suexec rewrite ssl actions include cgi actions fastcgi proxy_fcgi alias headers
         )
         log "Info" "Starting to enable Apache Modules..."
         for apachemod in ${apache_modules[@]}
