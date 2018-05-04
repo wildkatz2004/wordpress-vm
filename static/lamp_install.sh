@@ -131,9 +131,7 @@ configure_apache(){
 		fi             
         done
         log "Info" "Enabling Apache Modules Completed..."
-     fi
-
-
+	
 	#Tweak Apache settings - let's hide what OS and Webserver this server is running	    
 	sed -i "s/ServerTokens OS/ServerTokens Prod/" /etc/apache2/conf-available/security.conf
 	sed -i "s/ServerSignature On/ServerSignature Off/" /etc/apache2/conf-available/security.conf	    
