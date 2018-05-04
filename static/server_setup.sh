@@ -85,18 +85,21 @@ then
 fi
 
 #Changing local timezone to Central Standard
-sudo timedatectl set-timezone America/Mexico_City
+#sudo timedatectl set-timezone America/Mexico_City
 # Update system
 apt update -q4 & spinner_loading
 
 #The Perfect Server - Ubuntu LAMP 7.2
 #https://webdock.io/en/docs/stacks/ubuntu-lamp-72
 
+log "Info" "Adding apache2 and php repositories..."
 apt-add-repository ppa:ondrej/apache2 -y
 apt-add-repository ppa:ondrej/php -y
 
 
 #Install base packages
+log "Info" "Preparing to install base packages..."
+any_key "Press any key to continue the script..."
 install_base_packages(){
 
     #Start Install base packages
@@ -115,15 +118,23 @@ install_base_packages(){
 }
 
 #Install Composer
+log "Info" "Preparing to install Composer..."
+any_key "Press any key to continue the script..."
 curl -sS https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
 
-
 # Install Lamp
+log "Info" "Preparing to install LAMP..."
+any_key "Press any key to continue the script..."
 run_static_script lamp_install
 
 # Install WordPress
+log "Info" "Preparing to install WordPress..."
+any_key "Press any key to continue the script..."
 run_static_script wp_install
+
+log "Info" "Setup unattended security upgrades..."
+
 #Setup unattended security upgrades
 cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
 Unattended-Upgrade::Allowed-Origins {
@@ -145,16 +156,23 @@ EOF
 apt install figlet -y
 
 # Create VirtualHost Files
+log "Info" "Preparing to Create VirtualHost Files..."
+any_key "Press any key to continue the script..."
 run_static_script create_vhost_files
 
 # Enable new config
+log "Info" "Preparing to enable to VirtualHost Files..."
+any_key "Press any key to continue the script..."
 a2ensite wordpress_port_443.conf
 a2ensite wordpress_port_80.conf
 a2dissite 000-default.conf
 a2dissite default-ssl.conf
 systemctl restart apache2.service
 
+
 # Enable UTF8mb4 (4-byte support)
+log "Info" "Attempting to Enable UTF8mb4 ..."
+any_key "Press any key to continue the script..."
 databases=$(mysql -u root -p"$MARIADB_PASS" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
 for db in $databases; do
     if [[ "$db" != "performance_schema" ]] && [[ "$db" != _* ]] && [[ "$db" != "information_schema" ]];
@@ -165,6 +183,8 @@ for db in $databases; do
 done
 
 # Enable OPCache for PHP
+log "Info" "Attempting to Enable Enable OPCache for PHP..."
+any_key "Press any key to continue the script..."
 phpenmod opcache
 {
 echo "# OPcache settings for Wordpress"
@@ -178,7 +198,7 @@ echo "opcache.revalidate_freq=1"
 echo "opcache.validate_timestamps=1"
 echo "opcache.enable_file_override=0"
 echo "opcache.fast_shutdown=1"
-} >> /etc/php/7.0/apache2/php.ini
+} >> /etc/php/7.2/apache2/php.ini
 
 # Set secure permissions final
 run_static_script wp-permissions
