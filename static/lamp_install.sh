@@ -238,10 +238,8 @@ configure_php(){
     #enable /etc/apache2/conf-available/php-fpm.confcat
     sudo a2enconf php7.0-fpm
     
-    sudo a2dismod mpm_prefork
-    sudo a2dismod  mpm_event
-    # Next, enable the following Apache modules...
-    sudo a2enmod actions fastcgi alias mpm_worker 
+    sudo a2dismod mpm_prefork mpm_worker 
+    a2enmod actions fastcgi alias proxy_fcgi mpm_event
     # And disable this module, which is mod_php:
     sudo a2dismod php7.0
     # Restart Apache
@@ -268,8 +266,8 @@ configure_php_7_2(){
 
     create_php_fpm_7_2_conf
     
-    sudo a2dismod mpm_prefork mpm_event
-    a2enmod actions fastcgi alias proxy_fcgi mpm_worker
+    sudo a2dismod mpm_prefork mpm_worker 
+    a2enmod actions fastcgi alias proxy_fcgi mpm_event
     sudo a2enconf php7.2-fpm 
 
     # And disable this module, which is mod_php:
