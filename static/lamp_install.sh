@@ -140,11 +140,12 @@ install_php_depends(){
 
 # Install PHP Function
 install_php(){
-
+local phpversion=php7.0
     if check_sys packageManager apt; then
         apt_php_package=(
-		php php7.0-fpm php7.0-common php7.0-mbstring php7.0-xmlrpc php7.0-gd php7.0-xml 
-		php7.0-mysql php7.0-cli php7.0-zip php7.0-curl libapache2-mod-php libapache2-mod-fastcgi
+			phpversion phpversion-fpm phpversion-common phpversion-mbstring phpversion-xmlrpc phpversion-gd phpversion-xml
+			phpversion-mysql phpversioncli phpversion-zip phpversion-curl zip unzip
+			libapache2-mod-php libapache2-mod-fastcgi
         )
         log "Info" "Starting to install primary packages for PHP..."
         for depend in ${apt_php_package[@]}
@@ -153,17 +154,33 @@ install_php(){
         done
         log "Info" "Install dependencies packages for PHP completed..."
      fi
+     
+php -v
+
+# Lets also check if the PHP7.2-FPM is running, if not start it
+configure_php
+service phpversion-fpm status
+if (( $(ps -ef | grep -v grep | grep phpversion-fpm | wc -l) > 0 ))
+then
+echo "$service is running"
+else
+service phpversion-fpm start  # (if the service isn't running already)
+fi     
 }
 
 # Install PHP Function
 install_php7_2(){
+local phpversion=php7.2
+# Add Repository which gives us the latest php version 7.2
+add-apt-repository ppa:ondrej/php
 
-	apt update
-	add-apt-repository ppa:ondrej/php
+# Lets now check what is the latest PHP version available now after the repository is added
+apt-cache show php
+
 	if check_sys packageManager apt; then
 		apt_php_package=(
-			php7.2 	php7.2-fpm php7.2-common php7.2-mbstring php7.2-xmlrpc php7.2-gd php7.2-xml
-			php7.2-mysql php7.2-cli php7.2-zip php7.2-curl
+			phpversion phpversion-fpm phpversion-common phpversion-mbstring phpversion-xmlrpc phpversion-gd phpversion-xml
+			phpversion-mysql phpversioncli phpversion-zip phpversion-curl zip unzip
 			libapache2-mod-php libapache2-mod-fastcgi
 		)
 		log "Info" "Starting to install primary packages for PHP..."
@@ -177,7 +194,17 @@ install_php7_2(){
 # Configure PHP
 configure_php_7_2
 
+php -v
 
+# Lets also check if the PHP7.2-FPM is running, if not start it
+
+service phpversion-fpm status
+if (( $(ps -ef | grep -v grep | grep phpversion-fpm | wc -l) > 0 ))
+then
+echo "$service is running"
+else
+service phpversion-fpm start  # (if the service isn't running already)
+fi
 }
 #create mysql cnf
 create_php_fpm_conf(){
@@ -212,7 +239,7 @@ cat > /etc/apache2/conf-available/php7.2-fpm.conf << EOF
     </IfModule>
 EOF
 
-    log "Info" "create php7.0-fpm.conf file at /etc/apache2/conf-available/php7.0-fpm.conf completed."
+    log "Info" "create php7.2-fpm.conf file at /etc/apache2/conf-available/php7.2-fpm.conf completed."
 
 }
 
