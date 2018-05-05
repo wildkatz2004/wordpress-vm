@@ -395,7 +395,7 @@ log "Info" "Beginning php.ini edits."
           rm /etc/apache2/conf-available/php7.2-fpm.conf
     fi
 
-    create_php_fpm_7_2_conf
+   # Not sure about this---- create_php_fpm_7_2_conf
     sudo a2dismod php7.2
     sudo a2dismod mpm_prefork mpm_worker 
     a2enmod mpm_event headers
