@@ -213,6 +213,7 @@ a2ensite wordpress_port_443.conf
 a2ensite wordpress_port_80.conf
 a2dissite 000-default.conf
 a2dissite default-ssl.conf
+a2enmod ssl
 systemctl restart apache2.service
 log "Info" "Completed enabling of VirtualHost Files..."
 
