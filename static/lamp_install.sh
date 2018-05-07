@@ -26,15 +26,13 @@ phptoinstall=php7.2
 
 log "Info" "Write DB password to file to prepare for LAMP install..."
 # Write MARIADB pass to file and keep it safe
-if [ !-f  $MYCNF ]; then
-{
+
 echo "[client]"
 echo "password='$MARIADB_PASS'"
 } > "$MYCNF"
 chmod 0600 $MYCNF
 chown root:root $MYCNF
 log "Info" "Password ($MARIADB_PASS) written to file: $MYCNF..."
-fi
 
 install_mariadb(){
 
@@ -307,16 +305,18 @@ lamp(){
 	log "Info" "Beginning MariaDB install..."
 	install_mariadb
 	log "Info" "MariaDB install completed..."
+
+	log "Info" "Beginning Apache install..."
+	#install_apache_depends	
+	install_apache
+	log "Info" "Apache install completed..."	
 	
 	log "Info" "Beginning PHP install..."
 	#install_php_depends	
 	install_php
 	log "Info" "PHP install completed..."	
 
-	log "Info" "Beginning Apache install..."
-	#install_apache_depends	
-	install_apache
-	log "Info" "Apache install completed..."	
+
 }
 
 lamp 
