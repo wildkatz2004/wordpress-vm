@@ -9,7 +9,7 @@ true
 # 0 = OFF
 DEBUG=0
 debug_mode
-create_new_mycnf(){
+change_mysql_pass(){
 # Change MARIADB Password
 if mysqladmin -u root -p"${1}" password "$NEWMARIADBPASS" > /dev/null 2>&1
 then
@@ -26,5 +26,5 @@ else
     exit 1
 fi
 }
-create_new_mycnf
+change_mysql_pass
 
