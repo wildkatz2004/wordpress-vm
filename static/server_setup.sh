@@ -248,22 +248,21 @@ error_detect alter_database_char_set
 # Enable OPCache for PHP
 log "Info" "Attempting to Enable OPCache for PHP..."
 any_key "Press any key to continue the script..."
+# Enable OPCache for PHP
 phpenmod opcache
 {
 echo "# OPcache settings for Wordpress"
 echo "opcache.enable=1"
 echo "opcache.enable_cli=1"
-echo "opcache.interned_strings_buffer=16"
-echo "opcache.max_accelerated_files=7963"
-echo "opcache.memory_consumption=192"
-echo "opcache.revalidate_path=1"
+echo "opcache.interned_strings_buffer=8"
+echo "opcache.max_accelerated_files=10000"
+echo "opcache.memory_consumption=128"
+echo "opcache.save_comments=1"
 echo "opcache.revalidate_freq=1"
 echo "opcache.validate_timestamps=1"
-echo "opcache.enable_file_override=0"
-echo "opcache.fast_shutdown=1"
-} >> /etc/php/7.2/apache2/php.ini
-log "Info" "Completed enabling of OPCache for PHP..."
+} >> /etc/php/7.2/fpm/php.ini
 # Set secure permissions final
+log "Info" "OPCache Enabled for PHP..."
 run_static_script wp-permissions
 
 #cration of robots.txt
