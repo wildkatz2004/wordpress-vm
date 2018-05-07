@@ -53,11 +53,13 @@ sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_
 apt update -q4 & spinner_loading
 check_command apt install mariadb-server-10.2 -y
 
-# Prepare for Wordpress installation
+# Prepare for MySQL user updates
+log "Info" "Updating mysql user..."
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
+log "Info" "Mysql user updates completed..."
 
 # mysql_secure_installation
 apt -y install expect
