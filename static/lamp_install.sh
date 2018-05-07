@@ -52,7 +52,6 @@ sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password 
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADBMYCNFPASS"
 apt update -q4 & spinner_loading
 check_command apt install mariadb-server-10.2 -y
-log "Info" "Install of MariaDB completed..."
 
 # Prepare for Wordpress installation
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
@@ -84,7 +83,9 @@ echo "$SECURE_MYSQL"
 apt -y purge expect
 log "Info" "mysql_secure_installation config. completed..."
 # Write a new MariaDB config
+log "Info" "Preparing to create new mycnf file..."
 run_static_script new_etc_mycnf
+log "Info" "Creation of new mycnf file completed..."
 }
 
 apache_check_module() {
@@ -162,7 +163,7 @@ install_apache_depends(){
 
 
 install_apache(){
-	log "Info" "What version of php-fpm will be install: php$phptoinstall-fpm..."
+	log "Info" "Version of php-fpm that will be installed: $phptoinstall-fpm..."
 	
 	#Install Apache
 	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi $phptoinstall-fpm
