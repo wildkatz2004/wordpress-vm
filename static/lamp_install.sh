@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-WPDB=1 && MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
 unset MYCNFPW
 unset WPDB
 
@@ -24,15 +24,20 @@ php_ver_num=7.2
 phptoinstall=php7.2
 #Install MariaDB Function
 
-install_mariadb(){
-
-# Write MySQL pass to file and keep it safe
+log "Info" "Write DB password to file to prepare for LAMP install..."
+# Write MARIADB pass to file and keep it safe
+if [ !-f  $MYCNF ]; then
 {
 echo "[client]"
-echo "password='$MARIADBMYCNFPASS'"
+echo "password='$MARIADB_PASS'"
 } > "$MYCNF"
 chmod 0600 $MYCNF
 chown root:root $MYCNF
+log "Info" "Password ($MARIADB_PASS) written to file: $MYCNF..."
+fi
+
+install_mariadb(){
+
 
 # Install MySQL 5.7
 #export DEBIAN_FRONTEND="noninteractive"
@@ -48,16 +53,16 @@ chown root:root $MYCNF
 apt install software-properties-common -y
 sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
 sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ftp.ddg.lth.se/mariadb/repo/10.2/ubuntu xenial main'
-sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADBMYCNFPASS"
-sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADBMYCNFPASS"
+sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADB_PASS"
+sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
 check_command apt install mariadb-server-10.2 -y
 
 # Prepare for MySQL user updates
 log "Info" "Updating mysql user..."
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
-mysql -u root mysql -p"$MARIADBMYCNFPASS" -e "UPDATE user SET plugin='' WHERE user='root';"
-mysql -u root mysql -p"$MARIADBMYCNFPASS" -e "UPDATE user SET password=PASSWORD('$MARIADBMYCNFPASS') WHERE user='root';"
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
 log "Info" "Mysql user updates completed..."
 
@@ -68,7 +73,7 @@ SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
 expect \"Enter current password for root (enter for none):\"
-send \"$MARIADBMYCNFPASS\r\"
+send \"$MARIADB_PASS\r\"
 expect \"Change the root password?\"
 send \"n\r\"
 expect \"Remove anonymous users?\"
@@ -86,7 +91,7 @@ apt -y purge expect
 log "Info" "mysql_secure_installation config. completed..."
 # Write a new MariaDB config
 log "Info" "Preparing to create new mycnf file..."
-run_static_script new_etc_mycnf $MARIADBMYCNFPASS
+run_static_script new_etc_mycnf $MARIADB_PASS
 log "Info" "Creation of new mycnf file completed..."
 }
 
