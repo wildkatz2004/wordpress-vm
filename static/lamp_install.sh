@@ -78,7 +78,7 @@ apt -y purge expect
 log "Info" "mysql_secure_installation config. completed..."
 # Write a new MariaDB config
 log "Info" "Preparing to create new mycnf file..."
-run_static_script new_etc_mycnf $MARIADB_PASS
+run_static_script new_etc_mycnf
 log "Info" "Creation of new mycnf file completed..."
 }
 
@@ -158,7 +158,7 @@ install_apache(){
 	#Install Apache
 	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi
 	#Enable Modules and Make Apache Config changes
-	sudo a2dismod mpm_worker
+	sudo a2dismod mpm_worker mpm_prefork
 	#sudo a2enmod mpm_event rewrite ssl actions include cgi actions fastcgi alias proxy_fcgi fastcgi
 	sudo a2enmod mpm_event alias rewrite fastcgi expires headers ssl actions include proxy_fcgi
 	#configure_apache
@@ -287,8 +287,6 @@ configure_php
 
 php -v
 
-# CONFIGURE APACHE2 HTTP TO USE PHP7.2-FPM
-sudo a2enmod actions fastcgi alias proxy_fcgi
 # Lets also check if the PHP7.2-FPM is running, if not start it
 
 service $phpversion-fpm status
