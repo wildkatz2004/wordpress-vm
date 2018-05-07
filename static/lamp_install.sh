@@ -195,18 +195,20 @@ install_php_depends(){
 }
 
 #create mysql cnf
-create_php_fpm_conf(){
+create_php_fastcgi_conf(){
 log "Info" "Beginning creation of php-fpm.conf"
-cat > /etc/apache2/conf-available/php-fpm.conf << EOF 
+cat > /etc/apache2/mods-enabled/fastcgi.conf << EOF 
+
 <IfModule mod_fastcgi.c>
-   AddHandler php.fcgi .php
-   Action php.fcgi /php.fcgi
-   Alias /php.fcgi /usr/lib/cgi-bin/php.fcgi
-   FastCgiExternalServer /usr/lib/cgi-bin/php.fcgi -socket /run/php/php7.2-fpm.sock -pass-header Authorization -idle-timeout 3600
-   <Directory /usr/lib/cgi-bin>
-       Require all granted
-   </Directory>
-</IfModule>
+  AddHandler php7-fcgi-sites .php
+  Action php7-fcgi-sites /php7-fcgi-sites
+  Alias /php7-fcgi-sites /usr/lib/cgi-bin/php7-fcgi-sites
+ FastCgiExternalServer /usr/lib/cgi-bin/php7-fcgi-sites -idle-timeout 60 -socket /var/run/php/php7.2-fpm.sock -pass-header Authorization
+
+  <Directory /usr/lib/cgi-bin>
+    Require all granted
+  </Directory>
+</IfModule>	
 EOF
 log "Info" "Completed creation of $phptoinstall-fpm.conf"
 log "Info" "create $phptoinstall-fpm.conf file at /etc/apache2/conf-available/php-fpm.conf completed."
@@ -248,13 +250,10 @@ log "Info" "Beginning php.ini edits."
 	chmod +t /var/lib/php/sessions
 
 
-    #Not sure about this... 
-	#if [ -f  /etc/apache2/conf-available/$phptoinstall-fpm.conf ]; then
-         # rm /etc/apache2/conf-available/$phptoinstall-fpm.conf
-	#fi
-
-	#create_php_fpm_conf
-    #Might need to disable? 
+    #Run if necessary
+    #create_php_fastcgi_conf
+    
+    #Diable php module
     sudo a2dismod $phptoinstall
 
     # Restart Apache
