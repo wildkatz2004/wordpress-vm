@@ -299,7 +299,7 @@ create_mysql_my_cnf "/var/lib/mysql" "ETCMYCNF"
 
 
 # Restart MariaDB
-mysqladmin shutdown -uroot -p$MARIADB_PASS --force & spinner_loading
+mysqladmin shutdown -uroot -p${1} --force & spinner_loading
 wait
 check_command systemctl restart mariadb & spinner_loading
 
