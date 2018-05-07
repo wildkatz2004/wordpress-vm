@@ -56,14 +56,22 @@ fi
 
 printf "${Green}Gathering System info${Color_Off}\n" 
 preinstall_lamp
-printf "${Green}Beginning check if server is clean...${Color_Off}\n" 
-# Check if it's a clean server
-is_this_installed postgresql
-is_this_installed apache2
-is_this_installed php
-is_this_installed mysql-common
-is_this_installed mysql-server
-printf "${Green}Server is clean...${Color_Off}\n" 
+if [[ "yes" == $(ask_yes_or_no "Check if this is clean server... ?") ]]
+then
+	printf "${Green}Beginning check if server is clean...${Color_Off}\n" 
+	# Check if it's a clean server
+	is_this_installed postgresql
+	is_this_installed apache2
+	is_this_installed php
+	is_this_installed mysql-common
+	is_this_installed mysql-server
+	printf "${Green}Server is clean...${Color_Off}\n" 
+else
+	echo
+	echo "OK, moving to next step"
+	any_key "Press any key to continue..."
+fi
+
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
