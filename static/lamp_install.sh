@@ -29,7 +29,7 @@ install_mariadb(){
 # Write MySQL pass to file and keep it safe
 {
 echo "[client]"
-echo "password='$MARIADB_PASS'"
+echo "password='$MARIADBMYCNFPASS'"
 } > "$MYCNF"
 chmod 0600 $MYCNF
 chown root:root $MYCNF
@@ -56,8 +56,8 @@ check_command apt install mariadb-server-10.2 -y
 # Prepare for MySQL user updates
 log "Info" "Updating mysql user..."
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
-mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
-mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADBMYCNFPASS') WHERE user='root';"
+mysql -u root mysql -p"$MARIADBMYCNFPASS" -e "UPDATE user SET plugin='' WHERE user='root';"
+mysql -u root mysql -p"$MARIADBMYCNFPASS" -e "UPDATE user SET password=PASSWORD('$MARIADBMYCNFPASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
 log "Info" "Mysql user updates completed..."
 
