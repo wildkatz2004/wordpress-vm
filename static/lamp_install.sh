@@ -27,12 +27,13 @@ phptoinstall=php7.2
 log "Info" "Write DB password to file to prepare for LAMP install..."
 # Write MARIADB pass to file and keep it safe
 
+# Write MARIADB pass to file and keep it safe
+{
 echo "[client]"
 echo "password='$MARIADB_PASS'"
 } > "$MYCNF"
 chmod 0600 $MYCNF
 chown root:root $MYCNF
-log "Info" "Password ($MARIADB_PASS) written to file: $MYCNF..."
 
 install_mariadb(){
 
