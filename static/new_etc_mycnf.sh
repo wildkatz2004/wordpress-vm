@@ -2,8 +2,8 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
-
+MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
+unset MYCNFPW
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
 # 0 = OFF
@@ -299,7 +299,7 @@ create_mysql_my_cnf "/var/lib/mysql" "ETCMYCNF"
 
 
 # Restart MariaDB
-mysqladmin shutdown -uroot -p${1} --force & spinner_loading
+mysqladmin shutdown -uroot -p$MARIADBMYCNFPASS --force & spinner_loading
 wait
 check_command systemctl restart mariadb & spinner_loading
 
