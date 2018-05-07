@@ -168,12 +168,14 @@ install_apache(){
 	log "Info" "Version of php-fpm that will be installed: $phptoinstall-fpm..."
 	
 	#Install Apache
-	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi $phptoinstall-fpm
+	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi $phptoinstall-fpm $phptoinstall-common
 	#Enable Modules and Make Apache Config changes
-	configure_apache
+	sudo a2enmod rewrite ssl actions include cgi actions fastcgi alias proxy_fcgi fastcgi
+	#configure_apache
 	#Restart PHP-FPM and Apache
 	systemctl restart $phptoinstall-fpm
 	systemctl restart apache2
+	
 }
 
 configure_apache(){
@@ -310,12 +312,13 @@ log "Info" "Beginning php.ini edits."
 	chmod 733 /var/lib/php/sessions
 	chmod +t /var/lib/php/sessions
 
-    if [ -f  /etc/apache2/conf-available/$phptoinstall-fpm.conf ]; then
-          rm /etc/apache2/conf-available/$phptoinstall-fpm.conf
-    fi
 
     #Not sure about this... 
-    create_php_fpm_conf
+	#if [ -f  /etc/apache2/conf-available/$phptoinstall-fpm.conf ]; then
+         # rm /etc/apache2/conf-available/$phptoinstall-fpm.conf
+	#fi
+
+	#create_php_fpm_conf
     #Might need to disable? 
     sudo a2dismod $phptoinstall
     sudo a2dismod mpm_prefork mpm_worker 
