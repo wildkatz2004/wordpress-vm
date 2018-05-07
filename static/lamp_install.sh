@@ -57,7 +57,7 @@ check_command apt install mariadb-server-10.2 -y
 log "Info" "Updating mysql user..."
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
 mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET plugin='' WHERE user='root';"
-mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADB_PASS') WHERE user='root';"
+mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MARIADBMYCNFPASS') WHERE user='root';"
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
 log "Info" "Mysql user updates completed..."
 
@@ -86,7 +86,7 @@ apt -y purge expect
 log "Info" "mysql_secure_installation config. completed..."
 # Write a new MariaDB config
 log "Info" "Preparing to create new mycnf file..."
-run_static_script new_etc_mycnf
+run_static_script new_etc_mycnf $MARIADBMYCNFPASS
 log "Info" "Creation of new mycnf file completed..."
 }
 
@@ -406,14 +406,15 @@ lamp(){
 	log "Info" "Beginning MariaDB install..."
 	install_mariadb
 	log "Info" "MariaDB install completed..."
-	#install_apache_depends
-	log "Info" "Beginning Apache install..."	
+
+	log "Info" "Beginning Apache install..."
+	#install_apache_depends	
 	install_apache
 	log "Info" "Apache install completed..."	
-	#install_php_depends
-	#install_php
-	log "Info" "Beginning PHP install..."	
-	install_php7_2
+
+	log "Info" "Beginning PHP install..."
+	#install_php_depends	
+	install_php
 	log "Info" "PHP install completed..."	
 }
 
