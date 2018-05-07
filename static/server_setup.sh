@@ -161,18 +161,6 @@ else
 	any_key "Press any key to continue..."
 fi
 
-log "Info" "Write DB password to file to prepare for LAMP install..."
-# Write MARIADB pass to file and keep it safe
-if [ !-f  $MYCNF ]; then
-{
-echo "[client]"
-echo "password='$MARIADB_PASS'"
-} > "$MYCNF"
-chmod 0600 $MYCNF
-chown root:root $MYCNF
-log "Info" "Password ($MARIADB_PASS) written to file: $MYCNF..."
-fi
-
 # Install Lamp
 if [[ "yes" == $(ask_yes_or_no "Begin installing LAMP...?") ]]
 then
