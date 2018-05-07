@@ -38,17 +38,6 @@ fi
 
 install_mariadb(){
 
-
-# Install MySQL 5.7
-#export DEBIAN_FRONTEND="noninteractive"
-#apt install software-properties-common -y
-#sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
-#sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7'
-#sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $MARIADB_PASS"
-#sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MARIADB_PASS"
-#apt update -q4 & spinner_loading
-#check_command apt-get install mysql-server -y
-
 # Install MARIADB
 apt install software-properties-common -y
 sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
@@ -155,14 +144,10 @@ install_apache_depends(){
     #Install Apache dependencies
     log "Info" "Starting to install dependencies packages for Apache..."
     local apt_list=(openssl libssl-dev libxml2-dev lynx lua-expat-dev libjansson-dev)
-    local yum_list=(zlib-devel openssl-devel libxml2-devel lynx expat-devel lua-devel lua jansson-devel)
+
     if check_sys packageManager apt; then
         for depend in ${apt_list[@]}; do
             error_detect_depends "apt-get -y install ${depend}"
-        done
-    elif check_sys packageManager yum; then
-        for depend in ${yum_list[@]}; do
-            error_detect_depends "yum -y install ${depend}"
         done
     fi
     log "Info" "Install dependencies packages for Apache completed..."
@@ -173,44 +158,21 @@ install_apache(){
 	log "Info" "Version of php-fpm that will be installed: $phptoinstall-fpm..."
 	
 	#Install Apache
-	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi $phptoinstall-fpm $phptoinstall-common
+	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi
 	#Enable Modules and Make Apache Config changes
-	sudo a2enmod rewrite ssl actions include cgi actions fastcgi alias proxy_fcgi fastcgi
+	sudo a2dismod mpm_worker
+	#sudo a2enmod mpm_event rewrite ssl actions include cgi actions fastcgi alias proxy_fcgi fastcgi
+	sudo a2enmod mpm_event alias rewrite fastcgi expires headers ssl actions include proxy_fcgi
 	#configure_apache
-	#Restart PHP-FPM and Apache
-	systemctl restart $phptoinstall-fpm
-	systemctl restart apache2
-	
-}
 
-configure_apache(){
-
-       #Enable Apache Modules
-           apache_modules=(
-		suexec rewrite ssl actions include cgi actions fastcgi proxy_fcgi alias headers
-        )
-        log "Info" "Starting to enable Apache Modules..."
-        for apachemod in ${apache_modules[@]}
-	do
-		if ! apache_check_module "${apachemod}" "enabled" "load"; then continue; fi
-		if [ "$apachemod" == "proxy_fcgi" ]
-		then
-			if ! apache_check_module "proxy" "enabled" "load"; then continue; fi
-			if ! apache_check_module "proxy" "enabled" "conf"; then continue; fi
-		fi
-		apache_enable_module "$apachemod" "load"
-		systemctl restart apache2
-		
-	done
-        log "Info" "Enabling Apache Modules Completed..."
-	
 	log "Info" "Attempting tweaks to /etc/apache2/conf-available/security.conf"
 	#Tweak Apache settings - let's hide what OS and Webserver this server is running	    
 	sed -i "s/ServerTokens OS/ServerTokens Prod/" /etc/apache2/conf-available/security.conf
 	sed -i "s/ServerSignature On/ServerSignature Off/" /etc/apache2/conf-available/security.conf	    
 	log "Info" "Tweaks completed"
+	#Restart Apache
 	sudo systemctl restart apache2
-		
+	
 }
 
 # Install PHP Dependencies Function
@@ -234,52 +196,22 @@ install_php_depends(){
 	
 }
 
-# Install PHP Function
-#install_php(){
-#local phpversion=php7.0
-#    if check_sys packageManager apt; then
-#        apt_php_package=(
-#			$phpversion $phpversion-fpm $phpversion-common $phpversion-mbstring $phpversion-xmlrpc $phpversion-gd $phpversion-xml
-#			$phpversion-mysql $phpversioncli $phpversion-zip $phpversion-curl zip unzip
-#			libapache2-mod-php libapache2-mod-fastcgi
-#       )
-#        log "Info" "Starting to install primary packages for PHP..."
-#        for depend in ${apt_php_package[@]}
-#        do
-#            error_detect_depends "apt-get -y install ${depend}"
-#        done
-#        log "Info" "Install dependencies packages for PHP completed..."
-#     fi
-     
-#php -v
-
-# Lets also check if the PHP7.2-FPM is running, if not start it
-#configure_php
-#service $phpversion-fpm status
-#if (( $(ps -ef | grep -v grep | grep $phpversion-fpm | wc -l) > 0 ))
-#then
-#echo "$service is running"
-#else
-#service $phpversion-fpm start  # (if the service isn't running already)
-#fi     
-#}
-
 #create mysql cnf
 create_php_fpm_conf(){
-log "Info" "Beginning creation of $phptoinstall-fpm.conf"
-cat > /etc/apache2/conf-available/$phptoinstall-fpm.conf << EOF 
-    <IfModule mod_fastcgi.c>
-      AddHandler php.fcgi .php
-      Action php.fcgi /php.fcgi
-      Alias /php.fcgi /usr/lib/cgi-bin/php.fcgi
-      FastCgiExternalServer /usr/lib/cgi-bin/php.fcgi -socket /run/php/$phptoinstall-fpm.sock -pass-header Authorization -idle-timeout 3600
-      <Directory /usr/lib/cgi-bin>
-        Require all granted
-      </Directory>
-    </IfModule>
+log "Info" "Beginning creation of php-fpm.conf"
+cat > /etc/apache2/conf-available/php-fpm.conf << EOF 
+<IfModule mod_fastcgi.c>
+   AddHandler php.fcgi .php
+   Action php.fcgi /php.fcgi
+   Alias /php.fcgi /usr/lib/cgi-bin/php.fcgi
+   FastCgiExternalServer /usr/lib/cgi-bin/php.fcgi -socket /run/php/php7.2-fpm.sock -pass-header Authorization -idle-timeout 3600
+   <Directory /usr/lib/cgi-bin>
+       Require all granted
+   </Directory>
+</IfModule>
 EOF
 log "Info" "Completed creation of $phptoinstall-fpm.conf"
-log "Info" "create $phptoinstall-fpm.conf file at /etc/apache2/conf-available/$phptoinstall-fpm.conf completed."
+log "Info" "create $phptoinstall-fpm.conf file at /etc/apache2/conf-available/php-fpm.conf completed."
 
 }
 
@@ -326,30 +258,23 @@ log "Info" "Beginning php.ini edits."
 	#create_php_fpm_conf
     #Might need to disable? 
     sudo a2dismod $phptoinstall
-    sudo a2dismod mpm_prefork mpm_worker 
-    a2enmod mpm_event headers
-    sudo a2enconf $phptoinstall-fpm 
+
     # Restart Apache
     sudo service apache2 restart && sudo service $phptoinstall-fpm restart
 log "Info" "Php.ini edits completed."
 }
 
-
 # Install PHP Function
 install_php(){
 local phpversion=php7.2
-# Add Repository which gives us the latest php version 7.2
-add-apt-repository ppa:ondrej/php
-
-# Lets now check what is the latest PHP version available now after the repository is added
-apt-cache show php
 
 	if check_sys packageManager apt; then
 		apt_php_package=(
+		php7.2 php7.2-fpm php7.2-common
 		php7.2-cli php7.2-dev php7.2-pgsql php7.2-sqlite3 php7.2-gd php7.2-curl php-memcached 
 		php7.2-imap php7.2-mysql php7.2-mbstring php7.2-xml php-imagick php7.2-zip php7.2-bcmath php7.2-soap 
-		php7.2-intl php7.2-readline php7.2-common php7.2-pspell php7.2-tidy php7.2-xmlrpc php7.2-xsl 
-		php7.2-opcache php-apcu	libapache2-mod-php libapache2-mod-fastcgi
+		php7.2-intl php7.2-readline php7.2-pspell php7.2-tidy php7.2-xmlrpc php7.2-xsl 
+		php7.2-opcache php-apcu	libapache2-mod-php
 		)
 		log "Info" "Starting to install primary packages for PHP..."
 		for depend in ${apt_php_package[@]}
@@ -364,6 +289,8 @@ configure_php
 
 php -v
 
+# CONFIGURE APACHE2 HTTP TO USE PHP7.2-FPM
+sudo a2enmod actions fastcgi alias proxy_fcgi
 # Lets also check if the PHP7.2-FPM is running, if not start it
 
 service $phpversion-fpm status
@@ -375,55 +302,21 @@ service $phpversion-fpm start  # (if the service isn't running already)
 fi
 }
 
-
-# Configure PHP Function
-#configure_php(){
-#log "Info" "Beginning php.ini edits."
-    # Configure PHP
-    #sed -i "s|allow_url_fopen =.*|allow_url_fopen = On|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|max_execution_time =.*|max_execution_time = 360|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|file_uploads =.*|file_uploads = On|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|upload_max_filesize =.*|upload_max_filesize = 100M|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|memory_limit =.*|memory_limit = 256M|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|post_max_size =.*|post_max_size = 110M|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|cgi.fix_pathinfo =.*|cgi.fix_pathinfo=0|g" /etc/php/7.0/fpm/php.ini
-    #sed -i "s|date.timezone =.*|date.timezone = US/Central|g" /etc/php/7.0/fpm/php.ini
-
-    #if [ -f  /etc/apache2/conf-available/php7.0-fpm.conf ]; then
-  #        rm /etc/apache2/conf-available/php7.0-fpm.conf
-  #  fi
-
-    #create_php_fpm_conf
-
-    #enable /etc/apache2/conf-available/php-fpm.confcat
-    #sudo a2enconf php7.0-fpm
-    
-    #sudo a2dismod mpm_prefork mpm_worker 
-   # a2enmod actions fastcgi alias proxy_fcgi mpm_event
-    # And disable this module, which is mod_php:
-    #sudo a2dismod php7.0
-    # Restart Apache
-   #sudo service apache2 restart && sudo service php7.0-fpm restart
-#log "Info" "Php.ini edits completed."
-#}
-
-
-
 # Install Lamp
 lamp(){
 	log "Info" "Beginning MariaDB install..."
 	install_mariadb
 	log "Info" "MariaDB install completed..."
+	
+	log "Info" "Beginning PHP install..."
+	#install_php_depends	
+	install_php
+	log "Info" "PHP install completed..."	
 
 	log "Info" "Beginning Apache install..."
 	#install_apache_depends	
 	install_apache
 	log "Info" "Apache install completed..."	
-
-	log "Info" "Beginning PHP install..."
-	#install_php_depends	
-	install_php
-	log "Info" "PHP install completed..."	
 }
 
 lamp 
