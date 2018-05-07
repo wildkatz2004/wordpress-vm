@@ -11,7 +11,7 @@ unset WPDB
 # 0 = OFF
 DEBUG=0
 debug_mode
-
+log "Info" "View MySQL password: ($MARIADB_PASS) ..."
 # Check if root
 if ! is_root
 then
@@ -25,7 +25,7 @@ phptoinstall=php7.2
 #Install MariaDB Function
 
 install_mariadb(){
-
+log "Info" "View MySQL password: ($MARIADBMYCNFPASS) ..."
 # Write MySQL pass to file and keep it safe
 {
 echo "[client]"
@@ -33,7 +33,7 @@ echo "password='$MARIADBMYCNFPASS'"
 } > "$MYCNF"
 chmod 0600 $MYCNF
 chown root:root $MYCNF
-
+log "Info" "View MySQL password: ($MARIADBMYCNFPASS) ..."
 # Install MySQL 5.7
 #export DEBIAN_FRONTEND="noninteractive"
 #apt install software-properties-common -y
