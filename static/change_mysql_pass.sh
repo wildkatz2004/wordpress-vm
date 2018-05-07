@@ -2,7 +2,8 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
+MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/wildkatz2004/wordpress-vm/master/lib.sh)
+unset MYCNFPW
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -11,7 +12,7 @@ DEBUG=0
 debug_mode
 change_mysql_pass(){
 # Change MARIADB Password
-if mysqladmin -u root -p"${1}" password "$NEWMARIADBPASS" > /dev/null 2>&1
+if mysqladmin -u root -p"$MARIADBMYCNFPASS" password "$NEWMARIADBPASS" > /dev/null 2>&1
 then
     echo -e "${Green}Your new MARIADB root password is: $NEWMARIADBPASS${Color_Off}"
     cat << LOGIN > "$MYCNF"
