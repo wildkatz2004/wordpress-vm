@@ -54,18 +54,23 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
     exit
 fi
 
+printf "${Green}Gathering System info${Color_Off}\n" 
 preinstall_lamp
+printf "${Green}Beginning check if server is clean...${Color_Off}\n" 
 # Check if it's a clean server
 is_this_installed postgresql
 is_this_installed apache2
 is_this_installed php
 is_this_installed mysql-common
 is_this_installed mysql-server
+printf "${Green}Server is clean...${Color_Off}\n" 
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
 then
-    mkdir -p "$SCRIPTS"
+	log "Info" "Creating Scripts directory ($SCRIPTS)..."
+	mkdir -p "$SCRIPTS"
+	log "Info" "Directory created ($SCRIPTS)..."    
 fi
 
 # Check network
@@ -98,9 +103,9 @@ then
 	apt-add-repository ppa:ondrej/php -y
 	log "Info" "Completed adding apache2 and php repositories..."
 else
-    echo
-    echo "OK, moving to next step"
-    any_key "Press any key to continue..."
+	echo
+	echo "OK, moving to next step"
+	any_key "Press any key to continue..."
 fi
 
 
@@ -130,9 +135,9 @@ then
 	install_base_packages
 	log "Info" "Completed installing base packages..."
 else
-    echo
-    echo "OK, moving to next step"
-    any_key "Press any key to continue..."
+	echo
+	echo "OK, moving to next step"
+	any_key "Press any key to continue..."
 fi
 
 
@@ -143,9 +148,9 @@ then
 	curl -sS https://getcomposer.org/installer | php
 	mv composer.phar /usr/local/bin/composer
 else
-    echo
-    echo "OK, moving to next step"
-    any_key "Press any key to continue..."
+	echo
+	echo "OK, moving to next step"
+	any_key "Press any key to continue..."
 fi
 
 
@@ -156,9 +161,9 @@ then
 	run_static_script lamp_install
 	log "Info" "Completed installing LAMP..."
 else
-    echo
-    echo "OK, moving to next step"
-    any_key "Press any key to continue..."
+	echo
+	echo "OK, moving to next step"
+	any_key "Press any key to continue..."
 fi
 
 
@@ -170,9 +175,9 @@ then
 	run_static_script wp_install
 	log "Info" "Completed installing WordPress..."
 else
-    echo
-    echo "OK, moving to next step"
-    any_key "Press any key to continue..."
+	echo
+	echo "OK, moving to next step"
+	any_key "Press any key to continue..."
 fi
 
 
@@ -218,8 +223,7 @@ systemctl restart apache2.service
 log "Info" "Completed enabling of VirtualHost Files..."
 
 # Enable UTF8mb4 (4-byte support)
-log "Info" "Attempting to Enable UTF8mb4 ..."
-any_key "Press any key to continue the script..."
+alter_database_char_set(){
 databases=$(mysql -u root -p"$MARIADB_PASS" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
 for db in $databases; do
     if [[ "$db" != "performance_schema" ]] && [[ "$db" != _* ]] && [[ "$db" != "information_schema" ]];
@@ -228,6 +232,11 @@ for db in $databases; do
         mysql -u root -p"$MARIADB_PASS" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
     fi
 done
+}
+
+log "Info" "Will attempt to Enable UTF8mb4 ..."
+any_key "Press any key to continue the script..."
+error_detect alter_database_char_set
 
 # Enable OPCache for PHP
 log "Info" "Attempting to Enable OPCache for PHP..."
