@@ -154,8 +154,7 @@ install_apache_depends(){
 
 
 install_apache(){
-	log "Info" "Version of php-fpm that will be installed: $phptoinstall-fpm..."
-	
+
 	#Install Apache
 	check_command apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi
 	#Enable Modules and Make Apache Config changes
