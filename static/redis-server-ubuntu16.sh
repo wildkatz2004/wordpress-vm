@@ -214,20 +214,17 @@ phpize && ./configure && make && make install
 #Now it is necessary to add compiled extension to php config
 
 #Add PhpRedis extension to PHP 7. Use proper path to your php configs e.g. /etc/php/7.1/ , /etc/php/7.2/
-echo 'extension=redis.so' | sudo tee /etc/php/7.0/mods-available/redis.ini
-sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/apache2/conf.d/redis.ini
-sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/fpm/conf.d/redis.ini
-sudo ln -s /etc/php/7.0/mods-available/redis.ini /etc/php/7.0/cli/conf.d/redis.ini
+echo 'extension=redis.so' | sudo tee /etc/php/7.2/mods-available/redis.ini
+sudo ln -s /etc/php/7.2/mods-available/redis.ini /etc/php/7.2/apache2/conf.d/redis.ini
+sudo ln -s /etc/php/7.2/mods-available/redis.ini /etc/php/7.2/fpm/conf.d/redis.ini
+sudo ln -s /etc/php/7.2/mods-available/redis.ini /etc/php/7.2/cli/conf.d/redis.ini
 }
 #############################################################################
 # Get packages to be able to install Redis
 apt update -q4 & spinner_loading
 sudo apt install -q -y \
-    build-essential \
     tcl \
-    php-dev \
-    php-pear \
-    unzip
+    php7.2-pear
     
 # Step1
 tune_memory
@@ -245,8 +242,8 @@ install_php7
 start_redis
 
 #Start php7
-sudo service php7.0-fpm status | cat
-sudo service php7.0-fpm restart
+sudo service php7.2-fpm status | cat
+sudo service php7.2-fpm restart
 
 
 # Clean
