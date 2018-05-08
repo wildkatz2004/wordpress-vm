@@ -114,7 +114,7 @@ fi
 }
 
 ask_yes_or_no() {
-    read -r -p "$1 ([y]es or [N]o): "
+    read -r -p "${Purple}$1{Color_Off} ([y]es or [N]o): "
     case ${REPLY,,} in
         y|yes)
             echo "yes"
