@@ -223,8 +223,11 @@ sudo ln -s /etc/php/7.2/mods-available/redis.ini /etc/php/7.2/cli/conf.d/redis.i
 # Get packages to be able to install Redis
 apt update -q4 & spinner_loading
 sudo apt install -q -y \
-    tcl \
-    php7.2-pear
+    build-essential \
+    tcl8.6 \
+    php-dev \
+    php-pear
+
     
 # Step1
 tune_memory
