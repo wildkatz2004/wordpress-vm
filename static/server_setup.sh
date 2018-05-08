@@ -220,22 +220,18 @@ check_command systemctl restart apache2
 check_command systemctl status apache2
 
 # Enable UTF8mb4 (4-byte support)
-alter_database_char_set(){
-databases=$(mysql -u root -p"${1}" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
+log "Info" "Will attempt to Enable UTF8mb4 ..."
+any_key "Press any key to continue the script..."
+#check_command alter_database_char_set $MARIADBMYCNFPASS
+log "Info" "UTF8mb4 enabled..."
+databases=$(mysql -u root -p"$MARIADBMYCNFPASS" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
 for db in $databases; do
     if [[ "$db" != "performance_schema" ]] && [[ "$db" != _* ]] && [[ "$db" != "information_schema" ]];
     then
         echo "Changing to UTF8mb4 on: $db"
-        mysql -u root -p"${1}" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+        mysql -u root -p"$MARIADBMYCNFPASS" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
     fi
 done
-}
-
-log "Info" "Will attempt to Enable UTF8mb4 ..."
-any_key "Press any key to continue the script..."
-check_command alter_database_char_set $MARIADBMYCNFPASS
-log "Info" "UTF8mb4 enabled..."
-check_command systemctl restart mariadb
 
 # Enable OPCache for PHP
 log "Info" "Will attempt to Enable OPCache for PHP..."
