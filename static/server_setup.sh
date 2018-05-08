@@ -56,7 +56,7 @@ fi
 
 printf "${Green}Gathering System info${Color_Off}\n" 
 preinstall_lamp
-if [[ "yes" == $(ask_yes_or_no "Check if this is clean server... ?") ]]
+if [[ "yes" == $(ask_yes_or_no "${Purple}Check if this is clean server... ?${Color_Off}") ]]
 then
 	printf "${Green}Beginning check if server is clean...${Color_Off}\n" 
 	# Check if it's a clean server
@@ -67,9 +67,7 @@ then
 	is_this_installed mysql-server
 	printf "${Green}Server is clean...${Color_Off}\n" 
 else
-	echo
-	echo "OK, moving to next step"
-	any_key "Press any key to continue..."
+	printf "${Green}OK, moving to next step...${Color_Off}\n" 
 fi
 
 
@@ -104,16 +102,14 @@ apt update -q4 & spinner_loading
 
 #The Perfect Server - Ubuntu LAMP 7.2
 #https://webdock.io/en/docs/stacks/ubuntu-lamp-72
-if [[ "yes" == $(ask_yes_or_no "Begin adding apache2 and php repositories... ?") ]]
+if [[ "yes" == $(ask_yes_or_no "${Purple}Begin adding apache2 and php repositories... ?${Color_Off}") ]]
 then
 	log "Info" "Adding apache2 and php repositories..."
 	apt-add-repository ppa:ondrej/apache2 -y
 	apt-add-repository ppa:ondrej/php -y
 	log "Info" "Completed adding apache2 and php repositories..."
 else
-	echo
-	echo "OK, moving to next step"
-	any_key "Press any key to continue..."
+	printf "${Green}OK, moving to next step...${Color_Off}\n" 
 fi
 
 
@@ -137,54 +133,46 @@ install_base_packages(){
 	
 }
 
-if [[ "yes" == $(ask_yes_or_no "Begin installing base packages...?") ]]
+if [[ "yes" == $(ask_yes_or_no "${Purple}Begin installing base packages...?${Color_Off}") ]]
 then
 	log "Info" "Preparing to install base packages..."
 	install_base_packages
 	log "Info" "Completed installing base packages..."
 else
-	echo
-	echo "OK, moving to next step"
-	any_key "Press any key to continue..."
+	printf "${Green}OK, moving to next step...${Color_Off}\n" 
 fi
 
 
 #Install Composer
-if [[ "yes" == $(ask_yes_or_no "Begin installing Composer...?") ]]
+if [[ "yes" == $(ask_yes_or_no "${Purple}Begin installing Composer...?${Color_Off}") ]]
 then
 	log "Info" "Preparing to install Composer..."
 	curl -sS https://getcomposer.org/installer | php
 	mv composer.phar /usr/local/bin/composer
 else
-	echo
-	echo "OK, moving to next step"
-	any_key "Press any key to continue..."
+	printf "${Green}OK, moving to next step...${Color_Off}\n" 
 fi
 
 # Install Lamp
-if [[ "yes" == $(ask_yes_or_no "Begin installing LAMP...?") ]]
+if [[ "yes" == $(ask_yes_or_no "${Purple}Begin installing LAMP...?${Color_Off}") ]]
 then
 	log "Info" "Preparing to install LAMP..."
 	run_static_script lamp_install
 	log "Info" "Completed installing LAMP..."
 else
-	echo
-	echo "OK, moving to next step"
-	any_key "Press any key to continue..."
+	printf "${Green}OK, moving to next step...${Color_Off}\n" 
 fi
 
 
 
 # Install WordPress
-if [[ "yes" == $(ask_yes_or_no "Begin installing WordPress...?") ]]
+if [[ "yes" == $(ask_yes_or_no "${Purple}Begin installing WordPress...?${Color_Off}") ]]
 then
 	log "Info" "Preparing to install WordPress..."
 	run_static_script wp_install
 	log "Info" "Completed installing WordPress..."
 else
-	echo
-	echo "OK, moving to next step"
-	any_key "Press any key to continue..."
+	printf "${Green}OK, moving to next step...${Color_Off}\n" 
 fi
 
 
@@ -226,27 +214,31 @@ a2ensite wordpress_port_80.conf
 a2dissite 000-default.conf
 a2dissite default-ssl.conf
 a2enmod ssl
-systemctl restart apache2.service
-log "Info" "Completed enabling of VirtualHost Files..."
+log "Info" "Completed creating/enabling of VirtualHost Files..."
+log "Info" "Restarting Apache and cheching status..."
+check_command systemctl restart apache2
+check_command systemctl status apache2
 
 # Enable UTF8mb4 (4-byte support)
 alter_database_char_set(){
-databases=$(mysql -u root -p"$MARIADBMYCNFPASS" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
+databases=$(mysql -u root -p"${1}" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
 for db in $databases; do
     if [[ "$db" != "performance_schema" ]] && [[ "$db" != _* ]] && [[ "$db" != "information_schema" ]];
     then
         echo "Changing to UTF8mb4 on: $db"
-        mysql -u root -p"$MARIADBMYCNFPASS" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+        mysql -u root -p"${1}" -e "ALTER DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
     fi
 done
 }
 
 log "Info" "Will attempt to Enable UTF8mb4 ..."
 any_key "Press any key to continue the script..."
-error_detect alter_database_char_set
+check_command alter_database_char_set $MARIADBMYCNFPASS
+log "Info" "UTF8mb4 enabled..."
+check_command systemctl restart mariadb
 
 # Enable OPCache for PHP
-log "Info" "Attempting to Enable OPCache for PHP..."
+log "Info" "Will attempt to Enable OPCache for PHP..."
 any_key "Press any key to continue the script..."
 # Enable OPCache for PHP
 phpenmod opcache
@@ -261,14 +253,16 @@ echo "opcache.save_comments=1"
 echo "opcache.revalidate_freq=1"
 echo "opcache.validate_timestamps=1"
 } >> /etc/php/7.2/fpm/php.ini
-# Set secure permissions final
+cat /etc/php/7.2/fpm/php.ini
+
 log "Info" "OPCache Enabled for PHP..."
+# Set secure permissions final
 run_static_script wp-permissions
 
 #cration of robots.txt
 log "Info" "Attempting to create robot.txt file..."
 sleep 3
-cat > $WPATHrobots.txt <<EOL
+cat > $WPATH/robots.txt <<EOL
 User-agent: *
 Disallow: /cgi-bin
 Disallow: /wp-admin/
@@ -286,6 +280,9 @@ Disallow: /tag
 Disallow: /?author=*
 EOL
 
+cat $WPATH/robots.txt
+log "Info" "Robot.txt file created..."
+
 # Prepare for first mount
 download_static_script instruction
 download_static_script history
@@ -301,8 +298,8 @@ chmod +x -R "$SCRIPTS"
 chown root:root -R "$SCRIPTS"
 
 # Allow wordpress to run theese scripts
-chown wordpress:wordpress "$SCRIPTS/instruction.sh"
-chown wordpress:wordpress "$SCRIPTS/history.sh"
+chown www-data:www-data "$SCRIPTS/instruction.sh"
+chown www-data:www-data "$SCRIPTS/history.sh"
 
 # Upgrade
 apt dist-upgrade -y
@@ -321,6 +318,6 @@ find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -nam
 sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
 
 # Reboot
-echo "Installation done, system will now reboot..."
+log "Info" "Installation done, system will now reboot..."
 
 reboot
