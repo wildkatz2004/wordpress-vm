@@ -115,7 +115,7 @@ EOF
 }
 
 #############################################################################
-install_redis()
+install_redis_dev()
 {
 #Download Redis package and unpack
 
@@ -145,13 +145,40 @@ configure_redis
 }
 
 #############################################################################
+install_redis()
+{
+
+# Install Redis
+if ! apt -y install redis-server
+then
+    echo "Installation failed."
+    sleep 3
+    exit 1
+else
+    printf "${Green}\nRedis installation OK!${Color_Off}\n"
+fi
+
+
+configure_redis
+}
+
+#############################################################################
 
 configure_redis()
 {
+
+## Redis performance tweaks ##
+if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
+then
+    echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
+fi
+
 # Configure the general settings
-#sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
-#sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
-sed -i "s|# requirepass foobared|requirepass $(cat /tmp/redis_pass.txt)|g" $REDIS_CONF
+sed -i "s|# unixsocket .*|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+sed -i "s|# unixsocketperm .*|unixsocketperm 777|g" $REDIS_CONF
+sed -i "s|^port.*|port 0|" $REDIS_CONF
+sed -i "s|# requirepass .*|requirepass $(cat /tmp/redis_pass.txt)|g" $REDIS_CONF
+sed -i 's|# rename-command CONFIG ""|rename-command CONFIG ""|' $REDIS_CONF
 sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
 sed -i "s|daemonize no|daemonize yes|g" $REDIS_CONF
 sed -i "s|# maxmemory <bytes>|maxmemory 250mb|g" $REDIS_CONF
@@ -160,12 +187,6 @@ sed -i "s|dir ./|dir /var/lib/redis|g" $REDIS_CONF
 sed -i "s|save 60 10000|# save 60 10000|g" $REDIS_CONF
 sed -i "s|save 300 10|# save 300 10|g" $REDIS_CONF
 sed -i "s|save 900 1|# save 900 1|g" $REDIS_CONF
-
-# Redis performance tweaks
-if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
-then
-    echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
-fi
 
 # Create a Redis systemd Unit File
 cat << EOF > /etc/systemd/system/redis.service
@@ -187,6 +208,10 @@ WantedBy=multi-user.target
 EOF
 
 sudo echo 'never' | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null
+
+# Secure Redis
+chown redis:root /etc/redis/redis.conf
+chmod 600 /etc/redis/redis.conf
 
 }
 #############################################################################
