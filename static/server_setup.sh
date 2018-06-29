@@ -253,6 +253,7 @@ cat /etc/php/7.2/fpm/php.ini
 
 log "Info" "OPCache Enabled for PHP..."
 # Set secure permissions final
+run_static_script redis-server-ubuntu16
 run_static_script wp-permissions
 
 #cration of robots.txt
