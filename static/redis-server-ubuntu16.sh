@@ -259,7 +259,7 @@ tune_memory
 tune_network
 
 # Step 2
-install_redis
+install_redis_dev
 rm -f /tmp/redis_pass.txt
 
 # Step 3
