@@ -121,7 +121,7 @@ install_base_packages(){
         apt_depends=(
         build-essential curl nano wget lftp unzip zoo bzip2 arj nomarch 
         lzop htop openssl gcc git binutils libmcrypt4 libpcre3-dev make python2.7 
-        python-pip supervisor unattended-upgrades whois zsh imagemagick
+        python-pip supervisor unattended-upgrades whois zsh imagemagick tcl wget
         )
         log "Info" "Starting to install base packages..."
         for depend in ${apt_depends[@]}
