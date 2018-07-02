@@ -174,9 +174,9 @@ then
 fi
 
 # Configure the general settings
-sed -i "s|# unixsocket .*|unixsocket $REDIS_SOCK|g" $REDIS_CONF
-sed -i "s|# unixsocketperm .*|unixsocketperm 777|g" $REDIS_CONF
-sed -i "s|^port.*|port 0|" $REDIS_CONF
+# sed -i "s|# unixsocket .*|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+# sed -i "s|# unixsocketperm .*|unixsocketperm 777|g" $REDIS_CONF
+sed -i "s|^port.*|port 6379|" $REDIS_CONF
 sed -i "s|# requirepass .*|requirepass $(cat /tmp/redis_pass.txt)|g" $REDIS_CONF
 sed -i 's|# rename-command CONFIG ""|rename-command CONFIG ""|' $REDIS_CONF
 sed -i "s|supervised no|supervised systemd|g" $REDIS_CONF
