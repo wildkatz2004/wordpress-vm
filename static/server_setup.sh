@@ -49,7 +49,7 @@ then
 fi
 
 
-if ! version 16.04 "$DISTRO" 16.04.4; then
+if ! version 16.04 "$DISTRO" 16.04.5; then
     echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
     exit
 fi
