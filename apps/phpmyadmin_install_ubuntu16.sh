@@ -40,12 +40,12 @@ then
 fi
 
 
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version seems to be $DISTRO"
-    echo "It must be between 16.04 - 16.04.4"
-    echo "Please install that version and try again."
-    exit 1
-fi
+#if ! version 16.04 "$DISTRO" 16.04.4; then
+#    echo "Ubuntu version seems to be $DISTRO"
+#    echo "It must be between 16.04 - 16.04.4"
+#    echo "Please install that version and try again."
+#    exit 1
+#fi
 
 echo
 echo "Installing and securing phpMyadmin..."
