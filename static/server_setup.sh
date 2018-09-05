@@ -49,10 +49,10 @@ then
 fi
 
 
-if ! version 16.04 "$DISTRO" 16.04.5; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
-fi
+#if ! version 16.04 "$DISTRO" 16.04.5; then
+#    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
+#    exit
+#fi
 
 printf "${Green}Gathering System info${Color_Off}\n" 
 preinstall_lamp
