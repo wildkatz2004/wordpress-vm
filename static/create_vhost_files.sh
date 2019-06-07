@@ -33,7 +33,7 @@ if [ ! -f $SSL_CONF ];
     </Directory>
     <FilesMatch \.php$>
         # 2.4.10+ can proxy to unix socket
-        SetHandler "proxy:unix:/var/run/php/php7.2-fpm.sock|fcgi://localhost/"
+        SetHandler "proxy:unix:/var/run/php/php7.3-fpm.sock|fcgi://localhost/"
  
         # Else we can just use a tcp socket:
         #SetHandler "proxy:fcgi://127.0.0.1:9000"
@@ -78,7 +78,7 @@ if [ ! -f $HTTP_CONF ];
     </Directory>
     <FilesMatch \.php$>
         # 2.4.10+ can proxy to unix socket
-        SetHandler "proxy:unix:/var/run/php/php7.2-fpm.sock|fcgi://localhost/"
+        SetHandler "proxy:unix:/var/run/php/php7.3-fpm.sock|fcgi://localhost/"
  
         # Else we can just use a tcp socket:
         #SetHandler "proxy:fcgi://127.0.0.1:9000"
