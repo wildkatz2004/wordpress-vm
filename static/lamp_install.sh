@@ -20,8 +20,8 @@ then
 fi
 
 #Variable(s)
-php_ver_num=7.2
-phptoinstall=php7.2
+php_ver_num=7.3
+phptoinstall=php7.3
 #Install MariaDB Function
 
 log "Info" "Write DB password to file to prepare for LAMP install..."
@@ -203,7 +203,7 @@ cat > /etc/apache2/mods-enabled/fastcgi.conf << EOF
   AddHandler php7-fcgi-sites .php
   Action php7-fcgi-sites /php7-fcgi-sites
   Alias /php7-fcgi-sites /usr/lib/cgi-bin/php7-fcgi-sites
- FastCgiExternalServer /usr/lib/cgi-bin/php7-fcgi-sites -idle-timeout 60 -socket /var/run/php/php7.2-fpm.sock -pass-header Authorization
+ FastCgiExternalServer /usr/lib/cgi-bin/php7-fcgi-sites -idle-timeout 60 -socket /var/run/php/php7.3-fpm.sock -pass-header Authorization
 
   <Directory /usr/lib/cgi-bin>
     Require all granted
@@ -237,13 +237,13 @@ log "Info" "Beginning php.ini edits."
 	sed -i "s/post_max_size = .*/post_max_size = 256M/" /etc/php/$php_ver_num/fpm/php.ini
 	sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/$php_ver_num/fpm/php.ini
 	#Tune PHP-FPM pool settings
-	#sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.2/fpm/pool.d/www.conf
-	#sed -i "s/;request_terminate_timeout.*/request_terminate_timeout = 60/" /etc/php/7.2/fpm/pool.d/www.conf
-	#sed -i "s/pm\.max_children.*/pm.max_children = 70/" /etc/php/7.2/fpm/pool.d/www.conf
-	#sed -i "s/pm\.start_servers.*/pm.start_servers = 20/" /etc/php/7.2/fpm/pool.d/www.conf
-	#sed -i "s/pm\.min_spare_servers.*/pm.min_spare_servers = 20/" /etc/php/7.2/fpm/pool.d/www.conf
-	#sed -i "s/pm\.max_spare_servers.*/pm.max_spare_servers = 35/" /etc/php/7.2/fpm/pool.d/www.conf
-	#sed -i "s/;pm\.max_requests.*/pm.max_requests = 500/" /etc/php/7.2/fpm/pool.d/www.conf	
+	#sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.3/fpm/pool.d/www.conf
+	#sed -i "s/;request_terminate_timeout.*/request_terminate_timeout = 60/" /etc/php/7.3/fpm/pool.d/www.conf
+	#sed -i "s/pm\.max_children.*/pm.max_children = 70/" /etc/php/7.3/fpm/pool.d/www.conf
+	#sed -i "s/pm\.start_servers.*/pm.start_servers = 20/" /etc/php/7.3/fpm/pool.d/www.conf
+	#sed -i "s/pm\.min_spare_servers.*/pm.min_spare_servers = 20/" /etc/php/7.3/fpm/pool.d/www.conf
+	#sed -i "s/pm\.max_spare_servers.*/pm.max_spare_servers = 35/" /etc/php/7.3/fpm/pool.d/www.conf
+	#sed -i "s/;pm\.max_requests.*/pm.max_requests = 500/" /etc/php/7.3/fpm/pool.d/www.conf	
 	
 	#Configure sessions directory permissions
 	chmod 733 /var/lib/php/sessions
@@ -263,15 +263,15 @@ log "Info" "Php.ini edits completed."
 
 # Install PHP Function
 install_php(){
-local phpversion=php7.2
+local phpversion=php7.3
 
 	if check_sys packageManager apt; then
 		apt_php_package=(
-		php7.2 php7.2-fpm php7.2-common
-		php7.2-cli php7.2-dev php7.2-pgsql php7.2-sqlite3 php7.2-gd php7.2-curl php-memcached 
-		php7.2-imap php7.2-mysql php7.2-mbstring php7.2-xml php-imagick php7.2-zip php7.2-bcmath php7.2-soap 
-		php7.2-intl php7.2-readline php7.2-pspell php7.2-tidy php7.2-xmlrpc php7.2-xsl 
-		php7.2-opcache php-apcu	libapache2-mod-php
+		php7.3 php7.3-fpm php7.3-common
+		php7.3-cli php7.3-dev php7.3-pgsql php7.3-sqlite3 php7.3-gd php7.3-curl php-memcached 
+		php7.3-imap php7.3-mysql php7.3-mbstring php7.3-xml php-imagick php7.3-zip php7.3-bcmath php7.3-soap 
+		php7.3-intl php7.3-readline php7.3-pspell php7.3-tidy php7.3-xmlrpc php7.3-xsl 
+		php7.3-opcache php-apcu	libapache2-mod-php
 		)
 		log "Info" "Starting to install primary packages for PHP..."
 		for depend in ${apt_php_package[@]}
@@ -286,7 +286,7 @@ configure_php
 
 php -v
 
-# Lets also check if the PHP7.2-FPM is running, if not start it
+# Lets also check if the php7.3-FPM is running, if not start it
 
 service $phpversion-fpm status
 if (( $(ps -ef | grep -v grep | grep "$phpversion-fpm" | wc -l) > 0 ))
