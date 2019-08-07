@@ -41,12 +41,12 @@ run_static_script adduser
 
 # Check Ubuntu version
 echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
+#if [ "$OS" != 1 ]
+#then
+#    echo "Ubuntu Server is required to run this script."
+#    echo "Please install that distro and try again."
+#    exit 1
+#fi
 
 
 #if ! version 16.04 "$DISTRO" 16.04.5; then
