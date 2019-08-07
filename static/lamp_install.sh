@@ -44,7 +44,7 @@ sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ftp.ddg.lth.se/mar
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
 apt update -q4 & spinner_loading
-check_command apt install mariadb-server-10.2 -y
+check_command apt install mariadb-server -y
 
 # Prepare for MySQL user updates
 log "Info" "Updating mysql user..."
