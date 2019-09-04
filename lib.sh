@@ -16,15 +16,15 @@ DISTRO=$(lsb_release -sd | cut -d ' ' -f 2)
 OS=$(grep -ic "Ubuntu" /etc/issue.net)
 
 # Network
-[ ! -z "$FIRST_IFACE" ] && IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
+[ -n "$FIRST_IFACE" ] && IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
 IFACE2=$(ip -o link show | awk '{print $2,$9}' | grep 'UP' | cut -d ':' -f 1)
-[ ! -z "$CHECK_CURRENT_REPO" ] && REPO=$(apt-get update | grep -m 1 Hit | awk '{ print $2}')
-ADDRESS=$(curl -s -m 5 ipinfo.io/ip)
+[ -n "$CHECK_CURRENT_REPO" ] && REPO=$(apt-get update | grep -m 1 Hit | awk '{ print $2}')
+ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 WGET="/usr/bin/wget"
 WANIP4=$(curl -s -m 5 ipinfo.io/ip)
-[ ! -z "$LOAD_IP6" ] && WANIP6=$(curl -s -k -m 7 https://6.ifcfg.me)
+[ -n "$LOAD_IP6" ] && WANIP6=$(curl -s -k -m 7 https://6.ifcfg.me)
 IFCONFIG="/sbin/ifconfig"
-INTERFACES="/etc/network/interfaces"
+INTERFACES="/etc/netplan/01-netcfg.yaml"
 NETMASK=$($IFCONFIG | grep -w inet |grep -v 127.0.0.1| awk '{print $4}' | cut -d ":" -f 2)
 GATEWAY=$(route -n|grep "UG"|grep -v "UGH"|cut -f 10 -d " ")
 CLIENTSIDEIP=$(echo $SSH_CLIENT | awk '{ print $1}')
@@ -44,6 +44,12 @@ UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
 UNIXUSER_ALIAS="/home/$UNIXUSER/.bash_aliases"
 ROOT_PROFILE="/root/.bash_profile"
 
+# PHP-FPM
+PHPVER=7.3
+PHP_INI=/etc/php/"$PHPVER"/fpm/php.ini
+PHP_POOL_DIR=/etc/php/"$PHPVER"/fpm/pool.d
+PHP_FPM_SOCK=/var/run/php"$PHPVER"-fpm-wordpress.sock
+
 # MARIADB
 SHUF=$(shuf -i 25-29 -n 1)
 MARIADB_PASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$SHUF" | head -n 1)
@@ -51,32 +57,32 @@ WPDBPASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$SHUF" | head -n 1)
 NEWMARIADBPASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$SHUF" | head -n 1)
 WPDBUSER=wordpress_user
 WPADMINPASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$SHUF" | head -n 1)
-[ ! -z "$WPDB" ] && WPCONFIGDB=$(grep "DB_PASSWORD" /var/www/html/wordpress/wp-config.php | awk '{print $3}' | cut -d "'" -f2)
+[ -n "$WPDB" ] && WPCONFIGDB=$(grep "DB_PASSWORD" /var/www/html/wordpress/wp-config.php | awk '{print $3}' | cut -d "'" -f2)
 MYCNF=/root/.my.cnf
-[ ! -z "$MYCNFPW" ] && MARIADBMYCNFPASS=$(grep "password" $MYCNF | sed -n "/password/s/^password='\(.*\)'$/\1/p")
+[ -n "$MYCNFPW" ] && MARIADBMYCNFPASS=$(grep "password" $MYCNF | sed -n "/password/s/^password='\(.*\)'$/\1/p")
 # Path to specific files
-PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
 SECURE="$SCRIPTS/wp-permissions.sh"
-SSL_CONF="/etc/apache2/sites-available/wordpress_port_443.conf"
-HTTP_CONF="/etc/apache2/sites-available/wordpress_port_80.conf"
-ETCMYCNF=/etc/mysql/my.cnf
+SSL_CONF="/etc/nginx/sites-available/wordpress_port_443.conf"
+HTTP_CONF="/etc/nginx/sites-available/wordpress_port_80.conf"
+ETCMYCNF="/etc/mysql/my.cnf"
+NGINX_CONF="/etc/nginx/nginx.conf"
+NGINX_DEF="/etc/nginx/sites-available/default"
 
 # Letsencrypt
 LETSENCRYPTPATH="/etc/letsencrypt"
 CERTFILES="$LETSENCRYPTPATH/live"
 DHPARAMS="$CERTFILES/$SUBDOMAIN/dhparam.pem"
 
-# phpMyadmin
-PHPMYADMINDIR=/usr/share/phpmyadmin
-PHPMYADMIN_CONF="/etc/apache2/conf-available/phpmyadmin.conf"
-UPLOADPATH=""
-SAVEPATH=""
+# Adminer
+ADMINERDIR=/usr/share/adminer
+ADMINER_CONF=/etc/nginx/sites-available/adminer.conf
 
 # Redis
 REDIS_CONF=/etc/redis/redis.conf
-REDIS_SOCK=/var/run/redis/redis.sock
+REDIS_SOCK=/var/run/redis/redis-server.sock
 RSHUF=$(shuf -i 30-35 -n 1)
 REDIS_PASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$RSHUF" | head -n 1)
+REDISPTXT=/tmp/redispasstxt
 
 # Extra security
 SPAMHAUSCONF=/etc/apache2/mods-available/spamhaus.conf
@@ -124,6 +130,28 @@ ask_yes_or_no() {
             echo "no"
         ;;
     esac
+}
+
+wp_cli_cmd() {
+export WP_CLI_CACHE_DIR=$WPATH/.wp-cli/cache
+check_command sudo -u www-data /usr/local/bin/wp "$@";
+}
+
+# Check if process is runnnig: is_process_running dpkg
+is_process_running() {
+PROCESS="$1"
+
+while :
+do
+    RESULT=$(pgrep "${PROCESS}")
+
+    if [ "${RESULT:-null}" = null ]; then
+            break
+    else
+            print_text_in_color "$ICyan" "${PROCESS} is running. Waiting for it to stop..."
+            sleep 10
+    fi
+done
 }
 
 # Check if program is installed (is_this_installed apache2)
@@ -213,6 +241,47 @@ network_ok() {
     fi
 }
 
+restart_webserver() {
+check_command systemctl restart nginx
+if is_this_installed php"$PHPVER"-fpm
+then
+    check_command systemctl restart php"$PHPVER"-fpm.service
+fi
+}
+
+# Install certbot (Let's Encrypt)
+install_certbot() {
+certbot --version 2> /dev/null
+LE_IS_AVAILABLE=$?
+if [ $LE_IS_AVAILABLE -eq 0 ]
+then
+    certbot --version
+else
+    print_text_in_color "$ICyan" "Installing certbot (Let's Encrypt)..."
+    apt update -q4 & spinner_loading
+    apt install software-properties-common
+    add-apt-repository ppa:certbot/certbot -y
+    apt update -q4 & spinner_loading
+    apt install certbot -y -q
+    apt update -q4 & spinner_loading
+    apt dist-upgrade -y
+fi
+}
+
+msg_box() {
+local PROMPT="$1"
+    whiptail --msgbox "${PROMPT}" "$WT_HEIGHT" "$WT_WIDTH"
+}
+
+# Check if program is installed (stop_if_installed apache2)
+stop_if_installed() {
+if [ "$(dpkg-query -W -f='${Status}' "${1}" 2>/dev/null | grep -c "ok installed")" == "1" ]
+then
+    print_text_in_color "$IRed" "${1} is installed, it must be a clean server."
+    exit 1
+fi
+}
+
 # Whiptail auto-size
 calc_wt_size() {
     WT_HEIGHT=17
@@ -235,9 +304,9 @@ download_static_script() {
     rm -f "${SCRIPTS}/${1}.sh" "${SCRIPTS}/${1}.php" "${SCRIPTS}/${1}.py"
     if ! { wget -q "${STATIC}/${1}.sh" -P "$SCRIPTS" || wget -q "${STATIC}/${1}.php" -P "$SCRIPTS" || wget -q "${STATIC}/${1}.py" -P "$SCRIPTS"; }
     then
-        echo "{$1} failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|.php|.py' again."
-        echo "If you get this error when running the wordpress-startup-script then just re-run it with:"
-        echo "'sudo bash $SCRIPTS/wordpress-startup-script.sh' and all the scripts will be downloaded again"
+        print_text_in_color "$IRed" "{$1} failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|.php|.py' again."
+        print_text_in_color "$IRed" "If you get this error when running the wordpress-startup-script then just re-run it with:"
+        print_text_in_color "$IRed" "'sudo bash $SCRIPTS/wordpress-startup-script.sh' and all the scripts will be downloaded again"
         exit 1
     fi
 }
@@ -249,9 +318,9 @@ download_le_script() {
     rm -f "${SCRIPTS}/${1}.sh" "${SCRIPTS}/${1}.php" "${SCRIPTS}/${1}.py"
     if ! { wget -q "${LETS_ENC}/${1}.sh" -P "$SCRIPTS" || wget -q "${LETS_ENC}/${1}.php" -P "$SCRIPTS" || wget -q "${LETS_ENC}/${1}.py" -P "$SCRIPTS"; }
     then
-        echo "{$1} failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|.php|.py' again."
-        echo "If you get this error when running the wordpress-startup-script then just re-run it with:"
-        echo "'sudo bash $SCRIPTS/wordpress-startup-script.sh' and all the scripts will be downloaded again"
+        print_text_in_color "$IRed" "{$1} failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|.php|.py' again."
+        print_text_in_color "$IRed" "If you get this error when running the wordpress-startup-script then just re-run it with:"
+        print_text_in_color "$IRed" "'sudo bash $SCRIPTS/wordpress-startup-script.sh' and all the scripts will be downloaded again"
         exit 1
     fi
 }
@@ -273,8 +342,8 @@ run_main_script() {
         python "${SCRIPTS}/${1}.py"
         rm -f "${SCRIPTS}/${1}.py"
     else
-        echo "Downloading ${1} failed"
-        echo "Script failed to download. Please run: 'sudo wget ${GITHUB_REPO}/${1}.sh|php|py' again."
+        print_text_in_color "$IRed" "Downloading ${1} failed"
+        print_text_in_color "$IRed" "Script failed to download. Please run: 'sudo wget ${GITHUB_REPO}/${1}.sh|php|py' again."
         sleep 3
     fi
 }
@@ -297,8 +366,8 @@ run_static_script() {
         python "${SCRIPTS}/${1}.py"
         rm -f "${SCRIPTS}/${1}.py"
     else
-        echo "Downloading ${1} failed"
-        echo "Script failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|php|py' again."
+        print_text_in_color "$IRed" "Downloading ${1} failed"
+        print_text_in_color "$IRed" "Script failed to download. Please run: 'sudo wget ${STATIC}/${1}.sh|php|py' again."
         sleep 3
     fi
 }
@@ -320,8 +389,8 @@ run_app_script() {
         python "${SCRIPTS}/${1}.py"
         rm -f "${SCRIPTS}/${1}.py"
     else
-        echo "Downloading ${1} failed"
-        echo "Script failed to download. Please run: 'sudo wget ${APP}/${1}.sh|php|py' again."
+        print_text_in_color "$IRed" "Downloading ${1} failed"
+        print_text_in_color "$IRed" "Script failed to download. Please run: 'sudo wget ${APP}/${1}.sh|php|py' again."
         sleep 3
     fi
 }
